@@ -31,6 +31,7 @@ import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.config.SimpleNode;
 import ch.njol.skript.events.bukkit.PreScriptLoadEvent;
+import ch.njol.skript.expressions.ExprOption;
 import ch.njol.skript.lang.ParseContext;
 import ch.njol.skript.lang.Section;
 import ch.njol.skript.lang.SelfRegisteringSkriptEvent;
@@ -631,6 +632,7 @@ public class ScriptLoader {
 								continue;
 							}
 							getParser().getCurrentOptions().put(n.getKey(), ((EntryNode) n).getValue());
+							ExprOption.updateOptions(getParser().getCurrentScript().getFileName(), getParser().getCurrentOptions());
 						}
 						continue;
 					} else if (event.equalsIgnoreCase("variables")) {
