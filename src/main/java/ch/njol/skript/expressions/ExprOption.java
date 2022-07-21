@@ -25,7 +25,7 @@ import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
-import ch.njol.skript.lang.SkriptParser;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.apache.commons.lang.SerializationUtils;
@@ -34,33 +34,36 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Name("Script Options")
 @Description("It returns one or more options from any script.")
-@Examples({"options:",
-	"	test: Hello World",
+@Examples({
+	"options:",
+	"\ttest: Hello World",
 	"",
 	"command /test:",
-	"	trigger:",
-	"		send \"The option is %skript option \"test\"%\" in \"test.sk\""})
+	"\ttrigger:",
+	"\t\tsend \"The option is %skript option \"test\"%\" in \"test.sk\""
+})
 @Since("INSERT VERSION")
 public class ExprOption extends SimpleExpression<String> {
 
 	static {
-		Skript.registerExpression(ExprOption.class, String.class, ExpressionType.PROPERTY, "[the] [s(c|k)ript] option[s] %strings% (from|in) [s(k|c)ript] %string%");
+		Skript.registerExpression(ExprOption.class, String.class, ExpressionType.COMBINED, "[the] [s(c|k)ript] option[s] %strings% (from|in) [s(k|c)ript] %string%");
 	}
 
-	public static void updateOptions(String scriptName, HashMap<String, String> options){
-		SKRIPT_OPTIONS.put(scriptName, (HashMap<String, String>) SerializationUtils.clone(options));
+	public static void updateOptions(String scriptName, Map<String, String> options){
+		SKRIPT_OPTIONS.put(scriptName, (Map<String, String>) SerializationUtils.clone(options));
 	}
 
-	private final static HashMap<String, HashMap<String, String>> SKRIPT_OPTIONS = new HashMap<>();
+	private final static Map<String, Map<String, String>> SKRIPT_OPTIONS = new HashMap<>();
 
 	private Expression<String> requestedOptions;
 	private Expression<String> skriptName;
 
 	@Override
-	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final SkriptParser.ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		requestedOptions = (Expression<String>) exprs[0];
 		skriptName = (Expression<String>) exprs[1];
 		return true;
@@ -72,9 +75,8 @@ public class ExprOption extends SimpleExpression<String> {
 		key = key.endsWith(".sk") ? key : key + ".sk";
 		List<String> result = new ArrayList<>();
 		for (String option : requestedOptions.getAll(e)) {
-			if(SKRIPT_OPTIONS.containsKey(key) && SKRIPT_OPTIONS.get(key).containsKey(option)){
+			if (SKRIPT_OPTIONS.containsKey(key) && SKRIPT_OPTIONS.get(key).containsKey(option))
 				result.add(SKRIPT_OPTIONS.get(key).get(option));
-			}
 		}
 		return result.toArray(new String[result.size()]);
 	}
@@ -93,4 +95,5 @@ public class ExprOption extends SimpleExpression<String> {
 	public String toString(final @Nullable Event e, final boolean debug) {
 		return "Expression to get option";
 	}
+	
 }
