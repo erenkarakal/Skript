@@ -53,7 +53,7 @@ public class ExprOption extends SimpleExpression<String> {
 		Skript.registerExpression(ExprOption.class, String.class, ExpressionType.COMBINED, "[the] [s(c|k)ript] option[s] %strings% (from|in) [s(k|c)ript] %string%");
 	}
 
-	public static void updateOptions(String scriptName, Map<String, String> options){
+	public static void updateOptions(String scriptName, Map<String, String> options) {
 		SKRIPT_OPTIONS.put(scriptName, Map.copyOf(options));
 	}
 
