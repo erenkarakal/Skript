@@ -54,7 +54,7 @@ public class ExprOption extends SimpleExpression<String> {
 	}
 
 	public static void updateOptions(String scriptName, Map<String, String> options){
-		SKRIPT_OPTIONS.put(scriptName, (Map<String, String>) SerializationUtils.clone(options));
+		SKRIPT_OPTIONS.put(scriptName, Map.copyOf(options));
 	}
 
 	private final static Map<String, Map<String, String>> SKRIPT_OPTIONS = new HashMap<>();
