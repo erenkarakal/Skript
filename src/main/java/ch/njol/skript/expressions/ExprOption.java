@@ -40,11 +40,11 @@ import java.util.Map;
 @Description("It returns one or more options from any script.")
 @Examples({
 	"options:",
-	"\ttest: Hello World",
+		"\ttest: Hello World",
 	"",
 	"command /test:",
-	"\ttrigger:",
-	"\t\tsend \"The option is %skript option \"test\"%\" in \"test.sk\""
+		"\ttrigger:",
+			"\t\tsend \"The option is %skript option \"test\"%\" in \"test.sk\""
 })
 @Since("INSERT VERSION")
 public class ExprOption extends SimpleExpression<String> {
