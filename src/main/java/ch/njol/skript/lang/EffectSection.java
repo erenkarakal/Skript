@@ -41,7 +41,7 @@ import java.util.List;
  */
 public abstract class EffectSection extends Section {
 
-	private boolean hasSection = false;
+	private boolean hasSection;
 
 	public boolean hasSection() {
 		return hasSection;
@@ -55,7 +55,6 @@ public abstract class EffectSection extends Section {
 		SectionContext sectionContext = getParser().getData(SectionContext.class);
 		//noinspection ConstantConditions - For an EffectSection, it may be null
 		hasSection = sectionContext.sectionNode != null;
-
 		return super.init(exprs, matchedPattern, isDelayed, parseResult);
 	}
 
@@ -71,7 +70,7 @@ public abstract class EffectSection extends Section {
 	 * Similar to {@link Section#parse(String, String, SectionNode, List)}, but will only attempt to parse from other {@link EffectSection}s.
 	 */
 	@Nullable
-	@SuppressWarnings({"unchecked", "rawtypes", "ConstantConditions"})
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public static EffectSection parse(String expr, @Nullable String defaultError, @Nullable SectionNode sectionNode, @Nullable List<TriggerItem> triggerItems) {
 		SectionContext sectionContext = ParserInstance.get().getData(SectionContext.class);
 

@@ -1317,28 +1317,27 @@ public final class Skript extends JavaPlugin implements Listener {
 			expressionTypesStartIndices[i]++;
 		}
 	}
-	
-	@SuppressWarnings("null")
+
 	public static Iterator<ExpressionInfo<?, ?>> getExpressions() {
 		return expressions.iterator();
 	}
-	
+
 	public static Iterator<ExpressionInfo<?, ?>> getExpressions(final Class<?>... returnTypes) {
 		return new CheckedIterator<>(getExpressions(), new NullableChecker<ExpressionInfo<?, ?>>() {
 			@Override
 			public boolean check(final @Nullable ExpressionInfo<?, ?> i) {
-				if (i == null || i.returnType == Object.class)
+				if (i == null || i.getReturnType() == Object.class)
 					return true;
 				for (final Class<?> returnType : returnTypes) {
 					assert returnType != null;
-					if (Converters.converterExists(i.returnType, returnType))
+					if (Converters.converterExists(i.getReturnType(), returnType))
 						return true;
 				}
 				return false;
 			}
 		});
 	}
-	
+
 	// ================ EVENTS ================
 	
 	private final static Collection<SkriptEventInfo<?>> events = new ArrayList<>(50);

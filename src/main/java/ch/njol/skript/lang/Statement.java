@@ -35,29 +35,29 @@ import ch.njol.skript.log.SkriptLogger;
  */
 public abstract class Statement extends TriggerItem implements SyntaxElement {
 
-	@SuppressWarnings({"rawtypes", "unchecked", "null"})
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Nullable
-	public static Statement parse(String s, String defaultError) {
+	public static Statement parse(String input, String defaultError) {
 		ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
-			EffFunctionCall f = EffFunctionCall.parse(s);
-			if (f != null) {
+			EffFunctionCall functionCall = EffFunctionCall.parse(input);
+			if (functionCall != null) {
 				log.printLog();
-				return f;
+				return functionCall;
 			} else if (log.hasError()) {
 				log.printError();
 				return null;
 			}
 			log.clear();
 
-			EffectSection section = EffectSection.parse(s, null, null, null);
+			EffectSection section = EffectSection.parse(input, null, null, null);
 			if (section != null) {
 				log.printLog();
 				return new EffectSectionEffect(section);
 			}
 			log.clear();
 
-			Statement statement = (Statement) SkriptParser.parse(s, (Iterator) Skript.getStatements().iterator(), defaultError);
+			Statement statement = (Statement) SkriptParser.parse(input, (Iterator) Skript.getStatements().iterator(), defaultError);
 			if (statement != null) {
 				log.printLog();
 				return statement;

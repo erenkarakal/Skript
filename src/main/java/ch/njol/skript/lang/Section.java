@@ -161,7 +161,6 @@ public abstract class Section extends TriggerSection implements SyntaxElement {
 		ParserInstance.registerData(SectionContext.class, SectionContext::new);
 	}
 
-	@SuppressWarnings("NotNullFieldNotInitialized")
 	protected static class SectionContext extends ParserInstance.Data {
 
 		protected SectionNode sectionNode;

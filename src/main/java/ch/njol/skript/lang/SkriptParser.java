@@ -19,6 +19,7 @@
 package ch.njol.skript.lang;
 
 import ch.njol.skript.Skript;
+
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.ClassInfo;
@@ -52,7 +53,6 @@ import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.primitives.Booleans;
 import org.bukkit.event.EventPriority;
-import org.bukkit.inventory.ItemStack;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -1047,7 +1047,7 @@ public class SkriptParser {
 						ParseResult res = parse_i(pattern, 0, 0);
 						if (res != null) {
 							SkriptEvent e = info.c.newInstance();
-							e.eventPriority = eventPriority;
+							e.setEventPriority(eventPriority);
 							Literal<?>[] ls = Arrays.copyOf(res.exprs, res.exprs.length, Literal[].class);
 							if (!e.init(ls, i, res)) {
 								log.printError();

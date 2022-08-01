@@ -38,58 +38,60 @@ import ch.njol.util.coll.iterator.NonNullIterator;
 
 /**
  * A literal which has yet to be parsed. This is returned if %object(s)% is used within patterns and no expression matches.
- * 
- * @author Peter Güttinger
+
  * @see SimpleLiteral
  */
 public class UnparsedLiteral implements Literal<Object> {
-	
+
 	private final String data;
+
 	@Nullable
 	private final LogEntry error;
-	
+
 	/**
 	 * @param data non-null, non-empty & trimmed string
 	 */
-	public UnparsedLiteral(final String data) {
+	public UnparsedLiteral(String data) {
 		assert data != null && data.length() > 0;
 		this.data = data;
 		error = null;
 	}
-	
+
 	/**
 	 * @param data non-null, non-empty & trimmed string
 	 * @param error Error to log if this literal cannot be parsed
 	 */
-	public UnparsedLiteral(final String data, final @Nullable LogEntry error) {
+	public UnparsedLiteral(String data, @Nullable LogEntry error) {
 		assert data != null && data.length() > 0;
 		assert error == null || error.getLevel() == Level.SEVERE;
 		this.data = data;
 		this.error = error;
 	}
-	
+
 	public String getData() {
 		return data;
 	}
-	
+
 	@Override
 	public Class<? extends Object> getReturnType() {
 		return Object.class;
 	}
-	
+
 	@Override
 	@Nullable
-	public <R> Literal<? extends R> getConvertedExpression(final Class<R>... to) {
+	@SuppressWarnings("unchecked")
+	public <R> Literal<? extends R> getConvertedExpression(Class<R>... to) {
 		return getConvertedExpression(ParseContext.DEFAULT, to);
 	}
 	
 	@Nullable
-	public <R> Literal<? extends R> getConvertedExpression(final ParseContext context, final Class<? extends R>... to) {
+	@SuppressWarnings("unchecked")
+	public <R> Literal<? extends R> getConvertedExpression(ParseContext context, Class<? extends R>... to) {
 		assert to != null && to.length > 0;
 		assert to.length == 1 || !CollectionUtils.contains(to, Object.class);
-		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
+		ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
-			for (final Class<? extends R> t : to) {
+			for (Class<? extends R> t : to) {
 				assert t != null;
 				final R r = Classes.parse(data, t, context);
 				if (r != null) {
@@ -239,117 +241,117 @@ public class UnparsedLiteral implements Literal<Object> {
 //	}
 	
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(@Nullable Event event, final boolean debug) {
 		return "'" + data + "'";
 	}
-	
+
 	@Override
 	public String toString() {
 		return toString(null, false);
 	}
-	
+
 	@Override
 	public Expression<?> getSource() {
 		return this;
 	}
-	
+
 	@Override
 	public boolean getAnd() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean isSingle() {
 		return true;
 	}
-	
+
 	@Override
 	public Expression<? extends Object> simplify() {
 		return this;
 	}
-	
+
 	private static SkriptAPIException invalidAccessException() {
 		return new SkriptAPIException("UnparsedLiterals must be converted before use");
 	}
-	
+
 	@Override
 	public Object[] getAll() {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public Object[] getAll(final Event e) {
+	public Object[] getAll(Event event) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
 	public Object[] getArray() {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public Object[] getArray(final Event e) {
+	public Object[] getArray(Event event) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
 	public Object getSingle() {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public Object getSingle(final Event e) {
+	public Object getSingle(Event event) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public NonNullIterator<Object> iterator(final Event e) {
+	public NonNullIterator<Object> iterator(Event event) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public void change(final Event e, final @Nullable Object[] delta, final ChangeMode mode) throws UnsupportedOperationException {
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public Class<?>[] acceptChange(final ChangeMode mode) {
+	public Class<?>[] acceptChange(ChangeMode mode) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public boolean check(final Event e, final Checker<? super Object> c) {
+	public boolean check(Event event, Checker<? super Object> c) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public boolean check(final Event e, final Checker<? super Object> c, final boolean negated) {
+	public boolean check(Event event, Checker<? super Object> c, boolean negated) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public boolean setTime(final int time) {
+	public boolean setTime(int time) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
 	public int getTime() {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
 	public boolean isDefault() {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public boolean isLoopOf(final String s) {
+	public boolean isLoopOf(String input) {
 		throw invalidAccessException();
 	}
-	
+
 	@Override
-	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		throw invalidAccessException();
 	}
-	
+
 }

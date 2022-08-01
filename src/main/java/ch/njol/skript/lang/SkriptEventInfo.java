@@ -27,23 +27,16 @@ import org.eclipse.jdt.annotation.Nullable;
 import ch.njol.skript.SkriptAPIException;
 
 public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementInfo<E> {
-	
+
+	@Nullable
+	private String[] description, examples, requiredPlugins;
+
+	@Nullable
+	private String since, documentationID;
+
 	public Class<? extends Event>[] events;
-	public final String name;
-	
-	private final String id;
-	
-	@Nullable
-	private String[] description;
-	@Nullable
-	private String[] examples;
-	@Nullable
-	private String since;
-	@Nullable
-	private String documentationID;
-	@Nullable
-	private String[] requiredPlugins;
-	
+	private final String name, id;
+
 	/**
 	 * @param name Capitalised name of the event without leading "On" which is added automatically (Start the name with an asterisk to prevent this).
 	 * @param patterns
@@ -51,14 +44,13 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 	 * @param originClassPath The class path for the origin of this event.
 	 * @param events The Bukkit-Events this SkriptEvent listens to
 	 */
-	public SkriptEventInfo(String name, final String[] patterns, final Class<E> c, final String originClassPath, final Class<? extends Event>[] events) {
+	public SkriptEventInfo(String name, String[] patterns, Class<E> c, String originClassPath, Class<? extends Event>[] events) {
 		super(patterns, c, originClassPath);
 		assert name != null;
 		assert patterns != null && patterns.length > 0;
 		assert c != null;
 		assert originClassPath != null;
 		assert events != null && events.length > 0;
-		
 		for (int i = 0; i < events.length; i++) {
 			for (int j = i + 1; j < events.length; j++) {
 				if (events[i].isAssignableFrom(events[j]) || events[j].isAssignableFrom(events[i])) {
@@ -70,7 +62,6 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 				}
 			}
 		}
-		
 		this.events = events;
 		
 		if (name.startsWith("*")) {
@@ -82,43 +73,43 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 		// uses the name without 'on ' or '*'
 		this.id = "" + name.toLowerCase(Locale.ENGLISH).replaceAll("[#'\"<>/&]", "").replaceAll("\\s+", "_");
 	}
-	
+
 	/**
 	 * Use this as {@link #description(String...)} to prevent warnings about missing documentation.
 	 */
 	public final static String[] NO_DOC = new String[0];
-	
+
 	/**
 	 * Only used for Skript's documentation.
 	 * 
 	 * @param description
 	 * @return This SkriptEventInfo object
 	 */
-	public SkriptEventInfo<E> description(final String... description) {
+	public SkriptEventInfo<E> description(String... description) {
 		assert this.description == null;
 		this.description = description;
 		return this;
 	}
-	
+
 	/**
 	 * Only used for Skript's documentation.
 	 * 
 	 * @param examples
 	 * @return This SkriptEventInfo object
 	 */
-	public SkriptEventInfo<E> examples(final String... examples) {
+	public SkriptEventInfo<E> examples(String... examples) {
 		assert this.examples == null;
 		this.examples = examples;
 		return this;
 	}
-	
+
 	/**
 	 * Only used for Skript's documentation.
 	 * 
 	 * @param since
 	 * @return This SkriptEventInfo object
 	 */
-	public SkriptEventInfo<E> since(final String since) {
+	public SkriptEventInfo<E> since(String since) {
 		assert this.since == null;
 		this.since = since;
 		return this;
@@ -132,7 +123,7 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 	 * @param id
 	 * @return This SkriptEventInfo object
 	 */
-	public SkriptEventInfo<E> documentationID(final String id) {
+	public SkriptEventInfo<E> documentationID(String id) {
 		assert this.documentationID == null;
 		this.documentationID = id;
 		return this;
@@ -146,31 +137,30 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 	 * @param pluginNames
 	 * @return This SkriptEventInfo object
 	 */
-	public SkriptEventInfo<E> requiredPlugins(final String... pluginNames) {
+	public SkriptEventInfo<E> requiredPlugins(String... pluginNames) {
 		assert this.requiredPlugins == null;
 		this.requiredPlugins = pluginNames;
 		return this;
 	}
 
-	
 	public String getId() {
 		return id;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	@Nullable
 	public String[] getDescription() {
 		return description;
 	}
-	
+
 	@Nullable
 	public String[] getExamples() {
 		return examples;
 	}
-	
+
 	@Nullable
 	public String getSince() {
 		return since;
@@ -185,4 +175,5 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 	public String getDocumentationID() {
 		return documentationID;
 	}
+
 }

@@ -18,9 +18,6 @@
  */
 package ch.njol.skript.lang;
 
-/**
- * @author Peter Güttinger
- */
 public interface Unit extends Cloneable {
 	
 	public int getAmount();

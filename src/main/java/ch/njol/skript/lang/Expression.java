@@ -43,13 +43,12 @@ import java.util.stream.StreamSupport;
 /**
  * Represents an expression. Expressions are used within conditions, effects and other expressions.
  * 
- * @author Peter Güttinger
  * @see Skript#registerExpression(Class, Class, ExpressionType, String...)
  * @see SimpleExpression
  * @see SyntaxElement
  */
 public interface Expression<T> extends SyntaxElement, Debuggable {
-	
+
 	/**
 	 * Get the single value of this expression.
 	 * <p>
@@ -58,26 +57,26 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * <p>
 	 * Do not use this in conditions, use {@link #check(Event, Checker, boolean)} instead.
 	 * 
-	 * @param e The event
+	 * @param event The event
 	 * @return The value or null if this expression doesn't have any value for the event
 	 * @throws UnsupportedOperationException (optional) if this was called on a non-single expression
 	 */
 	@Nullable
-	T getSingle(Event e);
+	T getSingle(Event event);
 
 	/**
 	 * Get an optional of the single value of this expression.
 	 * <p>
 	 * Do not use this in conditions, use {@link #check(Event, Checker, boolean)} instead.
 	 *
-	 * @param e the event
+	 * @param event the event
 	 * @return an {@link Optional} containing the {@link #getSingle(Event) single value} of this expression for this event.
 	 * @see #getSingle(Event)
 	 */
-	default Optional<T> getOptionalSingle(Event e) {
-		return Optional.ofNullable(getSingle(e));
+	default Optional<T> getOptionalSingle(Event event) {
+		return Optional.ofNullable(getSingle(event));
 	}
-	
+
 	/**
 	 * Get all the values of this expression. The returned array is empty if this expression doesn't have any values for the given event.
 	 * <p>
@@ -88,36 +87,35 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @param e The event
 	 * @return An array of values of this expression which must neither be null nor contain nulls, and which must not be an internal array.
 	 */
-	public T[] getArray(final Event e);
-	
+	public T[] getArray(Event event);
+
 	/**
 	 * Gets all possible return values of this expression, i.e. it returns the same as {@link #getArray(Event)} if {@link #getAnd()} is true, otherwise all possible values for
 	 * {@link #getSingle(Event)}.
 	 * 
-	 * @param e The event
+	 * @param event The event
 	 * @return An array of all possible values of this expression for the given event which must neither be null nor contain nulls, and which must not be an internal array.
 	 */
-	public T[] getAll(final Event e);
-	
+	public T[] getAll(Event event);
+
 	/**
 	 * Gets a non-null stream of this expression's values.
 	 *
-	 * @param e The event
+	 * @param event The event
 	 * @return A non-null stream of this expression's values
 	 */
-	default public Stream<? extends T> stream(final Event e) {
-		Iterator<? extends T> iter = iterator(e);
-		if (iter == null) {
+	default public Stream<? extends T> stream(Event event) {
+		Iterator<? extends T> iterator = iterator(event);
+		if (iterator == null)
 			return Stream.empty();
-		}
-		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter, 0), false);
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
 	}
-	
+
 	/**
 	 * @return true if this expression will ever only return one value at most, false if it can return multiple values.
 	 */
 	public abstract boolean isSingle();
-	
+
 	/**
 	 * Checks this expression against the given checker. This is the normal version of this method and the one which must be used for simple checks,
 	 * or as the innermost check of nested checks.
@@ -128,25 +126,25 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * return negated ^ {@link #check(Event, Checker)};
 	 * </pre>
 	 * 
-	 * @param e The event
-	 * @param c A checker
+	 * @param event The event to be used to check values.
+	 * @param checker A checker to be used to determine the boolean result if this expression matches.
 	 * @param negated The checking condition's negated state. This is used to invert the output of the checker if set to true (i.e. <tt>negated ^ checker.check(...)</tt>)
 	 * @return Whether this expression matches or doesn't match the given checker depending on the condition's negated state.
 	 * @see SimpleExpression#check(Object[], Checker, boolean, boolean)
 	 */
-	public boolean check(final Event e, final Checker<? super T> c, final boolean negated);
-	
+	public boolean check(Event event, Checker<? super T> chcker, boolean negated);
+
 	/**
 	 * Checks this expression against the given checker. This method must only be used around other checks, use {@link #check(Event, Checker, boolean)} for a simple ckeck or the
 	 * innermost check of a nested check.
 	 * 
-	 * @param e The event
-	 * @param c A checker
+	 * @param event The event to be used to check values.
+	 * @param checker A checker to be used to determine the boolean result if this expression matches.
 	 * @return Whether this expression matches the given checker
 	 * @see SimpleExpression#check(Object[], Checker, boolean, boolean)
 	 */
-	public boolean check(final Event e, final Checker<? super T> c);
-	
+	public boolean check(Event event, Checker<? super T> checker);
+
 	/**
 	 * Tries to convert this expression to the given type. This method can print an error prior to returning null to specify the cause.
 	 * <p>
@@ -163,15 +161,16 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @see ConvertedExpression
 	 */
 	@Nullable
-	public <R> Expression<? extends R> getConvertedExpression(final Class<R>... to);
-	
+	@SuppressWarnings("unchecked")
+	public <R> Expression<? extends R> getConvertedExpression(Class<R>... to);
+
 	/**
 	 * Gets the return type of this expression.
 	 * 
 	 * @return A supertype of any objects returned by {@link #getSingle(Event)} and the component type of any arrays returned by {@link #getArray(Event)}
 	 */
 	public abstract Class<? extends T> getReturnType();
-	
+
 	/**
 	 * Returns true if this expression returns all possible values, false if it only returns some of them.
 	 * <p>
@@ -183,7 +182,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @return Whether this expression returns all values at once or only part of them.
 	 */
 	public boolean getAnd();
-	
+
 	/**
 	 * Sets the time of this expression, i.e. whether the returned value represents this expression before or after the event.
 	 * <p>
@@ -201,13 +200,13 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @see ch.njol.skript.lang.parser.ParserInstance#isCurrentEvent(Class...)
 	 */
 	public boolean setTime(int time);
-	
+
 	/**
 	 * @return The value passed to {@link #setTime(int)} or 0 if it was never changed.
 	 * @see #setTime(int)
 	 */
 	public int getTime();
-	
+
 	/**
 	 * Returns whether this value represents the default value of its type for the event, i.e. it can be replaced with a call to event.getXyz() if one knows the event & value type.
 	 * <p>
@@ -216,27 +215,27 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @return Whether is is the return types' default expression
 	 */
 	public boolean isDefault();
-	
+
 	/**
 	 * Returns the same as {@link #getArray(Event)} but as an iterator. This method should be overriden by expressions intended to be looped to increase performance.
 	 * 
-	 * @param e The event
+	 * @param event The event to be used to check values.
 	 * @return An iterator to iterate over all values of this expression which may be empty and/or null, but must not return null elements.
 	 */
 	@Nullable
-	public Iterator<? extends T> iterator(Event e);
-	
+	public Iterator<? extends T> iterator(Event event);
+
 	/**
 	 * Checks whether the given 'loop-...' expression should match this loop, e.g. loop-block matches any loops that loop through blocks and loop-argument matches an
 	 * argument loop.
 	 * <p>
 	 * You should usually just return false as e.g. loop-block will automatically match the expression if its returnType is Block or a subtype of it.
 	 * 
-	 * @param s The entered string
+	 * @param input The entered input string.
 	 * @return Whether this loop matches the given string
 	 */
-	public boolean isLoopOf(String s);
-	
+	public boolean isLoopOf(String input);
+
 	/**
 	 * Returns the original expression that was parsed, i.e. without any conversions done.
 	 * <p>
@@ -245,7 +244,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 * @return The unconverted source expression of this expression or this expression itself if it was never converted.
 	 */
 	public Expression<?> getSource();
-	
+
 	/**
 	 * Simplifies the expression, e.g. if it only contains literals the expression may be simplified to a literal, and wrapped expressions are unwrapped.
 	 * <p>
@@ -257,7 +256,7 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 *         this method call should be kept!
 	 */
 	public Expression<? extends T> simplify();
-	
+
 	/**
 	 * Tests whether this expression supports the given mode, and if yes what type it expects the <code>delta</code> to be.
 	 * <p>
@@ -276,19 +275,19 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	 */
 	@Nullable
 	public Class<?>[] acceptChange(ChangeMode mode);
-	
+
 	/**
 	 * Changes the expression's value by the given amount. This will only be called on supported modes and with the desired <code>delta</code> type as returned by
 	 * {@link #acceptChange(ChangeMode)}
 	 * 
-	 * @param e
+	 * @param event The event to be used to check values.
 	 * @param delta An array with one or more instances of one or more of the the classes returned by {@link #acceptChange(ChangeMode)} for the given change mode (null for
 	 *            {@link ChangeMode#DELETE} and {@link ChangeMode#RESET}). <b>This can be a Object[], thus casting is not allowed.</b>
 	 * @param mode
 	 * @throws UnsupportedOperationException (optional) - If this method was called on an unsupported ChangeMode.
 	 */
-	public void change(Event e, final @Nullable Object[] delta, final ChangeMode mode);
-	
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode);
+
 	/**
 	 * This method is called before this expression is set to another one.
 	 * The return value is what will be used for change. You can use modified
@@ -329,5 +328,5 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 		// Return the given delta or an Object[] copy of it, with some values transformed
 		return newDelta == null ? delta : newDelta;
 	}
-	
+
 }

@@ -36,58 +36,58 @@ import ch.njol.util.StringUtils;
  * @see Statement
  */
 public abstract class TriggerItem implements Debuggable {
-	
+
 	@Nullable
 	protected TriggerSection parent = null;
+
 	@Nullable
 	private TriggerItem next = null;
-	
+
 	protected TriggerItem() {}
-	
-	protected TriggerItem(final TriggerSection parent) {
+
+	protected TriggerItem(TriggerSection parent) {
 		this.parent = parent;
 	}
-	
+
 	/**
 	 * Executes this item and returns the next item to run.
 	 * <p>
 	 * Overriding classes must call {@link #debug(Event, boolean)}. If this method is overridden, {@link #run(Event)} is not used anymore and can be ignored.
 	 * 
-	 * @param e
+	 * @param event The event used for this trigger item.
 	 * @return The next item to run or null to stop execution
 	 */
 	@Nullable
-	protected TriggerItem walk(final Event e) {
-		if (run(e)) {
-			debug(e, true);
+	protected TriggerItem walk(Event event) {
+		if (run(event)) {
+			debug(event, true);
 			return next;
 		} else {
-			debug(e, false);
+			debug(event, false);
 			final TriggerSection parent = this.parent;
 			return parent == null ? null : parent.getNext();
 		}
 	}
-	
+
 	/**
 	 * Executes this item.
 	 * 
-	 * @param e
+	 * @param event The event used for this trigger item.
 	 * @return True if the next item should be run, or false for the item following this item's parent.
 	 */
-	protected abstract boolean run(Event e);
-	
+	protected abstract boolean run(Event event);
+
 	/**
-	 * @param start
-	 * @param e
+	 * @param start The TriggerItem to start the walk at.
+	 * @param event The event used for this trigger item.
 	 * @return false if an exception occurred
 	 */
-	public static boolean walk(final TriggerItem start, final Event e) {
-		assert start != null && e != null;
+	public static boolean walk(TriggerItem start, Event event) {
+		assert start != null && event != null;
 		TriggerItem i = start;
 		try {
 			while (i != null)
-				i = i.walk(e);
-			
+				i = i.walk(event);
 			return true;
 		} catch (final StackOverflowError err) {
 			final Trigger t = start.getTrigger();
@@ -105,12 +105,12 @@ public abstract class TriggerItem implements Debuggable {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * how much to indent each level
 	 */
 	private final static String indent = "  ";
-	
+
 	@Nullable
 	private String indentation = null;
 	
@@ -125,28 +125,28 @@ public abstract class TriggerItem implements Debuggable {
 		}
 		return ind;
 	}
-	
-	protected final void debug(final Event e, final boolean run) {
+
+	protected final void debug(Event event, final boolean run) {
 		if (!Skript.debug())
 			return;
-		Skript.debug(SkriptColor.replaceColorChar(getIndentation() + (run ? "" : "-") + toString(e, true)));
+		Skript.debug(SkriptColor.replaceColorChar(getIndentation() + (run ? "" : "-") + toString(event, true)));
 	}
-	
+
 	@Override
 	public final String toString() {
 		return toString(null, false);
 	}
-	
-	public TriggerItem setParent(final @Nullable TriggerSection parent) {
+
+	public TriggerItem setParent(@Nullable TriggerSection parent) {
 		this.parent = parent;
 		return this;
 	}
-	
+
 	@Nullable
 	public final TriggerSection getParent() {
 		return parent;
 	}
-	
+
 	/**
 	 * @return The trigger this item belongs to, or null if this is a stand-alone item (e.g. the effect of an effect command)
 	 */
@@ -159,15 +159,15 @@ public abstract class TriggerItem implements Debuggable {
 //			throw new IllegalStateException("TriggerItem without a Trigger detected!");
 		return (Trigger) i;
 	}
-	
-	public TriggerItem setNext(final @Nullable TriggerItem next) {
+
+	public TriggerItem setNext(@Nullable TriggerItem next) {
 		this.next = next;
 		return this;
 	}
-	
+
 	@Nullable
 	public TriggerItem getNext() {
 		return next;
 	}
-	
+
 }

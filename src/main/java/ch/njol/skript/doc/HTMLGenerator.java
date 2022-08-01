@@ -129,7 +129,7 @@ public class HTMLGenerator {
 			else if (o2.c.getAnnotation(NoDoc.class) != null)
 				return -1;
 			
-			return o1.name.compareTo(o2.name);
+			return o1.getName().compareTo(o2.getName());
 		}
 		
 	}

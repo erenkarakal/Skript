@@ -57,15 +57,19 @@ public class VariableString implements Expression<String> {
 	
 	@Nullable
 	private final Object[] string;
+
 	@Nullable
 	private Object[] stringUnformatted;
+
 	private final boolean isSimple;
+
 	@Nullable
 	private final String simple;
+
 	@Nullable
 	private final String simpleUnformatted;
 	private final StringMode mode;
-	
+
 	/**
 	 * Message components that this string consists of. Only simple parts have
 	 * been evaluated here.
@@ -74,11 +78,11 @@ public class VariableString implements Expression<String> {
 
 	/**
 	 * Creates a new VariableString which does not contain variables.
-	 * @param s Content for string.
+	 * @param input Content for string.
 	 */
-	private VariableString(String s) {
+	private VariableString(String input) {
 		isSimple = true;
-		simpleUnformatted = s.replace("%%", "%"); // This doesn't contain variables, so this wasn't done in newInstance!
+		simpleUnformatted = input.replace("%%", "%"); // This doesn't contain variables, so this wasn't done in newInstance!
 		simple = Utils.replaceChatStyles(simpleUnformatted);
 				
 		orig = simple;
@@ -87,7 +91,7 @@ public class VariableString implements Expression<String> {
 		
 		components = new MessageComponent[] {ChatMessages.plainText(simpleUnformatted)};
 	}
-	
+
 	/**
 	 * Creates a new VariableString which contains variables.
 	 * @param orig Original string (unparsed).
@@ -122,13 +126,13 @@ public class VariableString implements Expression<String> {
 		simple = null;
 		simpleUnformatted = null;
 	}
-	
+
 	/**
 	 * Prints errors
 	 */
 	@Nullable
-	public static VariableString newInstance(String s) {
-		return newInstance(s, StringMode.MESSAGE);
+	public static VariableString newInstance(String input) {
+		return newInstance(input, StringMode.MESSAGE);
 	}
 
 	/**
@@ -163,7 +167,7 @@ public class VariableString implements Expression<String> {
 		}
 		return !quote;
 	}
-	
+
 	/**
 	 * Removes quoted quotes from a string.
 	 * 
@@ -177,7 +181,7 @@ public class VariableString implements Expression<String> {
 			return s.substring(1, s.length() - 1).replace("\"\"", "\"");
 		return s.replace("\"\"", "\"");
 	}
-	
+
 	/**
 	 * Creates an instance of VariableString by parsing given string.
 	 * Prints errors and returns null if it is somehow invalid.
@@ -250,6 +254,7 @@ public class VariableString implements Expression<String> {
 				} else {
 					RetainingLogHandler log = SkriptLogger.startRetainingLog();
 					try {
+						@SuppressWarnings("unchecked")
 						Expression<?> expr =
 							new SkriptParser(s.substring(c + 1, c2), SkriptParser.PARSE_EXPRESSIONS, ParseContext.DEFAULT)
 								.parseExpression(Object.class);
@@ -317,7 +322,7 @@ public class VariableString implements Expression<String> {
 		}
 		return -1;
 	}
-	
+
 	public static VariableString[] makeStrings(String[] args) {
 		VariableString[] strings = new VariableString[args.length];
 		int j = 0;
@@ -330,7 +335,7 @@ public class VariableString implements Expression<String> {
 			strings = Arrays.copyOf(strings, j);
 		return strings;
 	}
-	
+
 	/**
 	 * @param args Quoted strings - This is not checked!
 	 * @return a new array containing all newly created VariableStrings, or null if one is invalid
@@ -347,21 +352,21 @@ public class VariableString implements Expression<String> {
 		}
 		return strings;
 	}
-	
+
 	/**
 	 * Parses all expressions in the string and returns it.
 	 * If this is a simple string, the event may be null.
 	 * 
-	 * @param e Event to pass to the expressions.
+	 * @param event Event to pass to the expressions.
 	 * @return The input string with all expressions replaced.
 	 */
-	public String toString(@Nullable Event e) {
+	public String toString(@Nullable Event event) {
 		if (isSimple) {
 			assert simple != null;
 			return simple;
 		}
 
-		if (e == null) {
+		if (event == null) {
 			throw new IllegalArgumentException("Event may not be null in non-simple VariableStrings!");
 		}
 
@@ -370,21 +375,21 @@ public class VariableString implements Expression<String> {
 		StringBuilder b = new StringBuilder();
 		for (Object o : string) {
 			if (o instanceof Expression<?>) {
-				b.append(Classes.toString(((Expression<?>) o).getArray(e), true, mode));
+				b.append(Classes.toString(((Expression<?>) o).getArray(event), true, mode));
 			} else {
 				b.append(o);
 			}
 		}
 		return b.toString();
 	}
-	
+
 	/**
 	 * Parses all expressions in the string and returns it.
 	 * Does not parse formatting codes!
-	 * @param e Event to pass to the expressions.
+	 * @param event Event to pass to the expressions.
 	 * @return The input string with all expressions replaced.
 	 */
-	public String toUnformattedString(Event e) {
+	public String toUnformattedString(Event event) {
 		if (isSimple) {
 			assert simpleUnformatted != null;
 			return simpleUnformatted;
@@ -394,21 +399,21 @@ public class VariableString implements Expression<String> {
 		StringBuilder b = new StringBuilder();
 		for (Object o : string) {
 			if (o instanceof Expression<?>) {
-				b.append(Classes.toString(((Expression<?>) o).getArray(e), true, mode));
+				b.append(Classes.toString(((Expression<?>) o).getArray(event), true, mode));
 			} else {
 				b.append(o);
 			}
 		}
 		return b.toString();
 	}
-	
+
 	/**
 	 * Gets message components from this string. Formatting is parsed only
 	 * in simple parts for security reasons.
-	 * @param e Currently running event.
+	 * @param event Currently running event.
 	 * @return Message components.
 	 */
-	public List<MessageComponent> getMessageComponents(Event e) {
+	public List<MessageComponent> getMessageComponents(Event event) {
 		if (isSimple) { // Trusted, constant string in a script
 			assert simpleUnformatted != null;
 			return ChatMessages.parse(simpleUnformatted);
@@ -433,13 +438,13 @@ public class VariableString implements Expression<String> {
 				// Convert it to plain text
 				String text = null;
 				if (o instanceof ExprColoured && ((ExprColoured) o).isUnsafeFormat()) { // Special case: user wants to process formatting
-					String unformatted = Classes.toString(((ExprColoured) o).getArray(e), true, mode);
+					String unformatted = Classes.toString(((ExprColoured) o).getArray(event), true, mode);
 					if (unformatted != null) {
 						message.addAll(ChatMessages.parse(unformatted));
 					}
 					continue;
 				} else if (o instanceof Expression<?>) {
-					text = Classes.toString(((Expression<?>) o).getArray(e), true, mode);
+					text = Classes.toString(((Expression<?>) o).getArray(event), true, mode);
 				}
 				
 				assert text != null;
@@ -466,32 +471,32 @@ public class VariableString implements Expression<String> {
 		
 		return message;
 	}
-	
+
 	/**
 	 * Gets message components from this string. Formatting is parsed
 	 * everywhere, which is a potential security risk.
-	 * @param e Currently running event.
+	 * @param event Currently running event.
 	 * @return Message components.
 	 */
-	public List<MessageComponent> getMessageComponentsUnsafe(Event e) {
+	public List<MessageComponent> getMessageComponentsUnsafe(Event event) {
 		if (isSimple) { // Trusted, constant string in a script
 			assert simpleUnformatted != null;
 			return ChatMessages.parse(simpleUnformatted);
 		}
 		
-		return ChatMessages.parse(toUnformattedString(e));
+		return ChatMessages.parse(toUnformattedString(event));
 	}
-	
+
 	/**
 	 * Parses all expressions in the string and returns it in chat JSON format.
 	 * 
-	 * @param e Event to pass to the expressions.
+	 * @param event Event to pass to the expressions.
 	 * @return The input string with all expressions replaced.
 	 */
-	public String toChatString(Event e) {
-		return ChatMessages.toJson(getMessageComponents(e));
+	public String toChatString(Event event) {
+		return ChatMessages.toJson(getMessageComponents(event));
 	}
-	
+
 	@Nullable
 	private static ChatColor getLastColor(CharSequence s) {
 		for (int i = s.length() - 2; i >= 0; i--) {
@@ -503,17 +508,17 @@ public class VariableString implements Expression<String> {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public String toString() {
 		return toString(null, false);
 	}
-	
+
 	/**
 	 * Use {@link #toString(Event)} to get the actual string
 	 */
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		if (isSimple) {
 			assert simple != null;
 			return '"' + simple + '"';
@@ -523,7 +528,7 @@ public class VariableString implements Expression<String> {
 		StringBuilder b = new StringBuilder("\"");
 		for (Object o : string) {
 			if (o instanceof Expression) {
-				b.append("%").append(((Expression<?>) o).toString(e, debug)).append("%");
+				b.append("%").append(((Expression<?>) o).toString(event, debug)).append("%");
 			} else {
 				b.append(o);
 			}
@@ -531,7 +536,7 @@ public class VariableString implements Expression<String> {
 		b.append('"');
 		return b.toString();
 	}
-	
+
 	public String getDefaultVariableName() {
 		if (isSimple) {
 			assert simple != null;
@@ -551,18 +556,19 @@ public class VariableString implements Expression<String> {
 		}
 		return b.toString();
 	}
-	
+
 	public boolean isSimple() {
 		return isSimple;
 	}
-	
+
 	public StringMode getMode() {
 		return mode;
 	}
-	
+
 	public VariableString setMode(StringMode mode) {
 		if (this.mode == mode || isSimple)
 			return this;
+		@SuppressWarnings("resource")
 		BlockingLogHandler h = new BlockingLogHandler().start();
 		try {
 			VariableString vs = newInstance(orig, mode);
@@ -575,45 +581,45 @@ public class VariableString implements Expression<String> {
 			h.stop();
 		}
 	}
-	
+
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	@Override
-	public String getSingle(Event e) {
-		return toString(e);
+	public String getSingle(Event event) {
+		return toString(event);
 	}
-	
+
 	@Override
-	public String[] getArray(Event e) {
-		return new String[] {toString(e)};
+	public String[] getArray(Event event) {
+		return new String[] {toString(event)};
 	}
-	
+
 	@Override
-	public String[] getAll(Event e) {
-		return new String[] {toString(e)};
+	public String[] getAll(Event event) {
+		return new String[] {toString(event)};
 	}
-	
+
 	@Override
 	public boolean isSingle() {
 		return true;
 	}
-	
+
 	@Override
-	public boolean check(Event e, Checker<? super String> c, boolean negated) {
-		return SimpleExpression.check(getAll(e), c, negated, false);
-	}
-	
-	@Override
-	public boolean check(Event e, Checker<? super String> c) {
-		return SimpleExpression.check(getAll(e), c, false, false);
+	public boolean check(Event event, Checker<? super String> checker, boolean negated) {
+		return SimpleExpression.check(getAll(event), checker, negated, false);
 	}
 
-	@SuppressWarnings("unchecked")
+	@Override
+	public boolean check(Event event, Checker<? super String> checker) {
+		return SimpleExpression.check(getAll(event), checker, false, false);
+	}
+
 	@Override
 	@Nullable
+	@SuppressWarnings("unchecked")
 	public <R> Expression<? extends R> getConvertedExpression(Class<R>... to) {
 		if (CollectionUtils.containsSuperclass(to, String.class))
 			return (Expression<? extends R>) this;
@@ -624,68 +630,68 @@ public class VariableString implements Expression<String> {
 	public Class<? extends String> getReturnType() {
 		return String.class;
 	}
-	
+
 	@Override
 	@Nullable
 	public Class<?>[] acceptChange(ChangeMode mode) {
 		return null;
 	}
-	
+
 	@Override
-	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
 	}
-	
+
 	@Override
 	public boolean getAnd() {
 		return true;
 	}
-	
+
 	@Override
 	public boolean setTime(int time) {
 		return false;
 	}
-	
+
 	@Override
 	public int getTime() {
 		return 0;
 	}
-	
+
 	@Override
 	public boolean isDefault() {
 		return false;
 	}
-	
+
 	@Override
-	public Iterator<? extends String> iterator(Event e) {
-		return new SingleItemIterator<>(toString(e));
+	public Iterator<? extends String> iterator(Event event) {
+		return new SingleItemIterator<>(toString(event));
 	}
-	
+
 	@Override
-	public boolean isLoopOf(String s) {
+	public boolean isLoopOf(String input) {
 		return false;
 	}
-	
+
 	@Override
 	public Expression<?> getSource() {
 		return this;
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	public static <T> Expression<T> setStringMode(Expression<T> e, StringMode mode) {
-		if (e instanceof ExpressionList) {
-			Expression<?>[] ls = ((ExpressionList<?>) e).getExpressions();
+	public static <T> Expression<T> setStringMode(Expression<T> expression, StringMode mode) {
+		if (expression instanceof ExpressionList) {
+			Expression<?>[] ls = ((ExpressionList<?>) expression).getExpressions();
 			for (int i = 0; i < ls.length; i++) {
 				Expression<?> l = ls[i];
 				assert l != null;
 				ls[i] = setStringMode(l, mode);
 			}
-		} else if (e instanceof VariableString) {
-			return (Expression<T>) ((VariableString) e).setMode(mode);
+		} else if (expression instanceof VariableString) {
+			return (Expression<T>) ((VariableString) expression).setMode(mode);
 		}
-		return e;
+		return expression;
 	}
-	
+
 	@Override
 	public Expression<String> simplify() {
 		return this;

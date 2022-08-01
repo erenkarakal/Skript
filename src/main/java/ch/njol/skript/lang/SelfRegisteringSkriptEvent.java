@@ -27,16 +27,16 @@ public abstract class SelfRegisteringSkriptEvent extends SkriptEvent {
 	/**
 	 * This method is called after the whole trigger is loaded for events that fire themselves.
 	 *
-	 * @param t the trigger to register to this event
+	 * @param trigger the trigger to register to this event
 	 */
-	public abstract void register(final Trigger t);
+	public abstract void register(Trigger trigger);
 
 	/**
 	 * This method is called to unregister this event registered through {@link #register(Trigger)}.
 	 *
-	 * @param t the same trigger which was registered for this event
+	 * @param trigger the same trigger which was registered for this event
 	 */
-	public abstract void unregister(final Trigger t);
+	public abstract void unregister(Trigger trigger);
 
 	/**
 	 * This method is called to unregister all events registered through {@link #register(Trigger)}.
@@ -46,7 +46,7 @@ public abstract class SelfRegisteringSkriptEvent extends SkriptEvent {
 	public abstract void unregisterAll();
 
 	@Override
-	public final boolean check(Event e) {
+	public final boolean check(Event event) {
 		throw new UnsupportedOperationException();
 	}
 

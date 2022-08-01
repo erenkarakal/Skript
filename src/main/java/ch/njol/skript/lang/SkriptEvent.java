@@ -18,15 +18,15 @@
  */
 package ch.njol.skript.lang;
 
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.eclipse.jdt.annotation.Nullable;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.events.EvtClick;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
-import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.util.Kleenean;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
-import org.eclipse.jdt.annotation.Nullable;
 
 /**
  * A SkriptEvent is like a condition. It is called when any of the registered events occurs.
@@ -41,17 +41,20 @@ import org.eclipse.jdt.annotation.Nullable;
 public abstract class SkriptEvent implements SyntaxElement, Debuggable {
 
 	@Nullable
-	EventPriority eventPriority;
+	private EventPriority eventPriority;
 
 	@Override
-	public final boolean init(ch.njol.skript.lang.Expression<?>[] vars, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
+	public final boolean init(Expression<?>[] vars, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		throw new UnsupportedOperationException();
 	}
 
 	/**
 	 * called just after the constructor
 	 *
-	 * @param args
+	 * @param args The literals involved from the patern.
+	 * @param matchedPattern the index of the pattern used.
+	 * @param parseResult The parsed result used for the literal.
+	 * @return boolean if successful.
 	 */
 	public abstract boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult);
 
@@ -59,10 +62,10 @@ public abstract class SkriptEvent implements SyntaxElement, Debuggable {
 	 * Checks whether the given Event applies, e.g. the leftclick event is only part of the PlayerInteractEvent, and this checks whether the player leftclicked or not. This method
 	 * will only be called for events this SkriptEvent is registered for.
 	 *
-	 * @param e
+	 * @param event The event where the literal was used in.
 	 * @return true if this is SkriptEvent is represented by the Bukkit Event or false if not
 	 */
-	public abstract boolean check(Event e);
+	public abstract boolean check(Event event);
 
 	/**
 	 * Script loader checks this before loading items in event. If false is
@@ -92,6 +95,15 @@ public abstract class SkriptEvent implements SyntaxElement, Debuggable {
 	 */
 	public EventPriority getEventPriority() {
 		return eventPriority != null ? eventPriority : SkriptConfig.defaultEventPriority.value();
+	}
+
+	/**
+	 * Sets the event priority of this event.
+	 * 
+	 * @param eventPriority The event priority of this event.
+	 */
+	public void setEventPriority(EventPriority eventPriority) {
+		this.eventPriority = eventPriority;
 	}
 
 	/**

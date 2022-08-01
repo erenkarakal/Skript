@@ -37,7 +37,7 @@ public class EffectSectionEffect extends Effect {
 	}
 
 	@Override
-	protected void execute(Event e) { }
+	protected void execute(Event event) { }
 
 	@Override
 	protected @Nullable TriggerItem walk(Event e) {

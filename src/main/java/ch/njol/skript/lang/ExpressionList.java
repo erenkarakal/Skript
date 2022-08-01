@@ -33,6 +33,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -41,11 +42,14 @@ import java.util.NoSuchElementException;
 public class ExpressionList<T> implements Expression<T> {
 
 	protected final Expression<? extends T>[] expressions;
-	protected boolean and;
-	private final boolean single;
-	private final Class<T> returnType;
+
 	@Nullable
 	private final ExpressionList<?> source;
+
+	private final Class<T> returnType;
+
+	private final boolean single;
+	protected boolean and;
 
 	public ExpressionList(Expression<? extends T>[] expressions, Class<T> returnType, boolean and) {
 		this(expressions, returnType, and, null);
@@ -78,37 +82,37 @@ public class ExpressionList<T> implements Expression<T> {
 
 	@Override
 	@Nullable
-	public T getSingle(Event e) {
+	public T getSingle(Event event) {
 		if (!single)
 			throw new UnsupportedOperationException();
 		Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
-		return expression != null ? expression.getSingle(e) : null;
+		return expression != null ? expression.getSingle(event) : null;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	@Override
-	public T[] getArray(Event e) {
+	public T[] getArray(Event event) {
 		if (and)
-			return getAll(e);
+			return getAll(event);
 		Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
-		return expression != null ? expression.getArray(e) : (T[]) Array.newInstance(returnType, 0);
+		return expression != null ? expression.getArray(event) : (T[]) Array.newInstance(returnType, 0);
 	}
 
-	@SuppressWarnings({"null", "unchecked"})
 	@Override
-	public T[] getAll(Event e) {
-		ArrayList<T> r = new ArrayList<>();
+	@SuppressWarnings("unchecked")
+	public T[] getAll(Event event) {
+		List<T> list = new ArrayList<>();
 		for (Expression<? extends T> expr : expressions)
-			r.addAll(Arrays.asList(expr.getAll(e)));
-		return r.toArray((T[]) Array.newInstance(returnType, r.size()));
+			list.addAll(Arrays.asList(expr.getAll(event)));
+		return list.toArray((T[]) Array.newInstance(returnType, list.size()));
 	}
 
 	@Override
 	@Nullable
-	public Iterator<? extends T> iterator(Event e) {
+	public Iterator<? extends T> iterator(Event event) {
 		if (!and) {
 			Expression<? extends T> expression = CollectionUtils.getRandom(expressions);
-			return expression != null ? expression.iterator(e) : null;
+			return expression != null ? expression.iterator(event) : null;
 		}
 		return new Iterator<T>() {
 			private int i = 0;
@@ -117,22 +121,22 @@ public class ExpressionList<T> implements Expression<T> {
 
 			@Override
 			public boolean hasNext() {
-				Iterator<? extends T> c = current;
-				while (i < expressions.length && (c == null || !c.hasNext()))
-					current = c = expressions[i++].iterator(e);
-				return c != null && c.hasNext();
+				Iterator<? extends T> iterator = current;
+				while (i < expressions.length && (iterator == null || !iterator.hasNext()))
+					current = iterator = expressions[i++].iterator(event);
+				return iterator != null && iterator.hasNext();
 			}
 
 			@Override
 			public T next() {
 				if (!hasNext())
 					throw new NoSuchElementException();
-				Iterator<? extends T> c = current;
-				if (c == null)
+				Iterator<? extends T> iterator = current;
+				if (iterator == null)
 					throw new NoSuchElementException();
-				T t = c.next();
-				assert t != null : current;
-				return t;
+				T type = iterator.next();
+				assert type != null : current;
+				return type;
 			}
 
 			@Override
@@ -148,14 +152,14 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public boolean check(Event e, Checker<? super T> c, boolean negated) {
-		return negated ^ check(e, c);
+	public boolean check(Event event, Checker<? super T> checker, boolean negated) {
+		return negated ^ check(event, checker);
 	}
 
 	@Override
-	public boolean check(Event e, Checker<? super T> c) {
+	public boolean check(Event event, Checker<? super T> checker) {
 		for (Expression<? extends T> expr : expressions) {
-			boolean b = expr.check(e, c);
+			boolean b = expr.check(event, checker);
 			if (and && !b)
 				return false;
 			if (!and && b)
@@ -164,9 +168,9 @@ public class ExpressionList<T> implements Expression<T> {
 		return and;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	@Nullable
+	@SuppressWarnings("unchecked")
 	public <R> Expression<? extends R> getConvertedExpression(Class<R>... to) {
 		Expression<? extends R>[] exprs = new Expression[expressions.length];
 		for (int i = 0; i < exprs.length; i++)
@@ -191,9 +195,9 @@ public class ExpressionList<T> implements Expression<T> {
 	 * @return The old 'and' value
 	 */
 	public boolean setAnd(boolean and) {
-		boolean r = and;
+		boolean old = this.and;
 		this.and = and;
-		return r;
+		return old;
 	}
 
 	/**
@@ -223,9 +227,9 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
 		for (Expression<?> expr : expressions) {
-			expr.change(e, delta, mode);
+			expr.change(event, delta, mode);
 		}
 	}
 
@@ -253,35 +257,35 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
-	public boolean isLoopOf(String s) {
+	public boolean isLoopOf(String input) {
 		for (Expression<?> e : expressions)
-			if (e.isLoopOf(s))
+			if (e.isLoopOf(input))
 				return true;
 		return false;
 	}
 
 	@Override
 	public Expression<?> getSource() {
-		ExpressionList<?> s = source;
-		return s == null ? this : s;
+		ExpressionList<?> source = this.source;
+		return source == null ? this : source;
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		StringBuilder b = new StringBuilder("(");
+	public String toString(@Nullable Event event, boolean debug) {
+		StringBuilder builder = new StringBuilder("(");
 		for (int i = 0; i < expressions.length; i++) {
 			if (i != 0) {
 				if (i == expressions.length - 1)
-					b.append(and ? " and " : " or ");
+					builder.append(and ? " and " : " or ");
 				else
-					b.append(", ");
+					builder.append(", ");
 			}
-			b.append(expressions[i].toString(e, debug));
+			builder.append(expressions[i].toString(event, debug));
 		}
-		b.append(")");
+		builder.append(")");
 		if (debug)
-			b.append("[").append(returnType).append("]");
-		return "" + b;
+			builder.append("[").append(returnType).append("]");
+		return "" + builder;
 	}
 
 	@Override
@@ -297,6 +301,7 @@ public class ExpressionList<T> implements Expression<T> {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Expression<T> simplify() {
 		boolean isLiteralList = true;
 		boolean isSimpleList = true;
@@ -306,7 +311,7 @@ public class ExpressionList<T> implements Expression<T> {
 			isSimpleList &= expressions[i].isSingle();
 		}
 		if (isLiteralList && isSimpleList) {
-			@SuppressWarnings("unchecked") T[] values = (T[]) Array.newInstance(returnType, expressions.length);
+			T[] values = (T[]) Array.newInstance(returnType, expressions.length);
 			for (int i = 0; i < values.length; i++)
 				values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
 			return new SimpleLiteral<>(values, returnType, and);
