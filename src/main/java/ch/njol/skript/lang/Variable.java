@@ -301,8 +301,8 @@ public class Variable<T> implements Expression<T> {
 		return val;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Nullable
+	@SuppressWarnings("unchecked")
 	private Object get(Event event) {
 		Object val = getRaw(event);
 		if (!list)
@@ -330,16 +330,17 @@ public class Variable<T> implements Expression<T> {
 	 * because the player object inside the variable will be a (kinda) dead variable
 	 * as a new player object has been created by the server.
 	 */
-	@Nullable Object convertIfOldPlayer(String key, Event event, @Nullable Object t) {
-		if (SkriptConfig.enablePlayerVariableFix.value() && t != null && t instanceof Player) {
-			Player p = (Player) t;
-			if (!p.isValid() && p.isOnline()) {
-				Player player = Bukkit.getPlayer(p.getUniqueId());
-				Variables.setVariable(key, player, event, local);
-				return player;
+	@Nullable
+	private Object convertIfOldPlayer(String key, Event event, @Nullable Object object) {
+		if (SkriptConfig.enablePlayerVariableFix.value() && object != null && object instanceof Player) {
+			Player player = (Player) object;
+			if (!player.isValid() && player.isOnline()) {
+				Player p = Bukkit.getPlayer(player.getUniqueId());
+				Variables.setVariable(key, p, event, local);
+				return p;
 			}
 		}
-		return t;
+		return object;
 	}
 
 	public Iterator<Pair<String, Object>> variablesIterator(Event event) {
@@ -667,10 +668,10 @@ public class Variable<T> implements Expression<T> {
 		return getAll(event);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
+	@SuppressWarnings("unchecked")
 	public T[] getAll(Event event) {
-		if(list)
+		if (list)
 			return getConvertedArray(event);
 		T o = getConverted(event);
 		if (o == null) {
