@@ -476,8 +476,8 @@ public class Variable<T> implements Expression<T> {
 		return CollectionUtils.array(Object[].class);
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Override
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
 		switch (mode) {
 			case DELETE:
