@@ -35,8 +35,8 @@ import ch.njol.skript.log.SkriptLogger;
  */
 public abstract class Statement extends TriggerItem implements SyntaxElement {
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Nullable
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static Statement parse(String input, String defaultError) {
 		ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
