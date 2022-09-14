@@ -78,6 +78,8 @@ code. Contributors should also see the dedicated
   - And that is the only place where snake_case is acceptable
 * Use prefixes where their use has been already estabilished (such as ExprSomeRandomThing)
   - Otherwise, use postfixes (such as LoopSection)
+* Don't use shorthand variable/field naming when possible.
+  - e.g Event should be event and not e (As e could reference an entity instead).
   
 ## Comments
 * Prefer to comment *why* you're doing things instead of how you're doing them
