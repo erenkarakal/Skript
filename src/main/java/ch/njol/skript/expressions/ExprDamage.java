@@ -31,6 +31,7 @@ import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Events;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.RequiredPlugins;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
@@ -47,8 +48,11 @@ import ch.njol.util.coll.CollectionUtils;
 })
 @Examples("increase the damage by 2")
 @Since("1.3.5")
+@RequiredPlugins("Spigot 1.14+ for the item damage event.")
 @Events("damage")
 public class ExprDamage extends SimpleExpression<Number> {
+
+	private final static boolean ITEM_DAMAGE = Skript.classExists("org.bukkit.event.player.PlayerItemDamageEvent");
 
 	static {
 		Skript.registerExpression(ExprDamage.class, Number.class, ExpressionType.SIMPLE, "[the] damage");
@@ -58,7 +62,13 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class, PlayerItemDamageEvent.class)) {
+		if (ITEM_DAMAGE) {
+			if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class, PlayerItemDamageEvent.class)) {
+				Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
+				return false;
+			}
+		}
+		if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class)) {
 			Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
 			return false;
 		}
@@ -69,16 +79,23 @@ public class ExprDamage extends SimpleExpression<Number> {
 	@Override
 	@Nullable
 	protected Number[] get(Event event) {
-		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || event instanceof PlayerItemDamageEvent))
+		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent))
 			return new Number[0];
 
 		if (event instanceof VehicleDamageEvent)
 			return CollectionUtils.array(((VehicleDamageEvent) event).getDamage());
 
-		if (event instanceof PlayerItemDamageEvent)
-			return CollectionUtils.array(((PlayerItemDamageEvent) event).getDamage());
+		if (event instanceof EntityDamageEvent)
+			return CollectionUtils.array(HealthUtils.getDamage((EntityDamageEvent) event));
 	
-		return CollectionUtils.array(HealthUtils.getDamage((EntityDamageEvent) event));
+		if (ITEM_DAMAGE) {
+			if (!(event instanceof PlayerItemDamageEvent))
+				return new Number[0];
+			return CollectionUtils.array(((PlayerItemDamageEvent) event).getDamage());
+		}
+
+		assert false;
+		return new Number[0];
 	}
 
 	@Override
@@ -95,15 +112,19 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
-		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || event instanceof PlayerItemDamageEvent))
+		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent))
 			return;
+		if (ITEM_DAMAGE) {
+			if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || event instanceof PlayerItemDamageEvent))
+				return;
+		}
 		Number damage = delta == null ? 0 : ((Number) delta[0]);
 		switch (mode) {
 			case SET:
 			case DELETE:
 				if (event instanceof VehicleDamageEvent) {
 					((VehicleDamageEvent) event).setDamage(damage.doubleValue());
-				} else if (event instanceof PlayerItemDamageEvent) {
+				} else if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent) {
 					((PlayerItemDamageEvent) event).setDamage(damage.intValue());
 				} else {
 					HealthUtils.setDamage((EntityDamageEvent) event, damage.doubleValue());
@@ -115,7 +136,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 			case ADD:
 				if (event instanceof VehicleDamageEvent) {
 					((VehicleDamageEvent) event).setDamage(((VehicleDamageEvent) event).getDamage() + damage.doubleValue());
-				} else if (event instanceof PlayerItemDamageEvent) {
+				} else if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent) {
 					((PlayerItemDamageEvent) event).setDamage(((PlayerItemDamageEvent) event).getDamage() + damage.intValue());
 				} else {
 					HealthUtils.setDamage((EntityDamageEvent) event, HealthUtils.getDamage((EntityDamageEvent) event) + damage.doubleValue());
