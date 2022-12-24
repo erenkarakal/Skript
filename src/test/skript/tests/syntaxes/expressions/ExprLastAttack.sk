@@ -13,4 +13,5 @@ test "last known damage/attacker/cause":
 		set last known damage cause of event-entity to fall
 		assert last known damage cause of event-entity is fall with "Failed to set the last damage cause of the pig to fall"
 		delete event-entity
+	clear {_zombie} # deletes the entity
 	delete last spawned zombie
