@@ -49,9 +49,9 @@ import ch.njol.util.coll.CollectionUtils;
 @Examples({
 	"on damage of player:",
 		"\tdamage cause was lightning",
-		"\tplayer is wearing a leather helmet",
+		"\tvictim is wearing a leather helmet",
 		"\tsubtract 2.5 from the damage",
-		"\tmessage \"The smite was lessened by your leather helmet!\""
+		"\tmessage \"The smite was lessened by your leather helmet!\" to the victim"
 })
 @Since("1.3.5")
 @RequiredPlugins("Spigot 1.14+ for the item damage event.")
