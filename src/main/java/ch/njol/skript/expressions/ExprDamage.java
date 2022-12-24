@@ -67,8 +67,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 				Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
 				return false;
 			}
-		}
-		if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class)) {
+		} else if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class)) {
 			Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
 			return false;
 		}
@@ -112,11 +111,11 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
-		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent))
-			return;
 		if (ITEM_DAMAGE) {
 			if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || event instanceof PlayerItemDamageEvent))
 				return;
+		} else if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent)) {
+			return;
 		}
 		Number damage = delta == null ? 0 : ((Number) delta[0]);
 		switch (mode) {
