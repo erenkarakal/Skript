@@ -21,6 +21,8 @@ package ch.njol.skript.expressions;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.eclipse.jdt.annotation.Nullable;
@@ -42,14 +44,13 @@ import ch.njol.util.coll.CollectionUtils;
 	"Can return nothing which means that the entity was not attacked recently, same applies when using changers."
 })
 @Examples("send \"%last attacker of event-entity%\"")
-@Since("2.5.1, INSERT VERSION (Changers)")
+@Since("2.5.1, INSERT VERSION (Changers, damage cause and damage)")
 public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 
 	static {
-		register(ExprLastAttack.class, Object.class, "last [known] ([:final ]damage|:attacker|damage :cause)", "entity");
+		register(ExprLastAttack.class, Object.class, "last [known] ([:final ]damage|:attacker|cause:damage cause)", "entity");
 	}
 
-	private final ExprAttacker attackerExpr = new ExprAttacker();
 	private boolean attacker, cause, finalDamage;
 
 	@Override
@@ -66,7 +67,7 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 	@Nullable
 	public Object convert(Entity entity) {
 		if (attacker)
-			return attackerExpr.get(entity.getLastDamageCause())[0];
+			return ExprAttacker.getAttacker(entity.getLastDamageCause());
 		if (finalDamage)
 			return entity.getLastDamageCause().getFinalDamage();
 		if (cause)
@@ -87,6 +88,7 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
 		if (delta == null)
 			return;
@@ -96,10 +98,10 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 				EntityDamageEvent damageEvent = entity.getLastDamageCause();
 				// Entity has not been harmed.
 				if (damageEvent == null) {
-					entity.setLastDamageCause(new EntityDamageEvent(damager, DamageCause.CUSTOM, 0D));
+					entity.setLastDamageCause(new EntityDamageByEntityEvent(damager, entity, DamageCause.CUSTOM, 0D));
 					continue;
 				}
-				entity.setLastDamageCause(new EntityDamageEvent(damager, damageEvent.getCause(), damageEvent.getDamage()));
+				entity.setLastDamageCause(new EntityDamageByEntityEvent(damager, entity, damageEvent.getCause(), damageEvent.getDamage()));
 			}
 		} else if (cause) {
 			DamageCause cause = (DamageCause) delta[0];
@@ -108,7 +110,12 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 				// We have no entity, the entity cannot be null in the EntityDamageEvent constructor.
 				if (damageEvent == null)
 					continue;
-				entity.setLastDamageCause(new EntityDamageEvent(damageEvent.getEntity(), cause, damageEvent.getDamage()));
+				// Future proof
+				if (damageEvent instanceof EntityDamageByBlockEvent) {
+					entity.setLastDamageCause(new EntityDamageByBlockEvent(((EntityDamageByBlockEvent)damageEvent).getDamager(), entity, cause, damageEvent.getDamage()));
+					continue;
+				}
+				entity.setLastDamageCause(new EntityDamageByEntityEvent(damageEvent.getEntity(), entity, cause, damageEvent.getDamage()));
 			}
 		} else {
 			double damage = ((Number) delta[0]).doubleValue();
@@ -117,7 +124,12 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 				// We have no entity, the entity cannot be null in the EntityDamageEvent constructor.
 				if (damageEvent == null)
 					continue;
-				entity.setLastDamageCause(new EntityDamageEvent(damageEvent.getEntity(), damageEvent.getCause(), damage));
+				// Future proof
+				if (damageEvent instanceof EntityDamageByBlockEvent) {
+					entity.setLastDamageCause(new EntityDamageByBlockEvent(((EntityDamageByBlockEvent)damageEvent).getDamager(), entity, damageEvent.getCause(), damage));
+					continue;
+				}
+				entity.setLastDamageCause(new EntityDamageByEntityEvent(damageEvent.getEntity(), entity, damageEvent.getCause(), damage));
 			}
 		}
 	}

@@ -1,14 +1,16 @@
 test "last known damage/attacker/cause":
+	clear all entities
 	spawn a zombie at spawn of world "world"
+	set {_zombie} to the last spawned zombie
 	spawn a pig at spawn of world "world":
 		assert last known attacker of event-entity is not set with "The last known attacker of the pig was present"
-		set last known attacker of event-entity to last spawned zombie
-		assert last known attacker of event-entity is the last spawned zombie with "Failed to set the attacker to the zombie"
+		set last known attacker of event-entity to {_zombie}
+		assert last known attacker of event-entity is set with "Failed to set the attacker to the zombie"
 		assert last known damage of event-entity is not 1 with "The last known damage was 1, should be 0"
 		set last known damage of event-entity to 1
 		assert last known damage of event-entity is 1 with "Failed to set the last damage of the pig"
-		assert last known damage cause of event-entity is not set with "The last known damage cause was set, it should not be present"
-		set last known damage cause of event-entity to custom
-		assert last known damage cause of event-entity is custom with "Failed to set the last damage cause of the pig to custom"
+		assert last known damage cause of event-entity is plugin with "The last known damage cause was not plugin"
+		set last known damage cause of event-entity to fall
+		assert last known damage cause of event-entity is fall with "Failed to set the last damage cause of the pig to fall"
 		delete event-entity
 	delete last spawned zombie

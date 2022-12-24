@@ -22,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
@@ -47,10 +48,12 @@ import ch.njol.util.Kleenean;
 @Name("Attacker")
 @Description({"The attacker of a damage event, e.g. when a player attacks a zombie this expression represents the player.",
 		"Please note that the attacker can also be a block, e.g. a cactus or lava, but this expression will not be set in these cases."})
-@Examples({"on damage:",
-		"	attacker is a player",
-		"	health of attacker is less than or equal to 2",
-		"	damage victim by 1 heart"})
+@Examples({
+	"on damage:",
+		"\tattacker is a player",
+		"\thealth of attacker is less than or equal to 2",
+		"\tdamage victim by 1 heart"
+})
 @Since("1.3")
 @Events({"damage", "death", "destroy"})
 public class ExprAttacker extends SimpleExpression<Entity> {
@@ -58,7 +61,7 @@ public class ExprAttacker extends SimpleExpression<Entity> {
 	static {
 		Skript.registerExpression(ExprAttacker.class, Entity.class, ExpressionType.SIMPLE, "[the] (attacker|damager)");
 	}
-	
+
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parser) {
 		if (!getParser().isCurrentEvent(EntityDamageByEntityEvent.class, EntityDeathEvent.class, VehicleDamageEvent.class, VehicleDestroyEvent.class)) {
@@ -67,18 +70,18 @@ public class ExprAttacker extends SimpleExpression<Entity> {
 		}
 		return true;
 	}
-	
+
 	@Override
-	protected Entity[] get(Event e) {
-		return new Entity[] {getAttacker(e)};
+	protected Entity[] get(Event event) {
+		return new Entity[] {getAttacker(event)};
 	}
-	
+
 	@Nullable
-	private static Entity getAttacker(@Nullable Event e) {
-		if (e == null)
+	static Entity getAttacker(@Nullable Event event) {
+		if (event == null)
 			return null;
-		if (e instanceof EntityDamageByEntityEvent) {
-			EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) e;
+		if (event instanceof EntityDamageByEntityEvent) {
+			EntityDamageByEntityEvent edbee = (EntityDamageByEntityEvent) event;
 			if (edbee.getDamager() instanceof Projectile) {
 				Projectile p = (Projectile) edbee.getDamager();
 				Object o = p.getShooter();
@@ -89,31 +92,34 @@ public class ExprAttacker extends SimpleExpression<Entity> {
 			return edbee.getDamager();
 //		} else if (e instanceof EntityDamageByBlockEvent) {
 //			return ((EntityDamageByBlockEvent) e).getDamager();
-		} else if (e instanceof EntityDeathEvent) {
-			return getAttacker(((EntityDeathEvent) e).getEntity().getLastDamageCause());
-		} else if (e instanceof VehicleDamageEvent) {
-			return ((VehicleDamageEvent) e).getAttacker();
-		} else if (e instanceof VehicleDestroyEvent) {
-			return ((VehicleDestroyEvent) e).getAttacker();
+		} else if (event instanceof EntityDeathEvent) {
+			return getAttacker(((EntityDeathEvent) event).getEntity().getLastDamageCause());
+		// EntityDamageEvent must be last, this is used for custom implementation see ExprLastAttack
+		} else if (event instanceof EntityDamageEvent) {
+			return ((EntityDamageEvent) event).getEntity();
+		} else if (event instanceof VehicleDamageEvent) {
+			return ((VehicleDamageEvent) event).getAttacker();
+		} else if (event instanceof VehicleDestroyEvent) {
+			return ((VehicleDestroyEvent) event).getAttacker();
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Class<? extends Entity> getReturnType() {
 		return Entity.class;
 	}
-	
+
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		if (e == null)
+	public String toString(@Nullable Event event, boolean debug) {
+		if (event == null)
 			return "the attacker";
-		return Classes.getDebugMessage(getSingle(e));
+		return Classes.getDebugMessage(getSingle(event));
 	}
-	
+
 	@Override
 	public boolean isSingle() {
 		return true;
 	}
-	
+
 }
