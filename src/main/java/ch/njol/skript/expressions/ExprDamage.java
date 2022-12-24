@@ -46,7 +46,13 @@ import ch.njol.util.coll.CollectionUtils;
 	"How much damage is done in a damage event, possibly ignoring armour, criticals and/or enchantments.",
 	"Can be changed (remember that in Skript '1' is one full heart, not half a heart)."
 })
-@Examples("increase the damage by 2")
+@Examples({
+	"on damage of player:",
+		"\tdamage cause was lightning",
+		"\tplayer is wearing a leather helmet",
+		"\tsubtract 2.5 from the damage",
+		"\tmessage \"The smite was lessened by your leather helmet!\""
+})
 @Since("1.3.5")
 @RequiredPlugins("Spigot 1.14+ for the item damage event.")
 @Events("damage")
