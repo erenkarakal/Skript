@@ -53,7 +53,7 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 	private final static boolean SETTABLE = Skript.methodExists(Entity.class, "setLastDamageCause", EntityDamageEvent.class);
 
 	static {
-		register(ExprLastAttack.class, Object.class, "last [known] ([:final ]damage|:attacker|cause:damage cause)", "entity");
+		register(ExprLastAttack.class, Object.class, "last [known] ([:final ]damage [amount]|:attacker|cause:damage cause)", "entity");
 	}
 
 	private boolean attacker, cause, finalDamage;
