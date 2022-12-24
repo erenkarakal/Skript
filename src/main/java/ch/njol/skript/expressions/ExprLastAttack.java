@@ -27,10 +27,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.eclipse.jdt.annotation.Nullable;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.RequiredPlugins;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 import ch.njol.skript.lang.Expression;
@@ -44,8 +46,11 @@ import ch.njol.util.coll.CollectionUtils;
 	"Can return nothing which means that the entity was not attacked recently, same applies when using changers."
 })
 @Examples("send \"%last attacker of event-entity%\"")
+@RequiredPlugins("The settable changers require 1.14+")
 @Since("2.5.1, INSERT VERSION (Changers, damage cause and damage)")
 public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
+
+	private final static boolean SETTABLE = Skript.methodExists(Entity.class, "setLastDamageCause", EntityDamageEvent.class);
 
 	static {
 		register(ExprLastAttack.class, Object.class, "last [known] ([:final ]damage|:attacker|cause:damage cause)", "entity");
@@ -78,7 +83,7 @@ public class ExprLastAttack extends SimplePropertyExpression<Entity, Object> {
 	@Override
 	@Nullable
 	public Class<?>[] acceptChange(ChangeMode mode) {
-		if (mode != ChangeMode.SET)
+		if (!SETTABLE || mode != ChangeMode.SET)
 			return null;
 		if (attacker)
 			return CollectionUtils.array(Entity.class);

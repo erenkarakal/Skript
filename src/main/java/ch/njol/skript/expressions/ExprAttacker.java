@@ -95,6 +95,7 @@ public class ExprAttacker extends SimpleExpression<Entity> {
 		} else if (event instanceof EntityDeathEvent) {
 			return getAttacker(((EntityDeathEvent) event).getEntity().getLastDamageCause());
 		// EntityDamageEvent must be last, this is used for custom implementation see ExprLastAttack
+		// VehicleEvents are different than EntityDamageEvent
 		} else if (event instanceof EntityDamageEvent) {
 			return ((EntityDamageEvent) event).getEntity();
 		} else if (event instanceof VehicleDamageEvent) {
