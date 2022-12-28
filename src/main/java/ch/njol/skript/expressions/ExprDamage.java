@@ -70,11 +70,11 @@ public class ExprDamage extends SimpleExpression<Number> {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		if (ITEM_DAMAGE) {
 			if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class, PlayerItemDamageEvent.class)) {
-				Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
+				Skript.error("The expression 'damage' may only be used in damage events");
 				return false;
 			}
 		} else if (!getParser().isCurrentEvent(EntityDamageEvent.class, VehicleDamageEvent.class)) {
-			Skript.error("The expression 'damage' may only be used in damage events", ErrorQuality.SEMANTIC_ERROR);
+			Skript.error("The expression 'damage' may only be used in damage events");
 			return false;
 		}
 		delay = isDelayed;
@@ -117,13 +117,10 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
-		if (ITEM_DAMAGE) {
-			if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || event instanceof PlayerItemDamageEvent))
-				return;
-		} else if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent)) {
+		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent))) {
 			return;
 		}
-		Number damage = delta == null ? 0 : ((Number) delta[0]);
+		Number damage = delta == null ? 0 : (Number) delta[0];
 		switch (mode) {
 			case SET:
 			case DELETE:
