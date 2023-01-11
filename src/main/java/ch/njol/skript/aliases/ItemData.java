@@ -36,6 +36,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -626,6 +627,8 @@ public class ItemData implements Cloneable, YggdrasilExtendedSerializable {
 			our.setLore(meta.getLore());
 		if (meta.hasDisplayName())
 			our.setDisplayName(meta.getDisplayName());
+		if (meta instanceof BlockStateMeta && our instanceof BlockStateMeta)
+			((BlockStateMeta) our).setBlockState(((BlockStateMeta) meta).getBlockState());
 		if (meta.hasEnchants()) {
 			for (Map.Entry<Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
 				our.addEnchant(entry.getKey(), entry.getValue(), true);
