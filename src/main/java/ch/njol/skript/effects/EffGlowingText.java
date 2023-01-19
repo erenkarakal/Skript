@@ -39,14 +39,15 @@ import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Make Sign Glow")
 @Description("Makes a sign (either a block or item) have glowing text or normal text")
-@Examples({"make all signs in radius 10 of player have glowing text"})
+@Examples({"make target block of player have glowing text"})
 @Since("INSERT VERSION")
 public class EffGlowingText extends Effect {
 
 	static {
-		Skript.registerEffect(EffGlowingText.class,
-			"make %blocks/itemtypes% have glowing text",
-			"make %blocks/itemtypes% have (normal|non[-| ]glowing) text");
+		if (Skript.methodExists(Sign.class, "setGlowing", boolean.class))
+			Skript.registerEffect(EffGlowingText.class,
+				"make %blocks/itemtypes% have glowing text",
+				"make %blocks/itemtypes% have (normal|non[-| ]glowing) text");
 	}
 
 	@SuppressWarnings("null")
