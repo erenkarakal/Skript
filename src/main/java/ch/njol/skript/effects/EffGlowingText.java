@@ -1,0 +1,95 @@
+/**
+ *   This file is part of Skript.
+ *
+ *  Skript is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Skript is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright Peter Güttinger, SkriptLang team and contributors
+ */
+package ch.njol.skript.effects;
+
+import ch.njol.skript.Skript;
+import ch.njol.skript.aliases.ItemType;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
+import ch.njol.skript.lang.Effect;
+import ch.njol.skript.lang.Expression;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.util.Kleenean;
+
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.event.Event;
+import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.eclipse.jdt.annotation.Nullable;
+
+@Name("Make Sign Glow")
+@Description("Makes a sign (either a block or item) have glowing text or normal text")
+@Examples({"make all signs in radius 10 of player have glowing text"})
+@Since("INSERT VERSION")
+public class EffGlowingText extends Effect {
+
+	static {
+		Skript.registerEffect(EffGlowingText.class,
+			"make %blocks/itemtypes% have glowing text",
+			"make %blocks/itemtypes% have (normal|non[-| ]glowing) text");
+	}
+
+	@SuppressWarnings("null")
+	private Expression<?> objects;
+
+	private boolean glowing;
+
+	@SuppressWarnings({"null"})
+	@Override
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
+		objects = exprs[0];
+		glowing = matchedPattern == 0;
+		return true;
+	}
+
+	@Override
+	protected void execute(Event e) {
+		for (Object o : objects.getArray(e)) {
+			if (o instanceof Block) {
+				BlockState state = ((Block) o).getState();
+				if (state instanceof Sign) {
+					((Sign) state).setGlowingText(glowing);
+					state.update();
+				}
+			} else if (o instanceof ItemType) {
+				ItemType item = (ItemType) o;
+				ItemMeta meta = ((ItemType) o).getItemMeta();
+				if (meta instanceof BlockStateMeta) {
+					BlockStateMeta blockMeta = (BlockStateMeta) meta;
+					BlockState state = ((BlockStateMeta) meta).getBlockState();
+					if (state instanceof Sign) {
+						((Sign) state).setGlowingText(glowing);
+						state.update();
+						blockMeta.setBlockState(state);
+						item.setItemMeta(meta);
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public String toString(@Nullable Event e, boolean debug) {
+		return "make " + objects.toString(e, debug) + " have " + (glowing ? "glowing text" : "normal text");
+	}
+}
