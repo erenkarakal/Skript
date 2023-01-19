@@ -1,5 +1,5 @@
 test "glowing sign blocks":
-	set {_loc} to spawn of (random world out of all worlds)
+	set {_loc} to spawn of "world"
 	set block at {_loc} to sign
 	assert block at {_loc} doesn't have glowing text with "Sign had glowing text erroneously (1)"
 	make block at {_loc} have glowing text

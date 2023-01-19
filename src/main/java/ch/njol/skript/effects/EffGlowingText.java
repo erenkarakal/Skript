@@ -39,7 +39,7 @@ import org.eclipse.jdt.annotation.Nullable;
 
 @Name("Make Sign Glow")
 @Description("Makes a sign (either a block or item) have glowing text or normal text")
-@Examples({"make target block of player have glowing text"})
+@Examples("make target block of player have glowing text")
 @Since("INSERT VERSION")
 public class EffGlowingText extends Effect {
 
@@ -64,8 +64,8 @@ public class EffGlowingText extends Effect {
 	}
 
 	@Override
-	protected void execute(Event e) {
-		for (Object o : objects.getArray(e)) {
+	protected void execute(Event event) {
+		for (Object o : objects.getArray(event)) {
 			if (o instanceof Block) {
 				BlockState state = ((Block) o).getState();
 				if (state instanceof Sign) {
@@ -74,10 +74,10 @@ public class EffGlowingText extends Effect {
 				}
 			} else if (o instanceof ItemType) {
 				ItemType item = (ItemType) o;
-				ItemMeta meta = ((ItemType) o).getItemMeta();
+				ItemMeta meta = item.getItemMeta();
 				if (meta instanceof BlockStateMeta) {
 					BlockStateMeta blockMeta = (BlockStateMeta) meta;
-					BlockState state = ((BlockStateMeta) meta).getBlockState();
+					BlockState state = blockMeta.getBlockState();
 					if (state instanceof Sign) {
 						((Sign) state).setGlowingText(glowing);
 						state.update();
@@ -90,8 +90,8 @@ public class EffGlowingText extends Effect {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		return "make " + objects.toString(e, debug) + " have " + (glowing ? "glowing text" : "normal text");
+	public String toString(@Nullable Event event, boolean debug) {
+		return "make " + objects.toString(event, debug) + " have " + (glowing ? "glowing text" : "normal text");
 	}
 
 }
