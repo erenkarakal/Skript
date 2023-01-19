@@ -18,6 +18,7 @@
  */
 package ch.njol.skript.conditions;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import org.bukkit.block.Block;
 
@@ -38,7 +39,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 public class CondGlowingText extends PropertyCondition<Object> {
 
 	static {
-		register(CondGlowingText.class, PropertyType.HAVE, "glowing text", "blocks/itemtypes");
+		if (Skript.methodExists(Sign.class, "isGlowingText"))
+			register(CondGlowingText.class, PropertyType.HAVE, "glowing text", "blocks/itemtypes");
 	}
 
 	@Override
@@ -54,6 +56,11 @@ public class CondGlowingText extends PropertyCondition<Object> {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	protected PropertyType getPropertyType() {
+		return PropertyType.HAVE;
 	}
 
 	@Override

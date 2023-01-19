@@ -44,18 +44,18 @@ import org.eclipse.jdt.annotation.Nullable;
 public class EffGlowingText extends Effect {
 
 	static {
-		if (Skript.methodExists(Sign.class, "setGlowing", boolean.class))
+		if (Skript.methodExists(Sign.class, "setGlowingText", boolean.class)) {
 			Skript.registerEffect(EffGlowingText.class,
 				"make %blocks/itemtypes% have glowing text",
 				"make %blocks/itemtypes% have (normal|non[-| ]glowing) text");
+		}
 	}
 
-	@SuppressWarnings("null")
+	@SuppressWarnings("NotNullFieldNotInitialized")
 	private Expression<?> objects;
 
 	private boolean glowing;
 
-	@SuppressWarnings({"null"})
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		objects = exprs[0];
@@ -93,4 +93,5 @@ public class EffGlowingText extends Effect {
 	public String toString(@Nullable Event e, boolean debug) {
 		return "make " + objects.toString(e, debug) + " have " + (glowing ? "glowing text" : "normal text");
 	}
+
 }
