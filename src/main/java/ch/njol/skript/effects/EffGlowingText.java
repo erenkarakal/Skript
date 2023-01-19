@@ -65,15 +65,15 @@ public class EffGlowingText extends Effect {
 
 	@Override
 	protected void execute(Event event) {
-		for (Object o : objects.getArray(event)) {
-			if (o instanceof Block) {
-				BlockState state = ((Block) o).getState();
+		for (Object obj : objects.getArray(event)) {
+			if (obj instanceof Block) {
+				BlockState state = ((Block) obj).getState();
 				if (state instanceof Sign) {
 					((Sign) state).setGlowingText(glowing);
 					state.update();
 				}
-			} else if (o instanceof ItemType) {
-				ItemType item = (ItemType) o;
+			} else if (obj instanceof ItemType) {
+				ItemType item = (ItemType) obj;
 				ItemMeta meta = item.getItemMeta();
 				if (meta instanceof BlockStateMeta) {
 					BlockStateMeta blockMeta = (BlockStateMeta) meta;

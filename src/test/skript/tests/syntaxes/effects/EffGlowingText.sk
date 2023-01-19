@@ -1,4 +1,4 @@
-test "glowing sign blocks":
+test "glowing sign blocks" when running minecraft "1.17.1":
 	set {_loc} to spawn of "world"
 	set block at {_loc} to sign
 	assert block at {_loc} doesn't have glowing text with "Sign had glowing text erroneously (1)"
@@ -7,7 +7,7 @@ test "glowing sign blocks":
 	make block at {_loc} have normal text
 	assert block at {_loc} doesn't have glowing text with "Sign had glowing text erroneously (2)"
 
-test "glowing sign items":
+test "glowing sign items" when running minecraft "1.17.1":
 	set {_sign} to sign
 	assert {_sign} doesn't have glowing text with "Sign had glowing text erroneously (1)"
 	make {_sign} have glowing text
