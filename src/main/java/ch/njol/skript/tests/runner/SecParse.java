@@ -70,13 +70,13 @@ public class SecParse extends Section {
 	}
 
 	@Override
-	protected @Nullable TriggerItem walk(Event e) {
+	protected @Nullable TriggerItem walk(Event event) {
 		lastLogs = logs;
-		return walk(e, false);
+		return walk(event, false);
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		return "parse";
 	}
 

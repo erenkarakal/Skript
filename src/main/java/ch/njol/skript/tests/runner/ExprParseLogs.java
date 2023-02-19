@@ -36,12 +36,12 @@ public class ExprParseLogs extends SimpleExpression<String> {
 	}
 
 	@Override
-	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		return true;
 	}
 
 	@Override
-	protected String[] get(final Event e) {
+	protected String[] get(Event event) {
 		return SecParse.lastLogs;
 	}
 
@@ -56,7 +56,7 @@ public class ExprParseLogs extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		return "the last parse logs";
 	}
 
