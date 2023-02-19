@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 public class ExprParseLogs extends SimpleExpression<String> {
 
 	static {
-		Skript.registerExpression(ExprParseLogs.class, String.class, ExpressionType.SIMPLE, "[the] [last] [parse] logs");
+		Skript.registerExpression(ExprParseLogs.class, String.class, ExpressionType.SIMPLE, "[the] [last] parse logs");
 	}
 
 	@Override
