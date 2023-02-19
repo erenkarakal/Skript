@@ -8,3 +8,5 @@ test "item inventory":
   assert inventory of {_chest} is set with "Failed to get chest inventory"
   set slot 1 of inventory of {_chest} to dirt
   assert slot 1 of inventory of {_chest} is dirt with "Failed to set slot in chest inventory"
+
+  asset inventory of dirt is not set with "Inventory was found for an item without an inventory"

@@ -88,29 +88,28 @@ public class ExprInventory extends SimpleExpression<Object> {
 				inventories.add(((InventoryHolder) holder).getInventory());
 			} else if (holder instanceof ItemType) {
 				ItemMeta meta = ((ItemType) holder).getItemMeta();
-				if (meta instanceof BlockStateMeta) {
-					BlockState state = ((BlockStateMeta) meta).getBlockState();
-					if (state instanceof Container) {
-						Inventory underlyingInv = ((Container) state).getInventory();
-						// The proxy is used here to ensure that any changes to the inventory are reflected in the
-						// BlockStateMeta and ItemMeta of `holder`
-						Inventory proxy = (Inventory) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Inventory.class}, new InvocationHandler() {
-							@Override
-							public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-								Object returnValue = method.invoke(underlyingInv, args);
-								// calling update here causes the changes to the inventory to be synced to the meta
-								boolean updateSucceeded = state.update();
-								if (updateSucceeded) {
-									((BlockStateMeta) meta).setBlockState(state);
-									((ItemType) holder).setItemMeta(meta);
-								}
-								return returnValue;
-							}
-						});
-						inventories.add(proxy);
-
+				if (!(meta instanceof  BlockStateMeta))
+					continue;
+				BlockState state = ((BlockStateMeta) meta).getBlockState();
+				if (!(state instanceof Container))
+					continue;
+				Inventory underlyingInv = ((Container) state).getInventory();
+				// The proxy is used here to ensure that any changes to the inventory are reflected in the
+				// BlockStateMeta and ItemMeta of `holder`
+				Inventory proxy = (Inventory) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Inventory.class}, new InvocationHandler() {
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						Object returnValue = method.invoke(underlyingInv, args);
+						// calling update here causes the changes to the inventory to be synced to the meta
+						boolean updateSucceeded = state.update();
+						if (updateSucceeded) {
+							((BlockStateMeta) meta).setBlockState(state);
+							((ItemType) holder).setItemMeta(meta);
+						}
+						return returnValue;
 					}
-				}
+				});
+				inventories.add(proxy);
 			}
 		}
 		Inventory[] invArray = inventories.toArray(new Inventory[0]);
