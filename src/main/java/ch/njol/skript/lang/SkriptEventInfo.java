@@ -46,11 +46,6 @@ public final class SkriptEventInfo<E extends SkriptEvent> extends SyntaxElementI
 	 */
 	public SkriptEventInfo(String name, String[] patterns, Class<E> c, String originClassPath, Class<? extends Event>[] events) {
 		super(patterns, c, originClassPath);
-		assert name != null;
-		assert patterns != null && patterns.length > 0;
-		assert c != null;
-		assert originClassPath != null;
-		assert events != null && events.length > 0;
 		for (int i = 0; i < events.length; i++) {
 			for (int j = i + 1; j < events.length; j++) {
 				if (events[i].isAssignableFrom(events[j]) || events[j].isAssignableFrom(events[i])) {

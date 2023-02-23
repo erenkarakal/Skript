@@ -540,13 +540,13 @@ public class Variable<T> implements Expression<T> {
 			case REMOVE_ALL:
 				assert delta != null;
 				if (list) {
-					Map<String, Object> o = (Map<String, Object>) getRaw(event);
+					Map<String, Object> map = (Map<String, Object>) getRaw(event);
 					if (mode == ChangeMode.REMOVE) {
-						if (o == null)
+						if (map == null)
 							return;
 						ArrayList<String> rem = new ArrayList<>(); // prevents CMEs
 						for (Object d : delta) {
-							for (Entry<String, Object> i : o.entrySet()) {
+							for (Entry<String, Object> i : map.entrySet()) {
 								if (Relation.EQUAL.is(Comparators.compare(i.getValue(), d))) {
 									String key = i.getKey();
 									if (key == null)
@@ -563,10 +563,10 @@ public class Variable<T> implements Expression<T> {
 							setIndex(event, r, null);
 						}
 					} else if (mode == ChangeMode.REMOVE_ALL) {
-						if (o == null)
+						if (map == null)
 							return;
 						ArrayList<String> rem = new ArrayList<>(); // prevents CMEs
-						for (Entry<String, Object> i : o.entrySet()) {
+						for (Entry<String, Object> i : map.entrySet()) {
 							for (Object d : delta) {
 								if (Relation.EQUAL.is(Comparators.compare(i.getValue(), d)))
 									rem.add(i.getKey());
@@ -580,41 +580,41 @@ public class Variable<T> implements Expression<T> {
 						assert mode == ChangeMode.ADD;
 						int i = 1;
 						for (Object d : delta) {
-							if (o != null)
-								while (o.containsKey("" + i))
+							if (map != null)
+								while (map.containsKey("" + i))
 									i++;
 							setIndex(event, "" + i, d);
 							i++;
 						}
 					}
 				} else {
-					Object o = get(event);
+					Object object = get(event);
 					ClassInfo<?> ci;
-					if (o == null) {
+					if (object == null) {
 						ci = null;
 					} else {
-						Class<?> c = o.getClass();
+						Class<?> c = object.getClass();
 						assert c != null;
 						ci = Classes.getSuperClassInfo(c);
 					}
 					Arithmetic a = null;
 					Changer<?> changer;
 					Class<?>[] cs;
-					if (o == null || ci == null || (a = ci.getMath()) != null) {
+					if (object == null || ci == null || (a = ci.getMath()) != null) {
 						boolean changed = false;
 						for (Object d : delta) {
-							if (o == null || ci == null) {
+							if (object == null || ci == null) {
 								Class<?> c = d.getClass();
 								assert c != null;
 								ci = Classes.getSuperClassInfo(c);
 
 								if ((a = ci.getMath()) != null)
-									o = d;
+									object = d;
 								if (d instanceof Number) { // Nonexistent variable: add/subtract
 									if (mode == ChangeMode.REMOVE) // Variable is delta negated
-										o = -((Number) d).doubleValue(); // Hopefully enough precision
+										object = -((Number) d).doubleValue(); // Hopefully enough precision
 									else // Variable is now what was added to it
-										o = d;
+										object = d;
 								}
 								changed = true;
 								continue;
@@ -624,17 +624,17 @@ public class Variable<T> implements Expression<T> {
 							Object diff = Converters.convert(d, r);
 							if (diff != null) {
 								if (mode == ChangeMode.ADD)
-									o = a.add(o, diff);
+									object = a.add(object, diff);
 								else
-									o = a.subtract(o, diff);
+									object = a.subtract(object, diff);
 								changed = true;
 							}
 						}
 						if (changed)
-							set(event, o);
+							set(event, object);
 					} else if ((changer = ci.getChanger()) != null && (cs = changer.acceptChange(mode)) != null) {
-						Object[] one = (Object[]) Array.newInstance(o.getClass(), 1);
-						one[0] = o;
+						Object[] one = (Object[]) Array.newInstance(object.getClass(), 1);
+						one[0] = object;
 
 						Class<?>[] cs2 = new Class<?>[cs.length];
 						for (int i = 0; i < cs.length; i++)
