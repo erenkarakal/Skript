@@ -29,6 +29,7 @@ import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.LiteralUtils;
+import ch.njol.skript.util.Patterns;
 import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
@@ -37,79 +38,120 @@ import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Iterator;
 
-@Name("Element of")
-@Description({"The first, last or a random element of a set, e.g. a list variable.",
-		"See also: <a href='#ExprRandom'>random</a>"})
-@Examples("give a random element out of {free items::*} to the player")
-@Since("2.0, INSERT VERSION (relative to last element)")
+@Name("Elements")
+@Description({
+		"The first, last, range or a random element of a set, e.g. a list variable.",
+		"See also: <a href='#ExprRandom'>random</a>"
+})
+@Examples("broadcast the first 3 elements of {top players::*}")
+@Since("2.0, INSERT VERSION (relative to last element, range of elements)")
 public class ExprElement extends SimpleExpression<Object> {
 
+	private static final String objects = " [out] of %objects%";
+	private static final Patterns<ElementType> PATTERNS = new Patterns<>(new Object[][]{
+		{"[the] (first|:last) element" + objects, ElementType.SINGLE},
+		{"[the] (first|:last) %number% elements" + objects, ElementType.MULTIPLE},
+		{"[a] random element" + objects, ElementType.RANDOM},
+		{"[the] %number%(st|nd|rd|th) [last:[to] last] element" + objects, ElementType.ORDINAL},
+		{"[the] elements (from|between) %number% (to|and) %number%" + objects, ElementType.RANGE}
+	});
+
 	static {
-		Skript.registerExpression(ExprElement.class, Object.class, ExpressionType.PROPERTY, "(0:[the] first|1:[the] last|2:[a] random|3:[the] %-number%(st|nd|rd|th)|4:[the] %-number%(st|nd|rd|th) [to] last) element [out] of %objects%");
+		Skript.registerExpression(ExprElement.class, Object.class, ExpressionType.PROPERTY, PATTERNS.getPatterns());
 	}
 
 	private enum ElementType {
-		FIRST, LAST, RANDOM, ORDINAL, TAIL_END_ORDINAL
+		SINGLE, MULTIPLE, RANDOM, ORDINAL, RANGE
 	}
 
-	private ElementType type;
-
 	private Expression<?> expr;
-
-	@Nullable
-	private Expression<Number> number;
+	private	@Nullable Expression<Number> number, to;
+	private ElementType type;
+	private boolean last;
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		expr = LiteralUtils.defendExpression(exprs[2]);
-		type = ElementType.values()[parseResult.mark];
-		number = (Expression<Number>) (type == ElementType.ORDINAL ? exprs[0]: exprs[1]);
+		type = PATTERNS.getInfo(matchedPattern);
+		expr = LiteralUtils.defendExpression(exprs[exprs.length - 1]);
+		switch (type) {
+			case RANGE:
+				to = (Expression<Number>) exprs[1];
+				//$FALL-THROUGH$
+			case MULTIPLE:
+			case ORDINAL:
+				number = (Expression<Number>) exprs[0];
+				break;
+			default:
+				number = null;
+				break;
+		}
+		last = parseResult.hasTag("last");
 		return LiteralUtils.canInitSafely(expr);
 	}
 
 	@Override
 	@Nullable
 	protected Object[] get(Event event) {
-		Iterator<?> iter = expr.iterator(event);
-		if (iter == null || !iter.hasNext())
+		Iterator<?> iterator = expr.iterator(event);
+		if (iterator == null || !iterator.hasNext())
 			return null;
 		Object element = null;
 		switch (type) {
-			case FIRST:
-				element = iter.next();
-				break;
-			case LAST:
-				element = Iterators.getLast(iter);
-				break;
-			case ORDINAL:
-				assert this.number != null;
-				Number number = this.number.getSingle(event);
-				if (number == null)
-					return null;
-				try {
-					element = Iterators.get(iter, number.intValue() - 1);
-				} catch (IndexOutOfBoundsException exception) {
-					return null;
-				}
+			case SINGLE:
+				element = last ? Iterators.getLast(iterator) : iterator.next();
 				break;
 			case RANDOM:
-				Object[] allIterValues = Iterators.toArray(iter, Object.class);
+				Object[] allIterValues = Iterators.toArray(iterator, Object.class);
 				element = CollectionUtils.getRandom(allIterValues);
 				break;
-			case TAIL_END_ORDINAL:
-				allIterValues = Iterators.toArray(iter, Object.class);
-				assert this.number != null;
-				number = this.number.getSingle(event);
+			case ORDINAL:
+				allIterValues = Iterators.toArray(iterator, Object.class);
+				assert number != null;
+				Number number = this.number.getSingle(event);
 				if (number == null)
 					return null;
 				int ordinal = number.intValue();
 				if (ordinal <= 0 || ordinal > allIterValues.length)
 					return null;
-				element = allIterValues[allIterValues.length - ordinal];
+				element = allIterValues[last ? allIterValues.length - ordinal : ordinal - 1];
 				break;
+			case MULTIPLE:
+				assert this.number != null;
+				number = this.number.getSingle(event);
+				if (number == null)
+					return null;
+				allIterValues = Iterators.toArray(iterator, Object.class);
+				int size = Math.min(number.intValue(), allIterValues.length);
+				if (size <= 0)
+					return null;
+				Object[] elementArray = (Object[]) Array.newInstance(getReturnType(), size);
+				System.arraycopy(allIterValues, last ? allIterValues.length - size : 0, elementArray, 0, size);
+				return elementArray;
+			case RANGE:
+				assert this.number != null;
+				assert to != null;
+				Number from = this.number.getSingle(event);
+				Number to = this.to.getSingle(event);
+				if (from == null || to == null)
+					return null;
+
+				allIterValues = Iterators.toArray(iterator, Object.class);
+				int min = Math.min(from.intValue(), to.intValue()) - 1;
+				int max = Math.max(from.intValue(), to.intValue());
+				min = Math.max(min, 0);
+				max = Math.min(Math.max(max, 0), allIterValues.length);
+
+				size = max - min;
+				if (size <= 0)
+					return null;
+
+				elementArray = (Object[]) Array.newInstance(getReturnType(), size);
+				System.arraycopy(allIterValues, min, elementArray, 0, size);
+				return elementArray;
 		}
 		Object[] elementArray = (Object[]) Array.newInstance(getReturnType(), 1);
 		elementArray[0] = element;
@@ -125,15 +167,17 @@ public class ExprElement extends SimpleExpression<Object> {
 			return null;
 
 		ExprElement exprElement = new ExprElement();
-		exprElement.type = this.type;
 		exprElement.expr = convExpr;
 		exprElement.number = this.number;
+		exprElement.to = this.to;
+		exprElement.type = this.type;
+		exprElement.last = this.last;
 		return (Expression<? extends R>) exprElement;
 	}
 
 	@Override
 	public boolean isSingle() {
-		return true;
+		return !(type == ElementType.MULTIPLE || type == ElementType.RANGE);
 	}
 
 	@Override
@@ -142,14 +186,15 @@ public class ExprElement extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		String prefix;
+	public String toString(@Nullable Event event, boolean debug) {
+		String prefix = "";
 		switch (type) {
-			case FIRST:
-				prefix = "the first";
+			case SINGLE:
+				prefix = last ? "the last" : "the first";
 				break;
-			case LAST:
-				prefix = "the last";
+			case MULTIPLE:
+				assert number != null;
+				prefix = (last ? "the last " : "the first ") + number.toString(event, debug);
 				break;
 			case RANDOM:
 				prefix = "a random";
@@ -161,17 +206,22 @@ public class ExprElement extends SimpleExpression<Object> {
 				if (number instanceof Literal) {
 					Number number = ((Literal<Number>) this.number).getSingle();
 					if (number == null)
-						prefix += this.number.toString(e, debug) + "th";
+						prefix += this.number.toString(event, debug) + "th";
 					else
 						prefix += StringUtils.fancyOrderNumber(number.intValue());
 				} else {
-					prefix += number.toString(e, debug) + "th";
+					prefix += number.toString(event, debug) + "th";
 				}
+				if (last)
+					prefix += " last";
 				break;
+			case RANGE:
+				assert number != null && to != null;
+				return "the elements from " + number.toString(event, debug) + " to " + to.toString(event, debug) + " of " + expr.toString(event, debug);
 			default:
 				throw new IllegalStateException();
 		}
-		return prefix + " element of " + expr.toString(e, debug);
+		return prefix + (isSingle() ? " element" : " elements") + " of " + expr.toString(event, debug);
 	}
 
 }
