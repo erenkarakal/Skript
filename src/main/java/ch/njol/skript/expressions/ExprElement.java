@@ -34,6 +34,7 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
 import ch.njol.util.coll.CollectionUtils;
 import com.google.common.collect.Iterators;
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -53,26 +54,24 @@ import java.util.List;
 public class ExprElement extends SimpleExpression<Object> {
 
 	private static final Patterns<PatternInfo> PATTERNS = new Patterns<>(new Object[][]{
-		{"[the] (first|:last) element [out] of %objects%", new PatternInfo(ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT, true)},
-		{"[the] (first|:last) %number% elements [out] of %objects%", new PatternInfo(ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS, false)},
-		{"[a] random element [out] of %objects%", new PatternInfo(ElementType.RANDOM, true)},
-		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", new PatternInfo(ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL, true)},
-		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", new PatternInfo(ElementType.RANGE, false)}
+		{"[the] (first|:last) element [out] of %objects%", new PatternInfo(ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT)},
+		{"[the] (first|:last) %number% elements [out] of %objects%", new PatternInfo(ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS)},
+		{"[a] random element [out] of %objects%", new PatternInfo(ElementType.RANDOM)},
+		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", new PatternInfo(ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL)},
+		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", new PatternInfo(ElementType.RANGE)}
 	});
 
 	private static class PatternInfo {
 
 		private final ElementType first, last;
-		private final boolean single;
 
-		private PatternInfo(ElementType first, ElementType last, boolean single) {
+		private PatternInfo(ElementType first, ElementType last) {
 			this.first = first;
 			this.last = last;
-			this.single = single;
 		}
 
-		private PatternInfo(ElementType type, boolean single) {
-			this(type, type, single);
+		private PatternInfo(ElementType type) {
+			this(type, type);
 		}
 
 	}
@@ -95,7 +94,6 @@ public class ExprElement extends SimpleExpression<Object> {
 	private Expression<?> expr;
 	private	@Nullable Expression<Number> startIndex, endIndex;
 	private ElementType type;
-	private boolean single;
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -115,7 +113,6 @@ public class ExprElement extends SimpleExpression<Object> {
 				break;
 		}
 		type = parseResult.hasTag("last") ? info.last : info.first;
-		single = info.single;
 		return LiteralUtils.canInitSafely(expr);
 	}
 
@@ -173,30 +170,18 @@ public class ExprElement extends SimpleExpression<Object> {
 			case LAST_X_ELEMENTS:
 				if (startIndex <= 0)
 					return null;
-				allElements = Iterators.toArray(iterator, Object.class);
+				//noinspection unchecked,rawtypes
+				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
 				startIndex = Math.min(startIndex, allElements.length);
-				Object[] array = new Object[0];
-				try {
-					System.out.println("start");
-					System.out.println("All elements: " + Arrays.toString(allElements));
-					System.out.println(getReturnType());
-					//noinspection unchecked,rawtypes
-					array = Arrays.copyOfRange(allElements, allElements.length - startIndex, allElements.length, (Class) getReturnType());
-					System.out.println("Filtered elements: " + Arrays.toString(array));
-					System.out.println("end");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				return array;
+				return ArrayUtils.subarray(allElements, allElements.length - startIndex, allElements.length);
 			case RANGE:
-				allElements = Iterators.toArray(iterator, Object.class);
+				//noinspection unchecked,rawtypes
+				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
 				int from = Math.min(startIndex, endIndex) - 1;
 				int to = Math.max(startIndex, endIndex);
 				from = Math.max(from, 0);
 				to = Math.min(Math.max(to, 0), allElements.length);
-
-				//noinspection unchecked,rawtypes
-				return Arrays.copyOfRange(allElements, from, to, (Class) getReturnType());
+				return ArrayUtils.subarray(allElements, from, to);
 		}
 		Object[] elementArray = (Object[]) Array.newInstance(getReturnType(), 1);
 		elementArray[0] = element;
@@ -221,7 +206,7 @@ public class ExprElement extends SimpleExpression<Object> {
 
 	@Override
 	public boolean isSingle() {
-		return single;
+		return type != ElementType.FIRST_X_ELEMENTS && type != ElementType.LAST_X_ELEMENTS && type != ElementType.RANGE;
 	}
 
 	@Override
@@ -273,7 +258,7 @@ public class ExprElement extends SimpleExpression<Object> {
 			default:
 				throw new IllegalStateException();
 		}
-		return prefix + (single ? " element" : " elements") + " of " + expr.toString(event, debug);
+		return prefix + (isSingle() ? " element" : " elements") + " of " + expr.toString(event, debug);
 	}
 
 }
