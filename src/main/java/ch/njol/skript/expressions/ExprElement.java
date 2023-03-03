@@ -53,28 +53,13 @@ import java.util.List;
 @Since("2.0, INSERT VERSION (relative to last element, range of elements)")
 public class ExprElement extends SimpleExpression<Object> {
 
-	private static final Patterns<PatternInfo> PATTERNS = new Patterns<>(new Object[][]{
-		{"[the] (first|:last) element [out] of %objects%", new PatternInfo(ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT)},
-		{"[the] (first|:last) %number% elements [out] of %objects%", new PatternInfo(ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS)},
-		{"[a] random element [out] of %objects%", new PatternInfo(ElementType.RANDOM)},
-		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", new PatternInfo(ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL)},
-		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", new PatternInfo(ElementType.RANGE)}
+	private static final Patterns<ElementType[]> PATTERNS = new Patterns<>(new Object[][]{
+		{"[the] (first|:last) element [out] of %objects%", new ElementType[] {ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT}},
+		{"[the] (first|:last) %number% elements [out] of %objects%", new ElementType[] {ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS}},
+		{"[a] random element [out] of %objects%", new ElementType[] {ElementType.RANDOM}},
+		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", new ElementType[] {ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL}},
+		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", new ElementType[] {ElementType.RANGE}}
 	});
-
-	private static class PatternInfo {
-
-		private final ElementType first, last;
-
-		private PatternInfo(ElementType first, ElementType last) {
-			this.first = first;
-			this.last = last;
-		}
-
-		private PatternInfo(ElementType type) {
-			this(type, type);
-		}
-
-	}
 
 	static {
 		Skript.registerExpression(ExprElement.class, Object.class, ExpressionType.PROPERTY, PATTERNS.getPatterns());
@@ -98,9 +83,9 @@ public class ExprElement extends SimpleExpression<Object> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		PatternInfo info = PATTERNS.getInfo(matchedPattern);
+		ElementType[] types = PATTERNS.getInfo(matchedPattern);
 		expr = LiteralUtils.defendExpression(exprs[exprs.length - 1]);
-		switch (info.first) {
+		switch (types[0]) {
 			case RANGE:
 				endIndex = (Expression<Number>) exprs[1];
 				//$FALL-THROUGH$
@@ -112,7 +97,7 @@ public class ExprElement extends SimpleExpression<Object> {
 				startIndex = null;
 				break;
 		}
-		type = parseResult.hasTag("last") ? info.last : info.first;
+		type = types[parseResult.hasTag("last") ? 1 : 0];
 		return LiteralUtils.canInitSafely(expr);
 	}
 
@@ -177,11 +162,15 @@ public class ExprElement extends SimpleExpression<Object> {
 			case RANGE:
 				//noinspection unchecked,rawtypes
 				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
+				boolean reverse = startIndex > endIndex;
 				int from = Math.min(startIndex, endIndex) - 1;
 				int to = Math.max(startIndex, endIndex);
 				from = Math.max(from, 0);
 				to = Math.min(Math.max(to, 0), allElements.length);
-				return ArrayUtils.subarray(allElements, from, to);
+				Object[] elements = ArrayUtils.subarray(allElements, from, to);
+				if (reverse)
+					ArrayUtils.reverse(elements);
+				return elements;
 		}
 		Object[] elementArray = (Object[]) Array.newInstance(getReturnType(), 1);
 		elementArray[0] = element;
