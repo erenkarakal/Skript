@@ -50,13 +50,12 @@ import java.util.Iterator;
 @Since("2.0, INSERT VERSION (relative to last element, range of elements)")
 public class ExprElement extends SimpleExpression<Object> {
 
-	private static final String objects = " [out] of %objects%";
 	private static final Patterns<ElementType> PATTERNS = new Patterns<>(new Object[][]{
-		{"[the] (first|:last) element" + objects, ElementType.SINGLE},
-		{"[the] (first|:last) %number% elements" + objects, ElementType.MULTIPLE},
-		{"[a] random element" + objects, ElementType.RANDOM},
-		{"[the] %number%(st|nd|rd|th) [last:[to] last] element" + objects, ElementType.ORDINAL},
-		{"[the] elements (from|between) %number% (to|and) %number%" + objects, ElementType.RANGE}
+		{"[the] (first|:last) element [out] of %objects%", ElementType.SINGLE},
+		{"[the] (first|:last) %number% elements [out] of %objects%", ElementType.MULTIPLE},
+		{"[a] random element [out] of %objects%", ElementType.RANDOM},
+		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", ElementType.ORDINAL},
+		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", ElementType.RANGE}
 	});
 
 	static {
@@ -109,13 +108,22 @@ public class ExprElement extends SimpleExpression<Object> {
 				element = CollectionUtils.getRandom(allIterValues);
 				break;
 			case ORDINAL:
-				allIterValues = Iterators.toArray(iterator, Object.class);
 				assert number != null;
 				Number number = this.number.getSingle(event);
 				if (number == null)
 					return null;
 				int ordinal = number.intValue();
-				if (ordinal <= 0 || ordinal > allIterValues.length)
+				if (ordinal <= 0)
+					return null;
+				if (!last) {
+					Iterators.advance(iterator, ordinal - 1);
+					if (!iterator.hasNext())
+						return null;
+					element = iterator.next();
+					break;
+				}
+				allIterValues = Iterators.toArray(iterator, Object.class);
+				if (ordinal > allIterValues.length)
 					return null;
 				element = allIterValues[last ? allIterValues.length - ordinal : ordinal - 1];
 				break;
