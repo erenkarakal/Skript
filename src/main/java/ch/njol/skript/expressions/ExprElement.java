@@ -103,6 +103,7 @@ public class ExprElement extends SimpleExpression<Object> {
 
 	@Override
 	@Nullable
+	@SuppressWarnings("unchecked, rawtypes")
 	protected Object[] get(Event event) {
 		Iterator<?> iterator = expr.iterator(event);
 		if (iterator == null || !iterator.hasNext())
@@ -115,6 +116,8 @@ public class ExprElement extends SimpleExpression<Object> {
 			if (number == null)
 				return null;
 			startIndex = number.intValue();
+			if (startIndex <= 0 && type != ElementType.RANGE)
+				return null;
 		}
 		if (this.endIndex != null) {
 			Number number = this.endIndex.getSingle(event);
@@ -134,8 +137,6 @@ public class ExprElement extends SimpleExpression<Object> {
 				element = CollectionUtils.getRandom(allElements);
 				break;
 			case ORDINAL:
-				if (startIndex <= 0)
-					return null;
 				Iterators.advance(iterator, startIndex - 1);
 				if (!iterator.hasNext())
 					return null;
@@ -143,24 +144,17 @@ public class ExprElement extends SimpleExpression<Object> {
 				break;
 			case TAIL_END_ORDINAL:
 				allElements = Iterators.toArray(iterator, Object.class);
-				if (startIndex <= 0 || startIndex > allElements.length)
+				if (startIndex > allElements.length)
 					return null;
 				element = allElements[allElements.length - startIndex];
 				break;
 			case FIRST_X_ELEMENTS:
-				if (startIndex <= 0)
-					return null;
-				//noinspection unchecked,rawtypes
 				return Iterators.toArray((Iterator) Iterators.limit(iterator, startIndex), getReturnType());
 			case LAST_X_ELEMENTS:
-				if (startIndex <= 0)
-					return null;
-				//noinspection unchecked,rawtypes
 				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
 				startIndex = Math.min(startIndex, allElements.length);
 				return ArrayUtils.subarray(allElements, allElements.length - startIndex, allElements.length);
 			case RANGE:
-				//noinspection unchecked,rawtypes
 				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
 				boolean reverse = startIndex > endIndex;
 				int from = Math.min(startIndex, endIndex) - 1;
