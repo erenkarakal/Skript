@@ -3,8 +3,8 @@ variables:
 	{testing::variables1::%entity%} = 1337
 	{testing::variables2::%object%} = 1337
 	{testing::variables3::%entity%::%object%} = 1337
-	testing::no brackets::%living entity% = "String"
-	testing::variables4 = 1.6900000000001
+	{testing::no brackets::%living entity%} = "String"
+	{testing::variables4} = 1.6900000000001
 	{testing::regression::%offlineplayer%} = 1337
 
 on test "default variables":
