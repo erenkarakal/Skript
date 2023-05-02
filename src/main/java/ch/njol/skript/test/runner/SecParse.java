@@ -20,6 +20,9 @@ package ch.njol.skript.test.runner;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.config.SectionNode;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.NoDoc;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.Section;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -34,7 +37,9 @@ import org.eclipse.jdt.annotation.Nullable;
 
 import java.util.List;
 
-
+@Name("Parse Section")
+@Description("Parse code inside this section and use 'parse logs' to grab any logs from it.")
+@NoDoc
 public class SecParse extends Section {
 
 	static {
@@ -43,7 +48,6 @@ public class SecParse extends Section {
 
 	@Nullable
 	public static String[] lastLogs;
-
 	private String[] logs;
 
 	@Override
