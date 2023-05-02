@@ -19,6 +19,9 @@
 package ch.njol.skript.test.runner;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.NoDoc;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -28,7 +31,9 @@ import org.bukkit.event.Event;
 
 import javax.annotation.Nullable;
 
-
+@Name("Parse Logs")
+@Description("Returns the last known parse logs from a parse section, if any.")
+@NoDoc
 public class ExprParseLogs extends SimpleExpression<String> {
 
 	static {
@@ -57,7 +62,7 @@ public class ExprParseLogs extends SimpleExpression<String> {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "the last parse logs";
+		return "last parse logs";
 	}
 
 }
