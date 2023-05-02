@@ -65,11 +65,10 @@ public class SecParse extends Section {
 			// only store logs if we're not in another parse section.
 			// this way you can access the parse logs of the outermost parse section
 			logs = handler.getLog().stream()
-				.map(LogEntry::getMessage)
-				.toArray(String[]::new);
+					.map(LogEntry::getMessage)
+					.toArray(String[]::new);
 		}
 		handler.stop();
-
 		return true;
 	}
 
