@@ -57,7 +57,9 @@ import ch.njol.util.Kleenean;
 public class ExprItemsIn extends SimpleExpression<Slot> {
 
 	static {
-		Skript.registerExpression(ExprItemsIn.class, Slot.class, ExpressionType.PROPERTY, "[(all [[of] the]|the)] (items|%-itemtypes%) ([with]in|of|contained in|out of) (|1¦inventor(y|ies)) %inventories%");
+		Skript.registerExpression(ExprItemsIn.class, Slot.class, ExpressionType.PROPERTY,
+			"[all [[of] the]|the] (items|%-itemtypes%) ([with]in|of|contained in|out of) [1:inventor(y|ies)] %inventories%"
+		);
 	}
 
 	@SuppressWarnings("null")
@@ -72,7 +74,7 @@ public class ExprItemsIn extends SimpleExpression<Slot> {
 	 * the parse result will be null if it is used via the ExprInventory expression, however the expression will never
 	 * be a variable when used with that expression (it is always a anonymous SimpleExpression)
 	 */
-	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, @Nullable ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		types = (Expression<ItemType>) exprs[0];
 		inventories = (Expression<Inventory>) exprs[1];
 		if (inventories instanceof Variable && !inventories.isSingle() && parseResult.mark != 1)
@@ -158,7 +160,7 @@ public class ExprItemsIn extends SimpleExpression<Slot> {
 	private boolean isAllowedItem(@Nullable ItemType[] types, @Nullable ItemStack item) {
 		if (types == null)
 			return item != null;
-		else if (item == null)
+		if (item == null)
 			return false;
 
 		ItemType potentiallyAllowedItem = new ItemType(item);
