@@ -76,16 +76,16 @@ public class EffGlowingText extends Effect {
 			} else if (obj instanceof ItemType) {
 				ItemType item = (ItemType) obj;
 				ItemMeta meta = item.getItemMeta();
-				if (meta instanceof BlockStateMeta) {
-					BlockStateMeta blockMeta = (BlockStateMeta) meta;
-					BlockState state = blockMeta.getBlockState();
-					if (state instanceof Sign) {
-						((Sign) state).setGlowingText(glowing);
-						state.update();
-						blockMeta.setBlockState(state);
-						item.setItemMeta(meta);
-					}
-				}
+				if (!(meta instanceof BlockStateMeta))
+					return;
+				BlockStateMeta blockMeta = (BlockStateMeta) meta;
+				BlockState state = blockMeta.getBlockState();
+				if (!(state instanceof Sign))
+					return;
+				((Sign) state).setGlowingText(glowing);
+				state.update();
+				blockMeta.setBlockState(state);
+				item.setItemMeta(meta);
 			}
 		}
 	}
