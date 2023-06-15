@@ -46,8 +46,8 @@ public class EffGlowingText extends Effect {
 	static {
 		if (Skript.methodExists(Sign.class, "setGlowingText", boolean.class)) {
 			Skript.registerEffect(EffGlowingText.class,
-				"make %blocks/itemtypes% have glowing text",
-				"make %blocks/itemtypes% have (normal|non[-| ]glowing) text"
+					"make %blocks/itemtypes% have glowing text",
+					"make %blocks/itemtypes% have (normal|non[-| ]glowing) text"
 			);
 		}
 	}
