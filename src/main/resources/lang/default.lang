@@ -1939,6 +1939,18 @@ quit reasons:
 	kicked: kicked
 	timed_out: timed out
 
+# -- Transform Reasons --
+transform reasons:
+	cured: zombie cure, zombie curing, zombie cured, cured
+	drowned: entity drowned, drowned, zombie converting to drown, zombie drown
+	frozen: entity froze, entity frozen, skeleton frozen, skeleton froze, skeleton converting to stray
+	lightning: lightning, creeper super charge, super charged creeper
+	metamorphosis: tadpole convert, tadpole converted to frog, tadpole metamorphosis, metamorphosis
+	piglin_zombified: piglin zombification, piglin zombified
+	sheared: sheared, mooshroom sheared
+	split: slime split, slime splitting, split, magma slime split, magma slime splitting
+	unknown: unknown
+
 # -- Boolean --
 boolean:
 	true:
@@ -2008,6 +2020,7 @@ types:
 	gene: panda gene¦s @a
 	gamerulevalue: gamerule value¦s @a
 	quitreason: quit reason¦s @a
+	transformreason: transform reason¦s @a
 
 	# Skript
 	weathertype: weather type¦s @a

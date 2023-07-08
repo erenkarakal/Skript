@@ -59,6 +59,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
+import org.bukkit.event.entity.EntityTransformEvent.TransformReason;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryType;
@@ -1511,5 +1512,12 @@ public class BukkitClasses {
 					.description("Represents a quit reason from a player quit server event.")
 					.requiredPlugins("Paper 1.16.5+")
 					.since("INSERT VERSION"));
+
+		Classes.registerClass(new EnumClassInfo<>(TransformReason.class, "transformreason", "transform reasons")
+				.user("(entity)? ?transform ?(reason|cause)s?")
+				.name("Transform Reason")
+				.defaultExpression(new EventValueExpression<>(TransformReason.class))
+				.description("Represents a transform reason of an <a href='events.html#entity transform'>entity transform event</a>.")
+				.since("INSERT VERSION"));
 	}
 }
