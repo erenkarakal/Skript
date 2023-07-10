@@ -1950,6 +1950,7 @@ transform reasons:
 	sheared: sheared, mooshroom sheared
 	split: slime split, slime splitting, split, magma slime split, magma slime splitting
 	unknown: unknown
+	infection: infection
 
 # -- Boolean --
 boolean:

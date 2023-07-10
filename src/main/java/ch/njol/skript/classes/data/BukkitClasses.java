@@ -1516,7 +1516,6 @@ public class BukkitClasses {
 		Classes.registerClass(new EnumClassInfo<>(TransformReason.class, "transformreason", "transform reasons")
 				.user("(entity)? ?transform ?(reason|cause)s?")
 				.name("Transform Reason")
-				.defaultExpression(new EventValueExpression<>(TransformReason.class))
 				.description("Represents a transform reason of an <a href='events.html#entity transform'>entity transform event</a>.")
 				.since("INSERT VERSION"));
 	}
