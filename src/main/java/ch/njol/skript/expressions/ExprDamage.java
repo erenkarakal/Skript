@@ -54,7 +54,7 @@ import ch.njol.util.coll.CollectionUtils;
 		"\tmessage \"The smite was lessened by your leather helmet!\" to the victim"
 })
 @Since("1.3.5")
-@RequiredPlugins("Spigot 1.14+ for the item damage event.")
+@RequiredPlugins("Spigot 1.14+ (item damage event)")
 @Events("damage")
 public class ExprDamage extends SimpleExpression<Number> {
 
