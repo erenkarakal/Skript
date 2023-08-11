@@ -30,14 +30,12 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.skriptlang.skript.lang.entry.EntryContainer;
 import org.skriptlang.skript.lang.structure.Structure;
 
-import java.util.Locale;
-
 @NoDoc
 public class StructEvent extends Structure {
 
 	static {
 		Skript.registerStructure(StructEvent.class,
-			"[on] <.+> [with priority (:(lowest|low|normal|high|highest|monitor))]");
+			"[on] <.+> [with priority (1:lowest|2:low|3:normal|4:high|5:highest|6:monitor)]");
 	}
 
 	private SkriptEvent event;
@@ -46,8 +44,8 @@ public class StructEvent extends Structure {
 	@SuppressWarnings("ConstantConditions")
 	public boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult, EntryContainer entryContainer) {
 		String expr = parseResult.regexes.get(0).group();
-		if (!parseResult.tags.isEmpty())
-			getParser().getData(EventData.class).priority = EventPriority.valueOf(parseResult.tags.get(0).toUpperCase(Locale.ENGLISH));
+		if (parseResult.mark > 0)
+			getParser().getData(EventData.class).priority = EventPriority.values()[parseResult.mark - 1];
 		event = SkriptEvent.parse(expr, entryContainer.getSource(), null);
 		return event != null;
 	}
