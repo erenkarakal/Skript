@@ -48,7 +48,6 @@ import ch.njol.skript.lang.ExpressionType;
 		"\tdamage wasn't caused by a block explosion, an attack, a projectile, a potion, fire, burning, thorns or poison",
 		"\tclear drops"
 })
-//@Examples("damage cause is lava, fire or burning")
 @Since("2.0")
 public class ExprDamageCause extends EventValueExpression<DamageCause> {
 	
