@@ -37,7 +37,6 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.log.ErrorQuality;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 
@@ -53,9 +52,9 @@ import ch.njol.util.coll.CollectionUtils;
 		"\tsubtract 2.5 from the damage",
 		"\tmessage \"The smite was lessened by your leather helmet!\" to the victim"
 })
-@Since("1.3.5")
+@Since("1.3.5, INSERT VERSION (item damage event)")
 @RequiredPlugins("Spigot 1.14+ (item damage event)")
-@Events("damage")
+@Events("damage, item damage")
 public class ExprDamage extends SimpleExpression<Number> {
 
 	private final static boolean ITEM_DAMAGE = Skript.classExists("org.bukkit.event.player.PlayerItemDamageEvent");
@@ -93,13 +92,9 @@ public class ExprDamage extends SimpleExpression<Number> {
 		if (event instanceof EntityDamageEvent)
 			return CollectionUtils.array(HealthUtils.getDamage((EntityDamageEvent) event));
 	
-		if (ITEM_DAMAGE) {
-			if (!(event instanceof PlayerItemDamageEvent))
-				return new Number[0];
+		if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent)
 			return CollectionUtils.array(((PlayerItemDamageEvent) event).getDamage());
-		}
 
-		assert false;
 		return new Number[0];
 	}
 
@@ -117,9 +112,8 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
-		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent))) {
+		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent)))
 			return;
-		}
 		Number damage = delta == null ? 0 : (Number) delta[0];
 		switch (mode) {
 			case SET:
