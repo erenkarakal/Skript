@@ -32,7 +32,23 @@ import ch.njol.skript.lang.ExpressionType;
 
 @Name("Damage Cause")
 @Description("The <a href='./classes.html#damagecause'>damage cause</a> of a damage event. Please click on the link for more information.")
-@Examples("damage cause is lava, fire or burning")
+@Examples({
+	"# make players use their potions of fire resistance whenever they take any kind of fire damage",
+	"on damage:",
+		"\tdamage was caused by lava, fire or burning",
+		"\tvictim is a player",
+		"\tvictim has a potion of fire resistance",
+		"\tcancel event",
+		"\tapply fire resistance to the victim for 30 seconds",
+		"\tremove 1 potion of fire resistance from the victim",
+	"",
+	"# prevent mobs from dropping items under certain circumstances",
+	"on death:",
+		"\tentity is not a player",
+		"\tdamage wasn't caused by a block explosion, an attack, a projectile, a potion, fire, burning, thorns or poison",
+		"\tclear drops"
+})
+//@Examples("damage cause is lava, fire or burning")
 @Since("2.0")
 public class ExprDamageCause extends EventValueExpression<DamageCause> {
 	
