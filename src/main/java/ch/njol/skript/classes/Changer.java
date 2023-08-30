@@ -21,6 +21,7 @@ package ch.njol.skript.classes;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.classes.data.DefaultChangers;
 import ch.njol.skript.lang.Expression;
 
@@ -30,16 +31,15 @@ import ch.njol.skript.lang.Expression;
  * <p>
  * Some useful Changers can be found in {@link DefaultChangers}
  * 
- * @author Peter Güttinger
  * @see DefaultChangers
  * @see Expression
  */
 public interface Changer<T> {
-	
+
 	public static enum ChangeMode {
 		ADD, SET, REMOVE, REMOVE_ALL, DELETE, RESET;
 	}
-	
+
 	/**
 	 * Tests whether this changer supports the given mode, and if yes what type(s) it expects the elements of <code>delta</code> to be.
 	 * <p>
@@ -52,7 +52,7 @@ public interface Changer<T> {
 	 */
 	@Nullable
 	public abstract Class<?>[] acceptChange(ChangeMode mode);
-	
+
 	/**
 	 * @param what The objects to change
 	 * @param delta An array with one or more instances of one or more of the the classes returned by {@link #acceptChange(ChangeMode)} for the given change mode (null for
@@ -61,35 +61,74 @@ public interface Changer<T> {
 	 * @throws UnsupportedOperationException (optional) if this method was called on an unsupported ChangeMode.
 	 */
 	public abstract void change(T[] what, @Nullable Object[] delta, ChangeMode mode);
-	
+
 	public static abstract class ChangerUtils {
-		
+
 		@SuppressWarnings("unchecked")
-		public static <T, V> void change(final Changer<T> changer, final Object[] what, final @Nullable Object[] delta, final ChangeMode mode) {
+		public static <T, V> void change(Changer<T> changer, Object[] what, @Nullable Object[] delta, ChangeMode mode) {
 			changer.change((T[]) what, delta, mode);
 		}
-		
+
 		/**
 		 * Tests whether an expression accepts changes of a certain type. If multiple types are given it test for whether any of the types is accepted.
 		 * 
-		 * @param e The expression to test
+		 * @param expression The expression to test
 		 * @param mode The ChangeMode to use in the test
 		 * @param types The types to test for
 		 * @return Whether <tt>e.{@link Expression#change(Event, Object[], ChangeMode) change}(event, type[], mode)</tt> can be used or not.
 		 */
-		public static boolean acceptsChange(final Expression<?> e, final ChangeMode mode, final Class<?>... types) {
-			final Class<?>[] cs = e.acceptChange(mode);
-			if (cs == null)
+		public static boolean acceptsChange(Expression<?> expression, ChangeMode mode, Class<?>... types) {
+			Class<?>[] classes = expression.acceptChange(mode);
+			if (classes == null)
 				return false;
-			for (final Class<?> type : types) {
-				for (final Class<?> c : cs) {
+			for (Class<?> type : types) {
+				for (Class<?> c : classes) {
 					if (c.isArray() ? c.getComponentType().isAssignableFrom(type) : c.isAssignableFrom(type))
 						return true;
 				}
 			}
 			return false;
 		}
-		
+
+		/**
+		 * Prints a Skript.error depending on the changer used for the provided expression.
+		 * Useful when providing error messages in acceptChange methods and init methods.
+		 * 
+		 * @param expression The expression that cannot accept the provided {@link ChangeMode}
+		 * @param mode The {@link ChangeMode} that the expression cannot accept.
+		 */
+		public static void cannotChange(Expression<?> expression, ChangeMode mode) {
+			cannotChange(expression, mode, null);
+		}
+
+		/**
+		 * Prints a Skript.error depending on the changer used for the provided expression.
+		 * Useful when providing error messages in acceptChange methods and init methods.
+		 * 
+		 * @param expression The expression that cannot accept the provided {@link ChangeMode}
+		 * @param mode The {@link ChangeMode} that the expression cannot accept.
+		 * @param additional An optional string message to append to the end of the error.
+		 */
+		public static void cannotChange(Expression<?> expression, ChangeMode mode, @Nullable String additional) {
+			additional = additional == null ? "" : " " + additional;
+			switch (mode) {
+				case SET:
+					Skript.error("'" + expression.toString(null, false) + "' can't be set to anything." + additional);
+					break;
+				case DELETE:
+					Skript.error("'" + expression.toString(null, false) + "' can't be deleted/cleared." + additional);
+					break;
+				case REMOVE_ALL:
+				case ADD:
+					//$FALL-THROUGH$
+				case REMOVE:
+					Skript.error("'" + expression.toString(null, false) + "' can't have anything " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " it." + additional);
+					break;
+				case RESET:
+					Skript.error("'" + expression.toString(null, false) + "' can't be reset." + additional);
+			}
+		}
+
 	}
-	
+
 }

@@ -22,11 +22,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.bukkitutil.HealthUtils;
 import ch.njol.skript.classes.Changer.ChangeMode;
+import ch.njol.skript.classes.Changer.ChangerUtils;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Events;
 import ch.njol.skript.doc.Examples;
@@ -43,7 +44,10 @@ import ch.njol.util.coll.CollectionUtils;
 @Name("Damage")
 @Description({
 	"How much damage is done in a damage event, possibly ignoring armour, criticals and/or enchantments.",
-	"Can be changed (remember that in Skript '1' is one full heart, not half a heart)."
+	"Can be changed (remember that in Skript '1' is one full heart, not half a heart).",
+	"",
+	"This event also supports item damage. The item damage event event gets called even with unbreaking.",
+	"You can use 'original damage' if using Paper 1.18+ to find the original damage before unbreaking was taken into consideration."
 })
 @Examples({
 	"on damage of player:",
@@ -53,16 +57,23 @@ import ch.njol.util.coll.CollectionUtils;
 		"\tmessage \"The smite was lessened by your leather helmet!\" to the victim"
 })
 @Since("1.3.5, INSERT VERSION (item damage event)")
-@RequiredPlugins("Spigot 1.14+ (item damage event)")
+@RequiredPlugins("Spigot 1.14+ (item damage event), Paper 1.18+ (original damage)")
 @Events("damage, item damage")
 public class ExprDamage extends SimpleExpression<Number> {
 
-	private final static boolean ITEM_DAMAGE = Skript.classExists("org.bukkit.event.player.PlayerItemDamageEvent");
+	private final static boolean ITEM_DAMAGE = Skript.isRunningMinecraft(1, 14);
+	private static boolean ORIGINAL_DAMAGE;
 
 	static {
-		Skript.registerExpression(ExprDamage.class, Number.class, ExpressionType.SIMPLE, "[the] damage");
+		if (ITEM_DAMAGE && Skript.methodExists(PlayerItemDamageEvent.class, "getOriginalDamage")) {
+			ORIGINAL_DAMAGE = true;
+			Skript.registerExpression(ExprDamage.class, Number.class, ExpressionType.SIMPLE, "[the] [:original] damage");
+		} else {
+			Skript.registerExpression(ExprDamage.class, Number.class, ExpressionType.SIMPLE, "[the] damage");
+		}
 	}
 
+	private boolean original;
 	private Kleenean delay;
 
 	@Override
@@ -76,6 +87,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 			Skript.error("The expression 'damage' may only be used in damage events");
 			return false;
 		}
+		original = ORIGINAL_DAMAGE && parseResult.hasTag("original");
 		delay = isDelayed;
 		return true;
 	}
@@ -83,7 +95,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 	@Override
 	@Nullable
 	protected Number[] get(Event event) {
-		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent))
+		if (!(event instanceof EntityDamageEvent || event instanceof VehicleDamageEvent || (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent)))
 			return new Number[0];
 
 		if (event instanceof VehicleDamageEvent)
@@ -92,8 +104,11 @@ public class ExprDamage extends SimpleExpression<Number> {
 		if (event instanceof EntityDamageEvent)
 			return CollectionUtils.array(HealthUtils.getDamage((EntityDamageEvent) event));
 	
-		if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent)
+		if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent) {
+			if (original)
+				return CollectionUtils.array(((PlayerItemDamageEvent) event).getOriginalDamage());
 			return CollectionUtils.array(((PlayerItemDamageEvent) event).getDamage());
+		}
 
 		return new Number[0];
 	}
@@ -107,6 +122,10 @@ public class ExprDamage extends SimpleExpression<Number> {
 		}
 		if (mode == ChangeMode.REMOVE_ALL)
 			return null;
+		if (original) {
+			ChangerUtils.cannotChange(this, mode);
+			return null;
+		}
 		return CollectionUtils.array(Number.class);
 	}
 
@@ -122,7 +141,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 					((VehicleDamageEvent) event).setDamage(damage.doubleValue());
 				} else if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent) {
 					((PlayerItemDamageEvent) event).setDamage(damage.intValue());
-				} else {
+				} else if (event instanceof EntityDamageEvent) {
 					HealthUtils.setDamage((EntityDamageEvent) event, damage.doubleValue());
 				}
 				break;
@@ -134,7 +153,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 					((VehicleDamageEvent) event).setDamage(((VehicleDamageEvent) event).getDamage() + damage.doubleValue());
 				} else if (ITEM_DAMAGE && event instanceof PlayerItemDamageEvent) {
 					((PlayerItemDamageEvent) event).setDamage(((PlayerItemDamageEvent) event).getDamage() + damage.intValue());
-				} else {
+				} else if (event instanceof EntityDamageEvent) {
 					HealthUtils.setDamage((EntityDamageEvent) event, HealthUtils.getDamage((EntityDamageEvent) event) + damage.doubleValue());
 				}
 				break;
@@ -156,7 +175,7 @@ public class ExprDamage extends SimpleExpression<Number> {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "the damage";
+		return original ? "original damage" : "the damage";
 	}
 
 }

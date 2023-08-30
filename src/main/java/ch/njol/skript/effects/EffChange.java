@@ -21,10 +21,9 @@ package ch.njol.skript.effects;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-import org.skriptlang.skript.lang.script.Script;
-import org.skriptlang.skript.lang.script.ScriptWarning;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
+import org.skriptlang.skript.lang.script.ScriptWarning;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
@@ -148,61 +147,37 @@ public class EffChange extends Effect {
 			case RESET:
 				changed = exprs[0];
 		}
-		
-		CountingLogHandler h = new CountingLogHandler(Level.SEVERE).start();
-		Class<?>[] rs;
+
+		Class<?>[] types;
 		String what;
-		try {
-			rs = changed.acceptChange(mode);
+		try (CountingLogHandler logger = new CountingLogHandler(Level.SEVERE)) {
+			types = changed.acceptChange(mode);
 			ClassInfo<?> c = Classes.getSuperClassInfo(changed.getReturnType());
 			Changer<?> changer = c.getChanger();
-			what = changer == null || !Arrays.equals(changer.acceptChange(mode), rs) ? changed.toString(null, false) : c.getName().withIndefiniteArticle();
-		} finally {
-			h.stop();
-		}
-		if (rs == null) {
-			if (h.getCount() > 0)
+			what = changer == null || !Arrays.equals(changer.acceptChange(mode), types) ? changed.toString(null, false) : c.getName().withIndefiniteArticle();
+			/**
+			 * If the logger caught any messages while collecting acceptChange types,
+			 * 		there is likely other errors and they take priority.
+			 */
+			if (types == null && logger.getCount() > 0)
 				return false;
-			switch (mode) {
-				case SET:
-					Skript.error(what + " can't be set to anything", ErrorQuality.SEMANTIC_ERROR);
-					break;
-				case DELETE:
-					if (changed.acceptChange(ChangeMode.RESET) != null)
-						Skript.error(what + " can't be deleted/cleared. It can however be reset which might result in the desired effect.", ErrorQuality.SEMANTIC_ERROR);
-					else
-						Skript.error(what + " can't be deleted/cleared", ErrorQuality.SEMANTIC_ERROR);
-					break;
-				case REMOVE_ALL:
-					if (changed.acceptChange(ChangeMode.REMOVE) != null) {
-						Skript.error(what + " can't have 'all of something' removed from it. Use 'remove' instead of 'remove all' to fix this.", ErrorQuality.SEMANTIC_ERROR);
-						break;
-					}
-					//$FALL-THROUGH$
-				case ADD:
-				case REMOVE:
-					Skript.error(what + " can't have anything " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " it", ErrorQuality.SEMANTIC_ERROR);
-					break;
-				case RESET:
-					if (changed.acceptChange(ChangeMode.DELETE) != null)
-						Skript.error(what + " can't be reset. It can however be deleted which might result in the desired effect.", ErrorQuality.SEMANTIC_ERROR);
-					else
-						Skript.error(what + " can't be reset", ErrorQuality.SEMANTIC_ERROR);
-			}
+		}
+		if (types == null) {
+			cannotChange(what, changed, mode);
 			return false;
 		}
-		
-		final Class<?>[] rs2 = new Class<?>[rs.length];
-		for (int i = 0; i < rs.length; i++)
-			rs2[i] = rs[i].isArray() ? rs[i].getComponentType() : rs[i];
-		final boolean allSingle = Arrays.equals(rs, rs2);
-		
+
+		Class<?>[] rs2 = new Class<?>[types.length];
+		for (int i = 0; i < types.length; i++)
+			rs2[i] = types[i].isArray() ? types[i].getComponentType() : types[i];
+		boolean allSingle = Arrays.equals(types, rs2);
+
 		Expression<?> ch = changer;
 		if (ch != null) {
 			Expression<?> v = null;
 			final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 			try {
-				for (final Class<?> r : rs) {
+				for (final Class<?> r : types) {
 					log.clear();
 					if ((r.isArray() ? r.getComponentType() : r).isAssignableFrom(ch.getReturnType())) {
 						v = ch.getConvertedExpression(Object.class);
@@ -218,15 +193,15 @@ public class EffChange extends Effect {
 					}
 					log.clear();
 					log.stop();
-					final Class<?>[] r = new Class[rs.length];
-					for (int i = 0; i < rs.length; i++)
-						r[i] = rs[i].isArray() ? rs[i].getComponentType() : rs[i];
+					final Class<?>[] r = new Class[types.length];
+					for (int i = 0; i < types.length; i++)
+						r[i] = types[i].isArray() ? types[i].getComponentType() : types[i];
 					if (r.length == 1 && r[0] == Object.class)
 						Skript.error("Can't understand this expression: " + changer, ErrorQuality.NOT_AN_EXPRESSION);
 					else if (mode == ChangeMode.SET)
-						Skript.error(what + " can't be set to " + changer + " because the latter is " + SkriptParser.notOfType(r), ErrorQuality.SEMANTIC_ERROR);
+						Skript.error(what + " can't be set to " + changer + " because the latter is " + SkriptParser.notOfType(r));
 					else
-						Skript.error(changer + " can't be " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " " + what + " because the former is " + SkriptParser.notOfType(r), ErrorQuality.SEMANTIC_ERROR);
+						Skript.error(changer + " can't be " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " " + what + " because the former is " + SkriptParser.notOfType(r));
 					log.printError();
 					return false;
 				}
@@ -237,9 +212,9 @@ public class EffChange extends Effect {
 			
 			Class<?> x = Utils.getSuperType(rs2);
 			single = allSingle;
-			for (int i = 0; i < rs.length; i++) {
+			for (int i = 0; i < types.length; i++) {
 				if (rs2[i].isAssignableFrom(v.getReturnType())) {
-					single = !rs[i].isArray();
+					single = !types[i].isArray();
 					x = rs2[i];
 					break;
 				}
@@ -249,9 +224,9 @@ public class EffChange extends Effect {
 			
 			if (!ch.isSingle() && single) {
 				if (mode == ChangeMode.SET)
-					Skript.error(changed + " can only be set to one " + Classes.getSuperClassInfo(x).getName() + ", not more", ErrorQuality.SEMANTIC_ERROR);
+					Skript.error(changed + " can only be set to one " + Classes.getSuperClassInfo(x).getName() + ", not more.");
 				else
-					Skript.error("only one " + Classes.getSuperClassInfo(x).getName() + " can be " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " " + changed + ", not more", ErrorQuality.SEMANTIC_ERROR);
+					Skript.error("only one " + Classes.getSuperClassInfo(x).getName() + " can be " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " " + changed + ", not more.");
 				return false;
 			}
 			
@@ -304,5 +279,43 @@ public class EffChange extends Effect {
 		assert false;
 		return "";
 	}
-	
+
+	/**
+	 * This is duplicated from {@link Changer.ChangerUtils} but checks acceptChange which the ChangerUtils class cannot because of recursion.
+	 * Prints a Skript.error depending on the changer used for the provided expression.
+	 * Useful when providing error messages in acceptChange methods and init methods.
+	 * 
+	 * @param what The string that represents what cannot be changed.
+	 * @param expression The expression that cannot accept the provided {@link ChangeMode}
+	 * @param mode The {@link ChangeMode} that the expression cannot accept.
+	 */
+	private void cannotChange(String what, Expression<?> expression, ChangeMode mode) {
+		switch (mode) {
+			case SET:
+				Skript.error("'" + what + " can't be set to anything.");
+				break;
+			case DELETE:
+				if (expression.acceptChange(ChangeMode.RESET) != null)
+					Skript.error("'" + what + "' can't be deleted/cleared. It can however be reset which might result in the desired effect.");
+				else
+					Skript.error("'" + what + "' can't be deleted/cleared.");
+				break;
+			case REMOVE_ALL:
+				if (expression.acceptChange(ChangeMode.REMOVE) != null) {
+					Skript.error("'" + what + "' can't have 'all of something' removed from it. Use 'remove' instead of 'remove all' to fix this.");
+					break;
+				}
+				//$FALL-THROUGH$
+			case ADD:
+			case REMOVE:
+				Skript.error("'" + what + "' can't have anything " + (mode == ChangeMode.ADD ? "added to" : "removed from") + " it.");
+				break;
+			case RESET:
+				if (expression.acceptChange(ChangeMode.DELETE) != null)
+					Skript.error("'" + what + "' can't be reset. It can however be deleted which might result in the desired effect.");
+				else
+					Skript.error("'" + what + "' can't be reset.");
+		}
+	}
+
 }
