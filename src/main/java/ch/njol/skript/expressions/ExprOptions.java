@@ -47,18 +47,26 @@ import ch.njol.util.Kleenean;
 @Name("Script Options")
 @Description("Returns one or more options from any script. If no script is provided, it will be the current script of the syntax.")
 @Examples({
+	"# example.sk",
 	"options:",
-		"\ttest: Hello World",
+		"\texample: Hello World",
 	"",
-	"command /test:",
+	"command /example <string=%script option \"test\"%>:",
 		"\ttrigger:",
-			"\t\tsend \"The option is %script option \"test\"%\""
+			"\t\tsend \"The option is %script option \"example\"%\"",
+	"",
+	"# this.sk",
+	"options:",
+		"\texample 2: 1337",
+	"command /anotherFile:",
+		"\ttrigger:",
+			"\t\tsend \"The option is %script option \"example 2\" and \"example\" from scripts \"this.sk\" and \"example 2\"%\"",
 })
 @Since("INSERT VERSION")
 public class ExprOptions extends SimpleExpression<String> {
 
 	static {
-		Skript.registerExpression(ExprOptions.class, String.class, ExpressionType.COMBINED, "[the] [s(c|k)ript] option[s] %strings% [(from|in) [s(k|c)ript] %-strings%]");
+		Skript.registerExpression(ExprOptions.class, String.class, ExpressionType.COMBINED, "[the] [s(c|k)ript] option[s] %strings% [(from|in) [script[s]] %-strings%]");
 	}
 
 	@Nullable
@@ -104,7 +112,7 @@ public class ExprOptions extends SimpleExpression<String> {
 
 	@Override
 	public boolean isSingle() {
-		return this.options.isSingle();
+		return options.isSingle();
 	}
 
 	@Override
