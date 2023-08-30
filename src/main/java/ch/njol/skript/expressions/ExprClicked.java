@@ -175,6 +175,9 @@ public class ExprClicked extends SimpleExpression<Object> {
 	@Override
 	@Nullable
 	protected Object[] get(Event e) {
+		if (!(e instanceof InventoryClickEvent) && clickable != ClickableType.BLOCK_AND_ITEMS && clickable != ClickableType.ENCHANT_BUTTON)
+			return null;
+
 		switch (clickable) {
 			case BLOCK_AND_ITEMS:
 				if (e instanceof PlayerInteractEvent) {
@@ -213,8 +216,9 @@ public class ExprClicked extends SimpleExpression<Object> {
 				// Slots are specific to inventories, so refering to wrong one is impossible
 				// (as opposed to using the numbers directly)
 				Inventory invi = ((InventoryClickEvent) e).getClickedInventory();
+				InventoryClickEvent event = ((InventoryClickEvent) e);
 				if (invi != null) // Inventory is technically not guaranteed to exist...
-					return CollectionUtils.array(new InventorySlot(invi, ((InventoryClickEvent) e).getSlot()));
+					return CollectionUtils.array(new InventorySlot(invi, event.getSlot(), event.getRawSlot()));
 				break;
 			case ENCHANT_BUTTON:
 				if (e instanceof EnchantItemEvent)

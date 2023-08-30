@@ -25,9 +25,9 @@ import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.Expression;
+import ch.njol.skript.lang.LoopSection;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.TriggerItem;
-import ch.njol.skript.sections.SecLoop;
 import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
@@ -35,12 +35,24 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.util.List;
 
 @Name("Continue")
-@Description("Skips the value currently being looped, moving on to the next value if it exists.")
-@Examples({"loop all players:",
+@Description("Immediately moves the (while) loop on to the next iteration.")
+@Examples({
+	"# Broadcast online moderators",
+	"loop all players:",
 		"\tif loop-value does not have permission \"moderator\":",
-		"\t\tcontinue # filter out non moderators",
-		"\tbroadcast \"%loop-player% is a moderator!\" # Only moderators get broadcast"})
-@Since("2.2-dev37")
+			"\t\tcontinue # filter out non moderators",
+		"\tbroadcast \"%loop-player% is a moderator!\" # Only moderators get broadcast",
+	" ",
+	"# Game starting counter",
+	"set {_counter} to 11",
+	"while {_counter} > 0:",
+		"\tremove 1 from {_counter}",
+		"\twait a second",
+		"\tif {_counter} != 1, 2, 3, 5 or 10:",
+			"\t\tcontinue # only print when counter is 1, 2, 3, 5 or 10",
+		"\tbroadcast \"Game starting in %{_counter}% second(s)\"",
+})
+@Since("2.2-dev37, 2.7 (while loops)")
 public class EffContinue extends Effect {
 
 	static {
@@ -48,32 +60,34 @@ public class EffContinue extends Effect {
 	}
 
 	@SuppressWarnings("NotNullFieldNotInitialized")
-	private SecLoop loop;
+	private LoopSection loop;
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		List<SecLoop> loops = getParser().getCurrentSections(SecLoop.class);
-		if (loops.isEmpty()) {
-			Skript.error("Continue may only be used in loops");
+		List<LoopSection> currentLoops = getParser().getCurrentSections(LoopSection.class);
+		
+		if (currentLoops.isEmpty()) {
+			Skript.error("The 'continue' effect may only be used in while and regular loops");
 			return false;
 		}
-		loop = loops.get(loops.size() - 1);
+		
+		loop = currentLoops.get(currentLoops.size() - 1);
 		return true;
 	}
 
 	@Override
-	protected void execute(Event e) {
+	protected void execute(Event event) {
 		throw new UnsupportedOperationException();
 	}
 
-	@Nullable
 	@Override
-	protected TriggerItem walk(Event e) {
+	@Nullable
+	protected TriggerItem walk(Event event) {
 		return loop;
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		return "continue";
 	}
 
