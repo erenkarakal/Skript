@@ -53,14 +53,14 @@ import ch.njol.util.Kleenean;
 	"",
 	"command /example <string=%script option \"test\"%>:",
 		"\ttrigger:",
-			"\t\tsend \"The option is %script option \"example\"%\"",
+			"\t\tsend \"The option is %script option \"\"example\"\"%\"",
 	"",
 	"# this.sk",
 	"options:",
 		"\texample 2: 1337",
 	"command /anotherFile:",
 		"\ttrigger:",
-			"\t\tsend \"The option is %script option \"example 2\" and \"example\" from scripts \"this.sk\" and \"example.sk\"%\"",
+			"\t\tsend \"The option is %script option \"\"example 2\"\" and \"\"example\"\" from scripts \"\"this.sk\"\" and \"\"example.sk\"\"%\"",
 })
 @Since("INSERT VERSION")
 public class ExprOptions extends SimpleExpression<String> {
