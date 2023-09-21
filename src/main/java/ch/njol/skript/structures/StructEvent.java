@@ -35,7 +35,7 @@ public class StructEvent extends Structure {
 
 	static {
 		Skript.registerStructure(StructEvent.class,
-			"[on] <.+> [with priority (1:lowest|2:low|3:normal|4:high|5:highest|6:monitor)]");
+				"[on] <.+> [with priority (1:lowest|2:low|3:normal|4:high|5:highest|6:monitor)]");
 	}
 
 	private SkriptEvent event;
