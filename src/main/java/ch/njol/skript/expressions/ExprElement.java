@@ -39,10 +39,7 @@ import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 @Name("Elements")
 @Description({
@@ -51,17 +48,18 @@ import java.util.List;
 })
 @Examples("broadcast the first 3 elements of {top players::*}")
 @Since("2.0, 2.7 (relative to last element), INSERT VERSION (range of elements)")
-public class ExprElement extends SimpleExpression<Object> {
+public class ExprElement<T> extends SimpleExpression<T> {
 
 	private static final Patterns<ElementType[]> PATTERNS = new Patterns<>(new Object[][]{
-		{"[the] (first|:last) element [out] of %objects%", new ElementType[] {ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT}},
-		{"[the] (first|:last) %number% elements [out] of %objects%", new ElementType[] {ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS}},
+		{"[the] (first|1:last) element [out] of %objects%", new ElementType[] {ElementType.FIRST_ELEMENT, ElementType.LAST_ELEMENT}},
+		{"[the] (first|1:last) %integer% elements [out] of %objects%", new ElementType[] {ElementType.FIRST_X_ELEMENTS, ElementType.LAST_X_ELEMENTS}},
 		{"[a] random element [out] of %objects%", new ElementType[] {ElementType.RANDOM}},
-		{"[the] %number%(st|nd|rd|th) [last:[to] last] element [out] of %objects%", new ElementType[] {ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL}},
-		{"[the] elements (from|between) %number% (to|and) %number% [out] of %objects%", new ElementType[] {ElementType.RANGE}}
+		{"[the] %integer%(st|nd|rd|th) [1:[to] last] element [out] of %objects%", new ElementType[] {ElementType.ORDINAL, ElementType.TAIL_END_ORDINAL}},
+		{"[the] elements (from|between) %integer% (to|and) %integer% [out] of %objects%", new ElementType[] {ElementType.RANGE}}
 	});
 
 	static {
+		//noinspection unchecked
 		Skript.registerExpression(ExprElement.class, Object.class, ExpressionType.PROPERTY, PATTERNS.getPatterns());
 	}
 
@@ -76,8 +74,8 @@ public class ExprElement extends SimpleExpression<Object> {
 		RANGE
 	}
 
-	private Expression<?> expr;
-	private	@Nullable Expression<Number> startIndex, endIndex;
+	private Expression<? extends T> expr;
+	private	@Nullable Expression<Integer> startIndex, endIndex;
 	private ElementType type;
 
 	@Override
@@ -85,46 +83,46 @@ public class ExprElement extends SimpleExpression<Object> {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		ElementType[] types = PATTERNS.getInfo(matchedPattern);
 		expr = LiteralUtils.defendExpression(exprs[exprs.length - 1]);
-		switch (types[0]) {
+		switch (type = types[parseResult.mark]) {
 			case RANGE:
-				endIndex = (Expression<Number>) exprs[1];
+				endIndex = (Expression<Integer>) exprs[1];
 				//$FALL-THROUGH$
 			case FIRST_X_ELEMENTS:
+			case LAST_X_ELEMENTS:
 			case ORDINAL:
-				startIndex = (Expression<Number>) exprs[0];
+			case TAIL_END_ORDINAL:
+				startIndex = (Expression<Integer>) exprs[0];
 				break;
 			default:
 				startIndex = null;
 				break;
 		}
-		type = types[parseResult.hasTag("last") ? 1 : 0];
 		return LiteralUtils.canInitSafely(expr);
 	}
 
 	@Override
 	@Nullable
-	@SuppressWarnings("unchecked, rawtypes")
-	protected Object[] get(Event event) {
-		Iterator<?> iterator = expr.iterator(event);
+	protected T[] get(Event event) {
+		Iterator<? extends T> iterator = expr.iterator(event);
 		if (iterator == null || !iterator.hasNext())
 			return null;
-		Object element = null;
-		int startIndex = 0;
-		int endIndex = 0;
+		T element = null;
+		int startIndex = 0, endIndex = 0;
 		if (this.startIndex != null) {
-			Number number = this.startIndex.getSingle(event);
-			if (number == null)
+			Integer integer = this.startIndex.getSingle(event);
+			if (integer == null)
 				return null;
-			startIndex = number.intValue();
+			startIndex = integer;
 			if (startIndex <= 0 && type != ElementType.RANGE)
 				return null;
 		}
 		if (this.endIndex != null) {
-			Number number = this.endIndex.getSingle(event);
-			if (number == null)
+			Integer integer = this.endIndex.getSingle(event);
+			if (integer == null)
 				return null;
-			endIndex = number.intValue();
+			endIndex = integer;
 		}
+		T[] elementArray;
 		switch (type) {
 			case FIRST_ELEMENT:
 				element = iterator.next();
@@ -133,8 +131,7 @@ public class ExprElement extends SimpleExpression<Object> {
 				element = Iterators.getLast(iterator);
 				break;
 			case RANDOM:
-				Object[] allElements = Iterators.toArray(iterator, Object.class);
-				element = CollectionUtils.getRandom(allElements);
+				element = CollectionUtils.getRandom(Iterators.toArray(iterator, getReturnType0()));
 				break;
 			case ORDINAL:
 				Iterators.advance(iterator, startIndex - 1);
@@ -143,30 +140,29 @@ public class ExprElement extends SimpleExpression<Object> {
 				element = iterator.next();
 				break;
 			case TAIL_END_ORDINAL:
-				allElements = Iterators.toArray(iterator, Object.class);
-				if (startIndex > allElements.length)
+				elementArray = Iterators.toArray(iterator, getReturnType0());
+				if (startIndex > elementArray.length)
 					return null;
-				element = allElements[allElements.length - startIndex];
+				element = elementArray[elementArray.length - startIndex];
 				break;
 			case FIRST_X_ELEMENTS:
-				return Iterators.toArray((Iterator) Iterators.limit(iterator, startIndex), getReturnType());
+				return Iterators.toArray(Iterators.limit(iterator, startIndex), getReturnType0());
 			case LAST_X_ELEMENTS:
-				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
-				startIndex = Math.min(startIndex, allElements.length);
-				return ArrayUtils.subarray(allElements, allElements.length - startIndex, allElements.length);
+				elementArray = Iterators.toArray(iterator, getReturnType0());
+				startIndex = Math.min(startIndex, elementArray.length);
+				return CollectionUtils.subarray(elementArray, elementArray.length - startIndex, elementArray.length);
 			case RANGE:
-				allElements = Iterators.toArray((Iterator) iterator, getReturnType());
+				elementArray = Iterators.toArray(iterator, getReturnType0());
 				boolean reverse = startIndex > endIndex;
 				int from = Math.min(startIndex, endIndex) - 1;
 				int to = Math.max(startIndex, endIndex);
-				from = Math.max(from, 0);
-				to = Math.min(Math.max(to, 0), allElements.length);
-				Object[] elements = ArrayUtils.subarray(allElements, from, to);
+				T[] elements = CollectionUtils.subarray(elementArray, from, to);
 				if (reverse)
 					ArrayUtils.reverse(elements);
 				return elements;
 		}
-		Object[] elementArray = (Object[]) Array.newInstance(getReturnType(), 1);
+		//noinspection unchecked
+		elementArray = (T[]) Array.newInstance(getReturnType(), 1);
 		elementArray[0] = element;
 		return elementArray;
 	}
@@ -179,12 +175,12 @@ public class ExprElement extends SimpleExpression<Object> {
 		if (convExpr == null)
 			return null;
 
-		ExprElement exprElement = new ExprElement();
+		ExprElement<R> exprElement = new ExprElement<>();
 		exprElement.expr = convExpr;
 		exprElement.startIndex = startIndex;
-		exprElement.endIndex = this.endIndex;
-		exprElement.type = this.type;
-		return (Expression<? extends R>) exprElement;
+		exprElement.endIndex = endIndex;
+		exprElement.type = type;
+		return exprElement;
 	}
 
 	@Override
@@ -192,14 +188,19 @@ public class ExprElement extends SimpleExpression<Object> {
 		return type != ElementType.FIRST_X_ELEMENTS && type != ElementType.LAST_X_ELEMENTS && type != ElementType.RANGE;
 	}
 
+	@SuppressWarnings("unchecked")
+	private Class<T> getReturnType0() {
+		return (Class<T>) getReturnType();
+	}
+
 	@Override
-	public Class<?> getReturnType() {
+	public Class<? extends T> getReturnType() {
 		return expr.getReturnType();
 	}
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		String prefix = "";
+		String prefix;
 		switch (type) {
 			case FIRST_ELEMENT:
 				prefix = "the first";
@@ -224,11 +225,11 @@ public class ExprElement extends SimpleExpression<Object> {
 				prefix = "the ";
 				// Proper ordinal number
 				if (startIndex instanceof Literal) {
-					Number number = ((Literal<Number>) startIndex).getSingle();
-					if (number == null)
+					Integer integer = ((Literal<Integer>) startIndex).getSingle();
+					if (integer == null)
 						prefix += startIndex.toString(event, debug) + "th";
 					else
-						prefix += StringUtils.fancyOrderNumber(number.intValue());
+						prefix += StringUtils.fancyOrderNumber(integer);
 				} else {
 					prefix += startIndex.toString(event, debug) + "th";
 				}
