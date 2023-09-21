@@ -131,7 +131,7 @@ public class ExprElement<T> extends SimpleExpression<T> {
 				element = Iterators.getLast(iterator);
 				break;
 			case RANDOM:
-				element = CollectionUtils.getRandom(Iterators.toArray(iterator, getReturnType0()));
+				element = CollectionUtils.getRandom(Iterators.toArray(iterator, getReturnType_i()));
 				break;
 			case ORDINAL:
 				Iterators.advance(iterator, startIndex - 1);
@@ -140,19 +140,19 @@ public class ExprElement<T> extends SimpleExpression<T> {
 				element = iterator.next();
 				break;
 			case TAIL_END_ORDINAL:
-				elementArray = Iterators.toArray(iterator, getReturnType0());
+				elementArray = Iterators.toArray(iterator, getReturnType_i());
 				if (startIndex > elementArray.length)
 					return null;
 				element = elementArray[elementArray.length - startIndex];
 				break;
 			case FIRST_X_ELEMENTS:
-				return Iterators.toArray(Iterators.limit(iterator, startIndex), getReturnType0());
+				return Iterators.toArray(Iterators.limit(iterator, startIndex), getReturnType_i());
 			case LAST_X_ELEMENTS:
-				elementArray = Iterators.toArray(iterator, getReturnType0());
+				elementArray = Iterators.toArray(iterator, getReturnType_i());
 				startIndex = Math.min(startIndex, elementArray.length);
 				return CollectionUtils.subarray(elementArray, elementArray.length - startIndex, elementArray.length);
 			case RANGE:
-				elementArray = Iterators.toArray(iterator, getReturnType0());
+				elementArray = Iterators.toArray(iterator, getReturnType_i());
 				boolean reverse = startIndex > endIndex;
 				int from = Math.min(startIndex, endIndex) - 1;
 				int to = Math.max(startIndex, endIndex);
@@ -189,7 +189,7 @@ public class ExprElement<T> extends SimpleExpression<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Class<T> getReturnType0() {
+	private Class<T> getReturnType_i() {
 		return (Class<T>) getReturnType();
 	}
 
