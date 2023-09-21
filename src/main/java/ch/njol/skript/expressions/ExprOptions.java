@@ -60,7 +60,7 @@ import ch.njol.util.Kleenean;
 		"\texample 2: 1337",
 	"command /anotherFile:",
 		"\ttrigger:",
-			"\t\tsend \"The option is %script option \"\"example 2\"\" and \"\"example\"\" from scripts \"\"this.sk\"\" and \"\"example.sk\"\"%\"",
+			"\t\tsend \"The options are %script options \"\"example 2\"\" and \"\"example\"\" from scripts \"\"this.sk\"\" and \"\"example.sk\"\"%\""
 })
 @Since("INSERT VERSION")
 public class ExprOptions extends SimpleExpression<String> {
