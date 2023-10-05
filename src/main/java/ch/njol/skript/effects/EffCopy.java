@@ -35,7 +35,14 @@ import java.util.Map;
 
 @Name("Copy")
 @Description("Copies objects into a variable. When copying a list over to another list, the source list and its sublists are also copied over.")
-@Examples("")
+@Examples({
+	"set {_foo::bar} to 1",
+	"set {_foo::sublist::foobar} to \"hey\"",
+	"copy {_foo::*} to {_copy::*}",
+	"broadcast indices of {_copy::*} # bar, sublist",
+	"broadcast {_copy::bar} # 1",
+	"broadcast {_copy::sublist::foobar} # \"hey!\""
+})
 @Since("INSERT VERSION")
 @Keywords({"copy", "clone"})
 public class EffCopy extends Effect {
