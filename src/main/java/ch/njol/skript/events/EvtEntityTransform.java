@@ -72,12 +72,9 @@ public class EvtEntityTransform extends SkriptEvent {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		if (datas == null) {
-			return "entity transform" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
-		} else {
-			return datas.toString(event, debug) + " transforming" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
-		}
-		return "entities transforming";
+		if (datas == null)
+			return "entities transforming" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
+		return datas.toString(event, debug) + " transforming" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
 	}
 
 }
