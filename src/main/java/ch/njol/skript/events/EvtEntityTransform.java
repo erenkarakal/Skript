@@ -33,13 +33,13 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 public class EvtEntityTransform extends SkriptEvent {
 
 	static {
-		Skript.registerEvent("Entity Transform", EvtEntityTransform.class, EntityDamageEvent.class, "(entity|%*-entitydata%) transform", "%*transformreasons%")
+		Skript.registerEvent("Entity Transform", EvtEntityTransform.class, EntityTransformEvent.class, "(entit(y|ies)|%*-entitydatas%) transform[ing] [due to %-transformreasons%]")
 				.description("Called when an entity is about to be replaced by another entity.",
 						"Examples when it's called include; when a zombie gets cured and a villager spawns, ",
 						"An entity drowns in water like a zombie that turns to a drown, ",
 						"An entity that gets frozen in powder snow, ",
 						"A mooshrom cow that when sheared, spawns a new cow.")
-				.examples("on zombie curing:", "on mooshroom transform:", "on zombie, skeleton or slime transform:")
+				.examples("on a zombie transforming due to curing:", "on mooshroom cow transforming:", "on zombie, skeleton or slime transform:")
 				.keywords("entity transform")
 				.since("INSERT VERSION");
 	}
@@ -53,11 +53,8 @@ public class EvtEntityTransform extends SkriptEvent {
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult) {
-		if (matchedPattern == 0) {
-			datas = (Literal<EntityData<?>>) args[0];
-		} else {
-			reasons = (Literal<TransformReason>) args[0];
-		}
+		datas = (Literal<EntityData<?>>) args[0];
+		reasons = (Literal<TransformReason>) args[1];
 		return true;
 	}
 
@@ -68,18 +65,19 @@ public class EvtEntityTransform extends SkriptEvent {
 		EntityTransformEvent transformEvent = (EntityTransformEvent) event;
 		if (reasons != null && reasons.check(event, reason -> transformEvent.getTransformReason().equals(reason)))
 			return false;
-		if (datas != null && !datas.check(event, data -> transformEvent.getTransformedEntities().stream().anyMatch(entity -> data.isInstance(entity))))
+		if (datas != null && !datas.check(event, data -> transformEvent.getTransformedEntities().stream().anyMatch(data::isInstance)))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		if (datas != null)
-			return datas.toString(event, debug) + " transform";
-		if (reasons != null)
-			return reasons.toString(event, debug);
-		return "enttiy transform";
+		if (datas == null) {
+			return "entity transform" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
+		} else {
+			return datas.toString(event, debug) + " transforming" + (reasons == null ? "" : " due to " + reasons.toString(event, debug));
+		}
+		return "entities transforming";
 	}
 
 }
