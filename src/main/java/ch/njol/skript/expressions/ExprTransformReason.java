@@ -40,7 +40,7 @@ import ch.njol.skript.lang.ExpressionType;
 public class ExprTransformReason extends EventValueExpression<TransformReason> {
 
 	static {
-		Skript.registerExpression(ExprTransformReason.class, TransformReason.class, ExpressionType.SIMPLE, "[the] transform (cause|reason|type)");
+		Skript.registerExpression(ExprTransformReason.class, TransformReason.class, ExpressionType.SIMPLE, "[the] transform[ing] (cause|reason|type)");
 	}
 
 	public ExprTransformReason() {
