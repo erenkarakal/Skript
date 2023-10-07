@@ -20,7 +20,11 @@ package ch.njol.skript.effects;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.classes.Changer.ChangeMode;
-import ch.njol.skript.doc.*;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Keywords;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -34,7 +38,10 @@ import org.eclipse.jdt.annotation.Nullable;
 import java.util.Map;
 
 @Name("Copy")
-@Description("Copies objects into a variable. When copying a list over to another list, the source list and its sublists are also copied over.")
+@Description({
+	"Copies objects into a variable. When copying a list over to another list, the source list and its sublists are also copied over.",
+	"<strong>Note: Copying a value into a variable/list will overwrite the existing data.</strong>"
+})
 @Examples({
 	"set {_foo::bar} to 1",
 	"set {_foo::sublist::foobar} to \"hey\"",
@@ -44,7 +51,7 @@ import java.util.Map;
 	"broadcast {_copy::sublist::foobar} # \"hey!\""
 })
 @Since("INSERT VERSION")
-@Keywords({"copy", "clone"})
+@Keywords({"clone", "variable", "list"})
 public class EffCopy extends Effect {
 
 	static {
@@ -85,7 +92,8 @@ public class EffCopy extends Effect {
 		if (source == null)
 			return;
 		String target = destination.getName().getSingle(event);
-		copy(event, source, target.substring(0, target.length() - 3), destination.isLocal());
+		target = target.substring(0, target.length() - (Variable.SEPARATOR + "*").length()); // Strip the '::*' part from the name
+		copy(event, source, target, destination.isLocal());
 	}
 
 	@Override
@@ -104,7 +112,7 @@ public class EffCopy extends Effect {
 				copy(event, (Map<String, Object>) value, node, local);
 				return;
 			}
-			Variables.setVariable(node, value, event, local);
+			Variables.setVariable(node, Classes.clone(value), event, local);
 		}
 	}
 
