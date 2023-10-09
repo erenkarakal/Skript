@@ -35,6 +35,7 @@ import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
 import org.eclipse.jdt.annotation.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Name("Copy")
@@ -87,13 +88,18 @@ public class EffCopy extends Effect {
 			destination.change(event, clone, mode);
 			return;
 		}
+
+		Map<String, Object> source = copyMap((Map<String, Object>) ((Variable<?>) this.source).getRaw(event));
 		destination.change(event, null, ChangeMode.DELETE);
-		Map<String, Object> source = (Map<String, Object>) ((Variable<Object>) this.source).getRaw(event);
 		if (source == null)
 			return;
+
+		// If we're copying {_foo::*} we don't want to also copy {_foo}
+		source.remove(null);
+
 		String target = destination.getName().getSingle(event);
-		target = target.substring(0, target.length() - (Variable.SEPARATOR + "*").length()); // Strip the '::*' part from the name
-		copy(event, source, target, destination.isLocal());
+		target = target.substring(0, target.length() - (Variable.SEPARATOR + "*").length());
+		set(event, target, source, this.destination.isLocal());
 	}
 
 	@Override
@@ -102,18 +108,30 @@ public class EffCopy extends Effect {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void copy(Event event, Map<String, Object> source, String targetName, boolean local) {
-		for (Map.Entry<String, Object> entry : source.entrySet()) {
-			if (entry.getKey() == null)
-				continue;
-			String node = targetName + Variable.SEPARATOR + entry.getKey();
-			Object value = entry.getValue();
-			if (value instanceof Map) {
-				copy(event, (Map<String, Object>) value, node, local);
+	private static @Nullable Map<String, Object> copyMap(@Nullable Map<String, Object> map) {
+		if (map == null)
+			return null;
+		Map<String, Object> copy = new HashMap<>(map.size());
+		map.forEach((key, value) -> {
+            if (value instanceof Map) {
+                copy.put(key, copyMap((Map<String, Object>) value));
 				return;
 			}
-			Variables.setVariable(node, Classes.clone(value), event, local);
-		}
+            copy.put(key, Classes.clone(value));
+        });
+		return copy;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void set(Event event, String targetName, Map<String, Object> source, boolean local) {
+		source.forEach((key, value) -> {
+			String node = targetName + (key == null ? "" : Variable.SEPARATOR + key);
+			if (value instanceof Map) {
+				set(event, node, (Map<String, Object>) value, local);
+				return;
+			}
+			Variables.setVariable(node, value, event, local);
+		});
 	}
 
 }
