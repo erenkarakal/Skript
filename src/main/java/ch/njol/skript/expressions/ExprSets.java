@@ -69,15 +69,16 @@ public class ExprSets extends SimpleExpression<Object> {
 			return false;
 
 		classInfo = ((Literal<ClassInfo<?>>) exprs[0]).getSingle();
-		// Silently ignores and moves on to next syntax if no supplier is provided.
-		// This is to avoid very similar matching syntax conflicts like 'all players'
-		// So do not include a Skript.error here.
-		return (supplier = classInfo.getSupplier()) != null;
+		supplier = classInfo.getSupplier();
+		if (supplier == null) {
+			Skript.error("You cannot get all values of type '" + classInfo.getName().getSingular() + "'");
+			return false;
+		}
+		return true;
 	}
 
 	@Override
 	protected Object[] get(Event event) {
-		assert supplier != null;
 		Iterator<?> iterator = supplier.get();
 		return Lists.newArrayList(iterator).toArray(new Object[0]);
 	}
@@ -85,7 +86,6 @@ public class ExprSets extends SimpleExpression<Object> {
 	@Override
 	@Nullable
 	public Iterator<?> iterator(Event event) {
-		assert supplier != null;
 		return supplier.get();
 	}
 
