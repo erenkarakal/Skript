@@ -244,7 +244,10 @@ public class EventValues {
 		List<Getter<? extends T, ? super E>> getters = getEventValueGetters(event, type, time, true, false);
 		if (getters == null)
 			return Kleenean.UNKNOWN;
-		return Kleenean.get(getters.size() > 1);
+		boolean multiple = getters.size() > 1;
+		if (multiple)
+			Skript.debug("Multiple event-values returned " + Arrays.toString(getters.stream().map(Getter::getClass).map(Class::getName).toArray(String[]::new)));
+		return Kleenean.get(multiple);
 	}
 
 	/**
