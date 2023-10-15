@@ -52,7 +52,7 @@ import ch.njol.util.Kleenean;
 public class ExprSets extends SimpleExpression<Object> {
 
 	static {
-		Skript.registerExpression(ExprSets.class, Object.class, ExpressionType.COMBINED,
+		Skript.registerExpression(ExprSets.class, Object.class, ExpressionType.PATTERN_MATCHES_EVERYTHING,
 				"[all [[of] the]|the|every] %*classinfo%");
 	}
 
