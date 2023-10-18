@@ -37,7 +37,7 @@ public class EvtEntityTransform extends SkriptEvent {
 						"Examples when it's called include; when a zombie gets cured and a villager spawns, " +
 						"an entity drowns in water like a zombie that turns to a drown, " +
 						"an entity that gets frozen in powder snow, " +
-						"a mooshrom cow that when sheared, spawns a new cow.")
+						"a mooshroom that when sheared, spawns a new cow.")
 				.examples("on a zombie transforming due to curing:", "on mooshroom transforming:", "on zombie, skeleton or slime transform:")
 				.keywords("entity transform")
 				.since("INSERT VERSION");
