@@ -19,7 +19,6 @@
 package ch.njol.skript.events;
 
 import org.bukkit.event.Event;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.event.entity.EntityTransformEvent.TransformReason;
 import org.eclipse.jdt.annotation.Nullable;
