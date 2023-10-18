@@ -1956,7 +1956,7 @@ quit reasons:
 # -- Transform Reasons --
 transform reasons:
 	cured: zombie cure, zombie curing, zombie cured, cured
-	drowned: entity drowned, drowned, zombie converting to drown, zombie drown
+	drowned: entity drowned, drowned, zombie converting to drowned, zombie drown
 	frozen: entity froze, entity frozen, skeleton frozen, skeleton froze, skeleton converting to stray
 	lightning: lightning, creeper super charge, super charged creeper
 	metamorphosis: tadpole convert, tadpole converted to frog, tadpole metamorphosis, metamorphosis
