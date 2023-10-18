@@ -63,9 +63,9 @@ public class EvtEntityTransform extends SkriptEvent {
 		if (!(event instanceof EntityTransformEvent))
 			return false;
 		EntityTransformEvent transformEvent = (EntityTransformEvent) event;
-		if (reasons != null && reasons.check(event, reason -> transformEvent.getTransformReason().equals(reason)))
+		if (reasons != null && !reasons.check(event, reason -> transformEvent.getTransformReason().equals(reason)))
 			return false;
-		if (datas != null && !datas.check(event, data -> transformEvent.getTransformedEntities().stream().anyMatch(data::isInstance)))
+		if (datas != null && !datas.check(event, data -> data.isInstance(transformEvent.getEntity())))
 			return false;
 		return true;
 	}
