@@ -1955,16 +1955,16 @@ quit reasons:
 
 # -- Transform Reasons --
 transform reasons:
-	cured: zombie cure, zombie curing, zombie cured, cured
-	drowned: entity drowned, drowned, zombie converting to drowned, zombie drown
-	frozen: entity froze, entity frozen, skeleton frozen, skeleton froze, skeleton converting to stray
-	lightning: lightning, creeper super charge, super charged creeper
-	metamorphosis: tadpole convert, tadpole converted to frog, tadpole metamorphosis, metamorphosis
-	piglin_zombified: piglin zombification, piglin zombified
-	sheared: sheared, mooshroom sheared
+	cured: zombie cure, zombie curing, curing
+	drowned: entity drowning, drowning, zombie converting to drowned, zombie drowning
+	frozen: entity freezing, entity freeze, skeleton freezing, skeleton freeze, skeleton converting to stray
+	lightning: lightning, creeper super charge
+	metamorphosis: tadpole converting, tadpole converting to frog, tadpole metamorphosis, metamorphosis
+	piglin_zombified: piglin zombification
+	sheared: mooshroom shear, mooshroom shearing
 	split: slime split, slime splitting, split, magma slime split, magma slime splitting
 	unknown: unknown
-	infection: infection
+	infection: infection, villager infection
 
 # -- Boolean --
 boolean:
