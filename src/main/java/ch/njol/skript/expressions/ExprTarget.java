@@ -164,7 +164,7 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	private static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
+	public static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
 		if (entity instanceof Mob)
 			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
 		RayTraceResult result;
