@@ -68,8 +68,8 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
 	static {
 		Skript.registerExpression(ExprTarget.class, Entity.class, ExpressionType.PROPERTY,
-				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""),
-				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""));
+				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""),
+				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""));
 	}
 
 	@Nullable
