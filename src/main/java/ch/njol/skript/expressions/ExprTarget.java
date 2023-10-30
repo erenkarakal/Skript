@@ -18,8 +18,6 @@
  */
 package ch.njol.skript.expressions;
 
-import java.util.List;
-
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -28,8 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
 import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
@@ -38,6 +34,7 @@ import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.RequiredPlugins;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.effects.Delay;
 import ch.njol.skript.entity.EntityData;
@@ -64,6 +61,7 @@ import ch.njol.util.coll.CollectionUtils;
 	"delete targeted entity of player # for players it will delete the target",
 	"delete target of last spawned zombie # for entities it will make them target-less"
 })
+@RequiredPlugins("Paper (enhanced raytracing)")
 @Since("1.4.2, 2.7 (Reset), INSERT VERSION (ignore blocks)")
 public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
@@ -162,60 +160,19 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	 *
 	 * @param entity The entity to get the target of.
 	 * @param type The exact EntityData to find. Can be null for any entity.
-	 * @deprecated Only exists for non paper users. Use {@link #getTarget(LivingEntity, EntityData)}
 	 * @return The entity's target.
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	@Deprecated
-	@ScheduledForRemoval
-	public static <T extends Entity> T getTargetOld(LivingEntity entity, @Nullable EntityData<T> type) {
+	private static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
 		if (entity instanceof Mob)
 			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
-
-		Vector direction = entity.getLocation().getDirection().normalize();
-		Vector eye = entity.getEyeLocation().toVector();
-		double cos45 = Math.cos(Math.PI / 4);
-		double targetDistanceSquared = 0;
-		double radiusSquared = 1;
-		T target = null;
-
-		for (T other : type == null ? (List<T>) entity.getWorld().getEntities() : entity.getWorld().getEntitiesByClass(type.getType())) {
-			if (other == null || other == entity || type != null && !type.isInstance(other))
-				continue;
-
-			if (target == null || targetDistanceSquared > other.getLocation().distanceSquared(entity.getLocation())) {
-				Vector t = other.getLocation().add(0, 1, 0).toVector().subtract(eye);
-				if (direction.clone().crossProduct(t).lengthSquared() < radiusSquared && t.normalize().dot(direction) >= cos45) {
-					target = other;
-					targetDistanceSquared = target.getLocation().distanceSquared(entity.getLocation());
-				}
-			}
+		RayTraceResult result;
+		if (!PAPER_RAYTRACE) {
+			result = entity.getWorld().rayTraceEntities(entity.getLocation(), entity.getEyeLocation().toVector(), SkriptConfig.maxTargetBlockDistance.value(), 0.0D);
+		} else {
+			result = entity.rayTraceEntities(SkriptConfig.maxTargetBlockDistance.value(), ignoreBlocks);
 		}
-		return target;
-	}
-
-	/**
-	 * Gets an entity's target.
-	 *
-	 * @param entity The entity to get the target of.
-	 * @param type The exact EntityData to find. Can be null for any entity.
-	 * @return The entity's target.
-	 */
-	@Nullable
-	public static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
-		if (PAPER_RAYTRACE)
-			return getTargetNew(entity, type);
-		return getTargetOld(entity, type);
-	}
-
-	@Nullable
-	@SuppressWarnings("unchecked")
-	private static <T extends Entity> T getTargetNew(LivingEntity entity, @Nullable EntityData<T> type) {
-		if (entity instanceof Mob)
-			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
-
-		RayTraceResult result = entity.rayTraceEntities(SkriptConfig.maxTargetBlockDistance.value(), ignoreBlocks);
 		if (result == null)
 			return null;
 		Entity hitEntity = result.getHitEntity();
