@@ -18,6 +18,20 @@
  */
 package ch.njol.skript.expressions;
 
+import java.util.List;
+
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
+import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval;
+import org.jetbrains.annotations.Nullable;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.Changer.ChangeMode;
@@ -34,23 +48,12 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.registrations.EventValues;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.entity.EntityTargetEvent;
-import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
-import org.eclipse.jdt.annotation.Nullable;
-
-import java.util.List;
 
 @Name("Target")
 @Description({
 	"For players this is the entity at the crosshair.",
-	"For mobs and experience orbs this is the entity they are attacking/following (if any)."
+	"For mobs and experience orbs this is the entity they are attacking/following (if any).",
+	"If using PaperSpigot, you'll have a more accurate ray trace to the target entity."
 })
 @Examples({
 	"on entity target:",
@@ -61,23 +64,27 @@ import java.util.List;
 	"delete targeted entity of player # for players it will delete the target",
 	"delete target of last spawned zombie # for entities it will make them target-less"
 })
-@Since("1.4.2, 2.7 (Reset)")
+@Since("1.4.2, 2.7 (Reset), INSERT VERSION (ignore blocks)")
 public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
+
+	private static final boolean PAPER_RAYTRACE = Skript.methodExists(LivingEntity.class, "rayTraceEntities", int.class, boolean.class);
 
 	static {
 		Skript.registerExpression(ExprTarget.class, Entity.class, ExpressionType.PROPERTY,
-				"[the] target[[ed] %-*entitydata%] [of %livingentities%]",
-				"%livingentities%'[s] target[[ed] %-*entitydata%]");
+				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""),
+				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""));
 	}
 
 	@Nullable
 	private EntityData<?> type;
+	private static boolean ignoreBlocks;
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parser) {
 		type = exprs[matchedPattern] == null ? null : (EntityData<?>) exprs[matchedPattern].getSingle(null);
 		setExpr((Expression<? extends LivingEntity>) exprs[1 - matchedPattern]);
+		ignoreBlocks = parser.hasTag("blocks");
 		return true;
 	}
 
@@ -153,17 +160,62 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	/**
 	 * Gets an entity's target.
 	 *
-	 * @param entity The entity to get the target of
+	 * @param entity The entity to get the target of.
 	 * @param type The exact EntityData to find. Can be null for any entity.
-	 * @return The entity's target
+	 * @deprecated Only exists for non paper users. Use {@link #getTarget(LivingEntity, EntityData)}
+	 * @return The entity's target.
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	public static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
+	@Deprecated
+	@ScheduledForRemoval
+	public static <T extends Entity> T getTargetOld(LivingEntity entity, @Nullable EntityData<T> type) {
 		if (entity instanceof Mob)
 			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
 
-		RayTraceResult result = entity.rayTraceEntities(SkriptConfig.maxTargetBlockDistance.value());
+		Vector direction = entity.getLocation().getDirection().normalize();
+		Vector eye = entity.getEyeLocation().toVector();
+		double cos45 = Math.cos(Math.PI / 4);
+		double targetDistanceSquared = 0;
+		double radiusSquared = 1;
+		T target = null;
+
+		for (T other : type == null ? (List<T>) entity.getWorld().getEntities() : entity.getWorld().getEntitiesByClass(type.getType())) {
+			if (other == null || other == entity || type != null && !type.isInstance(other))
+				continue;
+
+			if (target == null || targetDistanceSquared > other.getLocation().distanceSquared(entity.getLocation())) {
+				Vector t = other.getLocation().add(0, 1, 0).toVector().subtract(eye);
+				if (direction.clone().crossProduct(t).lengthSquared() < radiusSquared && t.normalize().dot(direction) >= cos45) {
+					target = other;
+					targetDistanceSquared = target.getLocation().distanceSquared(entity.getLocation());
+				}
+			}
+		}
+		return target;
+	}
+
+	/**
+	 * Gets an entity's target.
+	 *
+	 * @param entity The entity to get the target of.
+	 * @param type The exact EntityData to find. Can be null for any entity.
+	 * @return The entity's target.
+	 */
+	@Nullable
+	public static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
+		if (PAPER_RAYTRACE)
+			return getTargetNew(entity, type);
+		return getTargetOld(entity, type);
+	}
+
+	@Nullable
+	@SuppressWarnings("unchecked")
+	private static <T extends Entity> T getTargetNew(LivingEntity entity, @Nullable EntityData<T> type) {
+		if (entity instanceof Mob)
+			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
+
+		RayTraceResult result = entity.rayTraceEntities(SkriptConfig.maxTargetBlockDistance.value(), ignoreBlocks);
 		if (result == null)
 			return null;
 		Entity hitEntity = result.getHitEntity();
