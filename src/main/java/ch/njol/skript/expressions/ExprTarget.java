@@ -49,8 +49,7 @@ import ch.njol.util.coll.CollectionUtils;
 @Name("Target")
 @Description({
 	"For players this is the entity at the crosshair.",
-	"For mobs and experience orbs this is the entity they are attacking/following (if any).",
-	"If using PaperSpigot, you'll have a more accurate ray trace to the target entity."
+	"For mobs and experience orbs this is the entity they are attacking/following (if any)."
 })
 @Examples({
 	"on entity target:",
