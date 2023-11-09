@@ -18,7 +18,9 @@
  */
 package ch.njol.skript.expressions;
 
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -50,7 +52,8 @@ import ch.njol.util.coll.CollectionUtils;
 @Description({
 	"For players this is the entity at the crosshair.",
 	"For mobs and experience orbs this is the entity they are attacking/following (if any).",
-	"If using PaperSpigot, you'll have a more accurate ray trace to the target entity."
+	"If using PaperSpigot, you'll have a more accurate ray trace to the target entity.",
+	"May grab entities in unloaded chunks."
 })
 @Examples({
 	"on entity target:",
@@ -76,12 +79,16 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	@Nullable
 	private EntityData<?> type;
 	private static boolean ignoreBlocks;
+	private static int targetBlockDistance;
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parser) {
 		type = exprs[matchedPattern] == null ? null : (EntityData<?>) exprs[matchedPattern].getSingle(null);
 		setExpr((Expression<? extends LivingEntity>) exprs[1 - matchedPattern]);
+		targetBlockDistance = SkriptConfig.maxTargetBlockDistance.value();
+		if (targetBlockDistance < 0)
+			targetBlockDistance = 100;
 		ignoreBlocks = parser.hasTag("blocks");
 		return true;
 	}
@@ -158,20 +165,31 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	/**
 	 * Gets an entity's target.
 	 *
-	 * @param entity The entity to get the target of.
+	 * @param origin The entity to get the target of.
 	 * @param type The exact EntityData to find. Can be null for any entity.
 	 * @return The entity's target.
 	 */
 	@Nullable
 	@SuppressWarnings("unchecked")
-	public static <T extends Entity> T getTarget(LivingEntity entity, @Nullable EntityData<T> type) {
-		if (entity instanceof Mob)
-			return ((Mob) entity).getTarget() == null || type != null && !type.isInstance(((Mob) entity).getTarget()) ? null : (T) ((Mob) entity).getTarget();
-		RayTraceResult result;
+	public static <T extends Entity> T getTarget(LivingEntity origin, @Nullable EntityData<T> type) {
+		if (origin instanceof Mob)
+			return ((Mob) origin).getTarget() == null || type != null && !type.isInstance(((Mob) origin).getTarget()) ? null : (T) ((Mob) origin).getTarget();
+		Location location = origin.getLocation();
+		RayTraceResult result = null;
 		if (!PAPER_RAYTRACE) {
-			result = entity.getWorld().rayTraceEntities(entity.getLocation(), entity.getEyeLocation().toVector(), SkriptConfig.maxTargetBlockDistance.value(), 0.0D);
+			if (ignoreBlocks) {
+				RayTraceResult blockResult = origin.getWorld().rayTraceBlocks(origin.getEyeLocation(), location.getDirection(), targetBlockDistance);
+				Block hitBlock = blockResult.getHitBlock();
+				if (hitBlock != null) {
+					result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), location.distance(hitBlock.getLocation()), 0.0D, entity -> !entity.equals(origin));
+				}
+			} else {
+				result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), targetBlockDistance, 0.0D, entity -> !entity.equals(origin));
+			}
 		} else {
-			result = entity.rayTraceEntities(SkriptConfig.maxTargetBlockDistance.value(), ignoreBlocks);
+			if (targetBlockDistance > 120)
+				targetBlockDistance = 120; // Paper max, or else throws
+			result = origin.rayTraceEntities(targetBlockDistance, ignoreBlocks);
 		}
 		if (result == null)
 			return null;
