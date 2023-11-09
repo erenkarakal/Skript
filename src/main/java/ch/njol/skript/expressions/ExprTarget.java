@@ -64,7 +64,7 @@ import ch.njol.util.coll.CollectionUtils;
 	"delete targeted entity of player # for players it will delete the target",
 	"delete target of last spawned zombie # for entities it will make them target-less"
 })
-@RequiredPlugins("Paper 1.19+ (enhanced raytracing)")
+@RequiredPlugins("Paper 1.19+ (ignoring blocks)")
 @Since("1.4.2, 2.7 (Reset), INSERT VERSION (ignore blocks)")
 public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
@@ -72,8 +72,8 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
 	static {
 		Skript.registerExpression(ExprTarget.class, Entity.class, ExpressionType.PROPERTY,
-				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""),
-				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [ignoring :blocks]" : ""));
+				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""),
+				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""));
 	}
 
 	@Nullable
