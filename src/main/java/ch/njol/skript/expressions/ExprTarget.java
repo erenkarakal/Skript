@@ -54,6 +54,7 @@ import ch.njol.util.coll.CollectionUtils;
 @Description({
 	"For players this is the entity at the crosshair.",
 	"For mobs and experience orbs this is the entity they are attacking/following (if any).",
+	"Display entities have a hit box of 0, so you should use 'target display' to collect Display entities",
 	"May grab entities in unloaded chunks."
 })
 @Examples({
