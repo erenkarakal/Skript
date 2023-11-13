@@ -18,6 +18,8 @@
  */
 package ch.njol.skript.expressions;
 
+import java.util.function.Predicate;
+
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
@@ -36,9 +38,9 @@ import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
-import ch.njol.skript.doc.RequiredPlugins;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.effects.Delay;
+import ch.njol.skript.entity.DisplayData;
 import ch.njol.skript.entity.EntityData;
 import ch.njol.skript.expressions.base.PropertyExpression;
 import ch.njol.skript.lang.Expression;
@@ -52,7 +54,6 @@ import ch.njol.util.coll.CollectionUtils;
 @Description({
 	"For players this is the entity at the crosshair.",
 	"For mobs and experience orbs this is the entity they are attacking/following (if any).",
-	"If using PaperSpigot, you'll have a more accurate ray trace to the target entity.",
 	"May grab entities in unloaded chunks."
 })
 @Examples({
@@ -64,16 +65,14 @@ import ch.njol.util.coll.CollectionUtils;
 	"delete targeted entity of player # for players it will delete the target",
 	"delete target of last spawned zombie # for entities it will make them target-less"
 })
-@RequiredPlugins("Paper 1.19+ (ignoring blocks)")
 @Since("1.4.2, 2.7 (Reset), INSERT VERSION (ignore blocks)")
 public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
-	private static final boolean PAPER_RAYTRACE = Skript.methodExists(LivingEntity.class, "rayTraceEntities", int.class, boolean.class);
-
 	static {
 		Skript.registerExpression(ExprTarget.class, Entity.class, ExpressionType.PROPERTY,
-				"[the] target[[ed] %-*entitydata%] [of %livingentities%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""),
-				"%livingentities%'[s] target[[ed] %-*entitydata%]" + (PAPER_RAYTRACE ? " [blocks:ignoring blocks]" : ""));
+				"[the] target[[ed] %-*entitydata%] [of %livingentities%] [blocks:ignoring blocks]",
+				"%livingentities%'[s] target[[ed] %-*entitydata%] [blocks:ignoring blocks]"
+		);
 	}
 
 	@Nullable
@@ -176,25 +175,29 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 			return ((Mob) origin).getTarget() == null || type != null && !type.isInstance(((Mob) origin).getTarget()) ? null : (T) ((Mob) origin).getTarget();
 		Location location = origin.getLocation();
 		RayTraceResult result = null;
-		if (!PAPER_RAYTRACE) {
-			if (ignoreBlocks) {
-				RayTraceResult blockResult = origin.getWorld().rayTraceBlocks(origin.getEyeLocation(), location.getDirection(), targetBlockDistance);
-				Block hitBlock = blockResult.getHitBlock();
-				if (hitBlock != null) {
-					result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), location.distance(hitBlock.getLocation()), 0.0D, entity -> !entity.equals(origin));
-				}
-			} else {
-				result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), targetBlockDistance, 0.0D, entity -> !entity.equals(origin));
+		double raySize = 0.0D;
+		if (type.getClass().equals(DisplayData.class))
+			raySize = 1.0D;
+		Predicate<Entity> predicate = entity -> {
+			if (entity.equals(origin))
+				return false;
+			if (type != null && !type.isInstance(entity))
+				return false;
+			return true;
+		};
+		if (!ignoreBlocks) {
+			RayTraceResult blockResult = origin.getWorld().rayTraceBlocks(origin.getEyeLocation(), location.getDirection(), targetBlockDistance);
+			Block hitBlock = blockResult.getHitBlock();
+			if (hitBlock != null) {
+				result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), location.distance(hitBlock.getLocation()), raySize, predicate);
 			}
 		} else {
-			if (targetBlockDistance > 120)
-				targetBlockDistance = 120; // Paper max, or else throws
-			result = origin.rayTraceEntities(targetBlockDistance, ignoreBlocks);
+			result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), targetBlockDistance, raySize, predicate);
 		}
 		if (result == null)
 			return null;
 		Entity hitEntity = result.getHitEntity();
-		if (type != null && !type.isInstance(hitEntity))
+		if (hitEntity == null)
 			return null;
 		return (T) result.getHitEntity();
 	}
