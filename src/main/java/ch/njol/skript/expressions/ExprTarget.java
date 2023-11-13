@@ -177,8 +177,9 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 		Location location = origin.getLocation();
 		RayTraceResult result = null;
 		double raySize = 0.0D;
-		if (type.getClass().equals(DisplayData.class))
-			raySize = 1.0D;
+		// TODO when DisplayData is added.
+//		if (type.getClass().equals(DisplayData.class))
+//			raySize = 1.0D;
 		Predicate<Entity> predicate = entity -> {
 			if (entity.equals(origin))
 				return false;
