@@ -20,6 +20,7 @@ package ch.njol.skript.expressions;
 
 import java.util.function.Predicate;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
@@ -70,7 +71,7 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 
 	static {
 		Skript.registerExpression(ExprTarget.class, Entity.class, ExpressionType.PROPERTY,
-				"[the] target[[ed] %-*entitydata%] [of %livingentities%] [blocks:ignoring blocks]",
+				"[the] target[[ed] %-*entitydata%] [of %livingentities%] [blocks:ignoring blocks]", // TODO add a where filter when extendable https://github.com/SkriptLang/Skript/issues/4856
 				"%livingentities%'[s] target[[ed] %-*entitydata%] [blocks:ignoring blocks]"
 		);
 	}
@@ -183,6 +184,8 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 			if (entity.equals(origin))
 				return false;
 			if (type != null && !type.isInstance(entity))
+				return false;
+			if (entity instanceof Player && ((Player) entity).getGameMode() == GameMode.SPECTATOR)
 				return false;
 			return true;
 		};
