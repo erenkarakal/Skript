@@ -83,7 +83,7 @@ public class StructCommand extends Structure {
 	public static final Priority PRIORITY = new Priority(500);
 
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("(?i)^command\\s+/?(\\S+)\\s*(\\s+(.+))?$");
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("<\\s*(?:([^>]+?)\\s*:\\s*)?(.+?)\\s*(?:=\\s*(" + SkriptParser.wildcard + "))?\\s*>");
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("<\\s*(?:([^>]+?)\\s*:\\s*)?(.+?)\\s*(?:=\\s*(" + SkriptParser.WILDCARD + "))?\\s*>");
 	private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?<!\\\\)%-?(.+?)%");
 
 	private static final AtomicBoolean SYNC_COMMANDS = new AtomicBoolean();
@@ -143,19 +143,22 @@ public class StructCommand extends Structure {
 		);
 	}
 
+	@SuppressWarnings("NotNullFieldNotInitialized")
+	private EntryContainer entryContainer;
+
 	@Nullable
 	private ScriptCommand scriptCommand;
 
 	@Override
-	public boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult, EntryContainer entryContainer) {
+	public boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult, @Nullable EntryContainer entryContainer) {
+		assert entryContainer != null; // cannot be null for non-simple structures
+		this.entryContainer = entryContainer;
 		return true;
 	}
 
 	@Override
 	public boolean load() {
 		getParser().setCurrentEvent("command", ScriptCommandEvent.class);
-
-		EntryContainer entryContainer = getEntryContainer();
 
 		String fullCommand = entryContainer.getSource().getKey();
 		assert fullCommand != null;
@@ -348,7 +351,7 @@ public class StructCommand extends Structure {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		return "command";
 	}
 
