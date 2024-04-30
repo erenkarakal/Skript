@@ -20,6 +20,7 @@ package ch.njol.skript.structures;
 
 import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
+import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
@@ -50,7 +51,10 @@ import java.util.regex.Pattern;
 	"\tbroadcast {_message} # our message argument is available in '{_message}'",
 	"",
 	"local function giveApple(amount: number) :: item:",
-	"\treturn {_amount} of apple"
+	"\treturn {_amount} of apple",
+	"",
+	"function getPoints(p: player) returns number:",
+	"\treturn {points::%{_p}%}"
 })
 @Since("2.2, 2.7 (local functions)")
 public class StructFunction extends Structure {
@@ -58,7 +62,7 @@ public class StructFunction extends Structure {
 	public static final Priority PRIORITY = new Priority(400);
 
 	private static final Pattern SIGNATURE_PATTERN =
-			Pattern.compile("(?:local )?function (" + Functions.functionNamePattern + ")\\((.*)\\)(?:\\s*::\\s*(.+))?");
+			Pattern.compile("^(?:local )?function (" + Functions.functionNamePattern + ")\\((.*?)\\)(?:\\s*(?:::| returns )\\s*(.+))?$");
 	private static final AtomicBoolean VALIDATE_FUNCTIONS = new AtomicBoolean();
 
 	static {
@@ -67,12 +71,16 @@ public class StructFunction extends Structure {
 		);
 	}
 
+	@SuppressWarnings("NotNullFieldNotInitialized")
+	private SectionNode source;
 	@Nullable
 	private Signature<?> signature;
 	private boolean local;
 
 	@Override
-	public boolean init(Literal<?>[] literals, int matchedPattern, ParseResult parseResult, EntryContainer entryContainer) {
+	public boolean init(Literal<?>[] literals, int matchedPattern, ParseResult parseResult, @Nullable EntryContainer entryContainer) {
+		assert entryContainer != null; // cannot be null for non-simple structures
+		this.source = entryContainer.getSource();
 		local = parseResult.hasTag("local");
 		return true;
 	}
@@ -80,7 +88,8 @@ public class StructFunction extends Structure {
 	@Override
 	public boolean preLoad() {
 		// match signature against pattern
-		String rawSignature = getEntryContainer().getSource().getKey();
+		// noinspection ConstantConditions - entry container cannot be null as this structure is not simple
+		String rawSignature = source.getKey();
 		assert rawSignature != null;
 		rawSignature = ScriptLoader.replaceOptions(rawSignature);
 		Matcher matcher = SIGNATURE_PATTERN.matcher(rawSignature);
@@ -107,7 +116,8 @@ public class StructFunction extends Structure {
 		parser.setCurrentEvent((local ? "local " : "") + "function", FunctionEvent.class);
 
 		assert signature != null;
-		Functions.loadFunction(parser.getCurrentScript(), getEntryContainer().getSource(), signature);
+		// noinspection ConstantConditions - entry container cannot be null as this structure is not simple
+		Functions.loadFunction(parser.getCurrentScript(), source, signature);
 
 		parser.deleteCurrentEvent();
 
