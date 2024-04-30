@@ -33,25 +33,31 @@ import java.util.UUID;
 @Examples({"command /protocolversion &ltplayer&gt:",
 	"\ttrigger:",
 	"\t\tsend \"Protocol version of %arg-1%: %protocol version of arg-1%\""})
-@Since("2.6.2, INSERT VERSION ViaVersion support")
+@Since("2.6.2")
 @RequiredPlugins("Paper 1.12.2 or newer")
 public class ExprPlayerProtocolVersion extends SimplePropertyExpression<Player, Integer> {
 
-	private static final boolean VIAVERSION_EXISTS = Skript.classExists("com.viaversion.viaversion.api.ViaAPI");
 	@Nullable
 	private static Object VIA_API;
+	@Nullable
+	private static Method VIA_GET_PLAYER_VERSION;
 
 	static {
-		if (Skript.classExists("com.destroystokyo.paper.network.NetworkClient") || VIAVERSION_EXISTS) {
+		boolean viaVersionExists = Skript.classExists("com.viaversion.viaversion.api.ViaAPI");
+		if (Skript.classExists("com.destroystokyo.paper.network.NetworkClient") || viaVersionExists) {
 			register(ExprPlayerProtocolVersion.class, Integer.class, "protocol version", "players");
 		}
 
-		if (VIAVERSION_EXISTS) {
+		if (viaVersionExists) {
 			try {
 				VIA_API = Class.forName("com.viaversion.viaversion.api.Via")
 					.getDeclaredMethod("getAPI")
 					.invoke(null);
-			} catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored) {}
+				assert VIA_API != null;
+				VIA_GET_PLAYER_VERSION = VIA_API.getClass().getDeclaredMethod("getPlayerVersion", UUID.class);
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+				assert false: e.getMessage();
+			}
 		}
 	}
 
@@ -59,11 +65,12 @@ public class ExprPlayerProtocolVersion extends SimplePropertyExpression<Player, 
 	@Nullable
 	public Integer convert(Player player) {
 		int version = -1;
-		if (VIAVERSION_EXISTS && VIA_API != null) {
+		if (VIA_API != null && VIA_GET_PLAYER_VERSION != null) {
 			try {
-				Method getPlayerVersion = VIA_API.getClass().getDeclaredMethod("getPlayerVersion", UUID.class);
-				version = (int) getPlayerVersion.invoke(VIA_API, player.getUniqueId());
-			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored) {}
+				version = (int) VIA_GET_PLAYER_VERSION.invoke(VIA_API, player.getUniqueId());
+			} catch (IllegalAccessException | InvocationTargetException e) {
+				assert false: e.getMessage();
+			}
 		} else {
 			version = player.getProtocolVersion();
 		}
