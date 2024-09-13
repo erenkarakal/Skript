@@ -72,7 +72,7 @@ public final class EnumUtils<E extends Enum<E>> {
 					String[] splitKey = key.split("\\.");
 					String newKey = splitKey[1].replace('_', ' ').toLowerCase(Locale.ENGLISH) + " " + splitKey[0];
 					parseMap.put(newKey, constant);
-					Skript.info("Missing lang enum constant for '" + key + "'. Using '" + newKey + "' for now.");
+					Skript.debug("Missing lang enum constant for '" + key + "'. Using '" + newKey + "' for now.");
 					continue;
 				}
 
