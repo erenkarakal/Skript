@@ -69,7 +69,9 @@ public final class EnumUtils<E extends Enum<E>> {
 			for (String option : options) {
 				option = option.toLowerCase(Locale.ENGLISH);
 				if (options.length == 1 && option.equals(key.toLowerCase(Locale.ENGLISH))) {
-					Skript.debug("Missing lang enum constant for '" + key + "'");
+					String newKey = key.replace('.', ':').replace('_', ' ').toLowerCase(Locale.ENGLISH);
+					parseMap.put(newKey, constant);
+					Skript.debug("Missing lang enum constant for '" + key + "'. Using " + newKey + " for now.");
 					continue;
 				}
 
