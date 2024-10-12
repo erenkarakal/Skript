@@ -27,18 +27,22 @@ import ch.njol.yggdrasil.YggdrasilSerializable;
  */
 public class Experience implements YggdrasilSerializable {
 	
-	private final int xp;
+	private int xp;
 	
 	public Experience() {
 		xp = -1;
 	}
 	
-	public Experience(final int xp) {
+	public Experience(int xp) {
 		this.xp = xp;
 	}
-	
+
 	public int getXP() {
 		return xp == -1 ? 1 : xp;
+	}
+
+	public void setXP(int xp) {
+		this.xp = xp;
 	}
 	
 	public int getInternalXP() {
