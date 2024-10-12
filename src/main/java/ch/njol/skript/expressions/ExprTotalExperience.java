@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 	"on level progress change:",
 	"\tset {_changed.xp} to experience of event-experience"
 })
-@Since("2.7")
+@Since("2.7, INSERT_VERSION (experience point support)")
 public class ExprTotalExperience extends SimplePropertyExpression<Object, Integer> {
 
 	static {
