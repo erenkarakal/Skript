@@ -24,8 +24,6 @@ import ch.njol.skript.config.SimpleNode;
 import org.skriptlang.skript.lang.entry.EntryValidator.EntryValidatorBuilder;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
-
 /**
  * An entry based on {@link SimpleNode}s containing a key and a value.
  * Unlike a traditional {@link ch.njol.skript.config.EntryNode}, this entry data
