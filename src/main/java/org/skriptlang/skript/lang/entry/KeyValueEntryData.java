@@ -84,8 +84,9 @@ public abstract class KeyValueEntryData<T> extends EntryData<T> {
 		String key = node.getKey();
 		if (key == null)
 			return false;
-		key = ScriptLoader.replaceOptions(key).toLowerCase(Locale.ENGLISH);
-		return key.startsWith((getKey() + getSeparator()).toLowerCase(Locale.ENGLISH));
+		key = ScriptLoader.replaceOptions(key);
+		String prefix = getKey() + getSeparator();
+		return key.regionMatches(true, 0, prefix, 0, prefix.length());
 	}
 
 }
