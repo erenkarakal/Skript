@@ -29,7 +29,7 @@ import java.net.UnknownHostException;
 	"set {_time.left} to difference between now and {_expiration}",
 	"set {_reason} to the reason {_player} was banned",
 	"send \"There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'\" to player"})
-@Since("INSERT_VERSION")
+@Since("INSERT VERSION")
 @RequiredPlugins("Spigot 1.20.1+")
 public class ExprBanData extends SimpleExpression<Object> {
 
