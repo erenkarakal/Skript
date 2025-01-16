@@ -31,11 +31,9 @@ import org.joml.Vector3f;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
 import java.text.DecimalFormat;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
 
 public class DefaultFunctions {
 
@@ -43,8 +41,9 @@ public class DefaultFunctions {
 		return StringUtils.toString(n, 4);
 	}
 
-	private static final DecimalFormat DEFAULT_INTEGER_FORMAT = new DecimalFormat("###,###");
-	private static final DecimalFormat DEFAULT_DECIMAL_FORMAT = new DecimalFormat("###,###.##");
+	private static final DecimalFormatSymbols FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.US);
+	private static final DecimalFormat DEFAULT_INTEGER_FORMAT = new DecimalFormat("###,###", FORMAT_SYMBOLS);
+	private static final DecimalFormat DEFAULT_DECIMAL_FORMAT = new DecimalFormat("###,###.##", FORMAT_SYMBOLS);
 
 	static {
 		Parameter<?>[] numberParam = new Parameter[] {new Parameter<>("n", DefaultClasses.NUMBER, true, null)};
