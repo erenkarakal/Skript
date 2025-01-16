@@ -1,11 +1,11 @@
 package ch.njol.skript.expressions;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.classes.Changer;
+import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
-import ch.njol.skript.lang.SkriptParser;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
@@ -24,11 +24,13 @@ import java.net.UnknownHostException;
 @Description("Returns data about a player or IP ban. " +
 	"The source can be any string, but it's usually the player's name. " +
 	"The expiration date won't return a value if the ban is permanent.")
-@Examples({"set {_player} to offlineplayer(\"Notch\", false)",
+@Examples({
+	"set {_player} to offlineplayer(\"Notch\", false)",
 	"set {_expiration} to the date {_player}'s ban expires",
 	"set {_time.left} to difference between now and {_expiration}",
 	"set {_reason} to the reason {_player} was banned",
-	"send \"There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'\" to player"})
+	"send \"There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'\" to player"
+})
 @Since("INSERT VERSION")
 @RequiredPlugins("Spigot 1.20.1+")
 public class ExprBanData extends SimpleExpression<Object> {
@@ -53,7 +55,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 	private Expression<Object> banTargetExpr; // offline player or string (ip)
 
 	@Override
-	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
+	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		entryType = BanEntryType.fromInt(matchedPattern);
 		banTargetExpr = (Expression<Object>) expressions[0];
 		return true;
@@ -102,18 +104,21 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	public Class<?> getReturnType() {
-		return Object.class;
+		return switch (entryType) {
+			case BAN_DATE, EXPIRE_DATE -> ch.njol.skript.util.Date.class;
+			case SOURCE, REASON -> String.class;
+		};
 	}
 
 	@Override
-	public Class<?> @Nullable [] acceptChange(Changer.ChangeMode mode) {
-		if (mode == Changer.ChangeMode.SET) {
+	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
+		if (mode == ChangeMode.SET) {
 			return switch (entryType) {
 				case EXPIRE_DATE -> new Class<?>[]{ ch.njol.skript.util.Date.class };
 				case SOURCE, REASON -> new Class<?>[]{ String.class };
 				default -> null;
 			};
-		} else if (mode == Changer.ChangeMode.ADD || mode == Changer.ChangeMode.REMOVE) {
+		} else if (mode == ChangeMode.ADD || mode == ChangeMode.REMOVE) {
 			if (entryType == BanEntryType.EXPIRE_DATE)
 				return new Class<?>[]{ Timespan.class };
 		}
@@ -121,7 +126,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public void change(Event event, Object @Nullable [] delta, Changer.ChangeMode mode) {
+	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
 		Object banTarget = banTargetExpr.getSingle(event);
 		BanEntry<?> banEntry;
 
@@ -135,7 +140,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 		if (banEntry == null)
 			return;
 
-		if (mode == Changer.ChangeMode.SET) {
+		if (mode == ChangeMode.SET) {
 			switch (entryType) {
 				case SOURCE -> {
 					String newSource = (String) delta[0];
@@ -147,7 +152,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 					ch.njol.skript.util.Date newDate = (ch.njol.skript.util.Date) delta[0];
 					if (newDate == null)
 						return;
-					banEntry.setExpiration(new java.util.Date(newDate.getTimestamp()));
+					banEntry.setExpiration(new java.util.Date(newDate.getTime()));
 				}
 				case REASON -> {
 					String newReason = (String) delta[0];
@@ -166,9 +171,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 				if (expiration == null)
 					return;
 				long newExpirationMillis;
-				if (mode == Changer.ChangeMode.ADD)
+				if (mode == ChangeMode.ADD)
 					newExpirationMillis = expiration.getTime() + timespan.getAs(Timespan.TimePeriod.MILLISECOND);
-				else if (mode == Changer.ChangeMode.REMOVE)
+				else if (mode == ChangeMode.REMOVE)
 					newExpirationMillis = expiration.getTime() - timespan.getAs(Timespan.TimePeriod.MILLISECOND);
 				else
 					return;
@@ -192,9 +197,8 @@ public class ExprBanData extends SimpleExpression<Object> {
 		try {
 			InetAddress address = InetAddress.getByName(ipTarget);
 			return Bukkit.getBanList(BanListType.IP).getBanEntry(address);
-		} catch (UnknownHostException ignored) { // this only happens when you pass a url and it performs a lookup
-			return null;
-		}
+		} catch (UnknownHostException ignored) {} // this only happens when you pass a url and it performs a lookup
+		return null;
 	}
 
 	private BanEntry<PlayerProfile> getBanEntry(OfflinePlayer playerTarget) {
