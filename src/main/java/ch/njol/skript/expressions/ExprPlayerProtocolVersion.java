@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 @Name("Player Protocol Version")
-@Description("Player's protocol version. For more information and list of protocol versions <a href='https://wiki.vg/Protocol_version_numbers'>visit wiki.vg</a>.")
+@Description("Player's protocol version. For more information and a list of protocol versions <a href='https://wiki.vg/Protocol_version_numbers'>visit wiki.vg</a>.")
 @Examples({"command /protocolversion &ltplayer&gt:",
 	"\ttrigger:",
 	"\t\tsend \"Protocol version of %arg-1%: %protocol version of arg-1%\""})
