@@ -1,63 +1,172 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.bukkitutil;
 
+import ch.njol.skript.Skript;
+import ch.njol.skript.aliases.ItemType;
+import ch.njol.skript.util.slot.Slot;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Tag;
 import org.bukkit.TreeType;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Fence;
+import org.bukkit.block.data.type.Gate;
+import org.bukkit.block.data.type.Wall;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.eclipse.jdt.annotation.Nullable;
-
-import ch.njol.skript.Skript;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Miscellaneous static utility methods related to items.
  */
 public class ItemUtils {
 
+	public static final boolean HAS_MAX_DAMAGE = Skript.methodExists(Damageable.class, "getMaxDamage");
+	// Introduced in Paper 1.21
+	public static final boolean HAS_RESET = Skript.methodExists(Damageable.class, "resetDamage");
+	public static final boolean CAN_CREATE_PLAYER_PROFILE = Skript.methodExists(Bukkit.class, "createPlayerProfile", UUID.class, String.class);
+	// paper does not do texture lookups by default
+	public static final boolean REQUIRES_TEXTURE_LOOKUP = Skript.classExists("com.destroystokyo.paper.profile.PlayerProfile") && Skript.isRunningMinecraft(1, 19, 4);
+
 	/**
 	 * Gets damage/durability of an item, or 0 if it does not have damage.
-	 * @param stack Item.
+	 * @param itemStack Item.
 	 * @return Damage.
 	 */
-	public static int getDamage(ItemStack stack) {
-		ItemMeta meta = stack.getItemMeta();
-		if (meta instanceof Damageable)
-			return ((Damageable) meta).getDamage();
-		return 0; // Not damageable item
+	public static int getDamage(ItemStack itemStack) {
+		return getDamage(itemStack.getItemMeta());
 	}
-	
+
+	/**
+	 * Gets damage/durability of an itemmeta, or 0 if it does not have damage.
+	 * @param itemMeta ItemMeta.
+	 * @return Damage.
+	 */
+	public static int getDamage(ItemMeta itemMeta) {
+		if (itemMeta instanceof Damageable)
+			return ((Damageable) itemMeta).getDamage();
+		return 0; // Non damageable item
+	}
+
+	/** Gets the max damage/durability of an item
+	 * <p>NOTE: Will account for custom damageable items in MC 1.20.5+</p>
+	 * @param itemStack Item to grab durability from
+	 * @return Max amount of damage this item can take
+	 */
+	public static int getMaxDamage(ItemStack itemStack) {
+		ItemMeta meta = itemStack.getItemMeta();
+		if (HAS_MAX_DAMAGE && meta instanceof Damageable && ((Damageable) meta).hasMaxDamage())
+			return ((Damageable) meta).getMaxDamage();
+		return itemStack.getType().getMaxDurability();
+	}
+
+	/**
+	 * Set the max damage/durability of an item
+	 *
+	 * @param itemStack ItemStack to set max damage
+	 * @param maxDamage Amount of new max damage
+	 */
+	public static void setMaxDamage(ItemStack itemStack, int maxDamage) {
+		ItemMeta meta = itemStack.getItemMeta();
+		if (HAS_MAX_DAMAGE && meta instanceof Damageable) {
+			Damageable damageable = (Damageable) meta;
+			if (HAS_RESET && maxDamage < 1) {
+				damageable.resetDamage();
+			} else {
+				damageable.setMaxDamage(Math.max(1, maxDamage));
+			}
+			itemStack.setItemMeta(damageable);
+		}
+	}
+
 	/**
 	 * Sets damage/durability of an item if possible.
-	 * @param stack Item to modify.
+	 * @param itemStack Item to modify.
 	 * @param damage New damage. Note that on some Minecraft versions,
 	 * this might be truncated to short.
 	 */
-	public static void setDamage(ItemStack stack, int damage) {
-		ItemMeta meta = stack.getItemMeta();
+	public static void setDamage(ItemStack itemStack, int damage) {
+		ItemMeta meta = itemStack.getItemMeta();
+		if (meta instanceof Damageable) {
+			((Damageable) meta).setDamage(Math.max(0, damage));
+			itemStack.setItemMeta(meta);
+		}
+	}
+
+	/**
+	 * Gets damage/durability of an item, or 0 if it does not have damage.
+	 * @param itemType Item.
+	 * @return Damage.
+	 */
+	public static int getDamage(ItemType itemType) {
+		ItemMeta meta = itemType.getItemMeta();
+		if (meta instanceof Damageable)
+			return ((Damageable) meta).getDamage();
+		return 0; // Non damageable item
+	}
+
+	/** Gets the max damage/durability of an item
+	 * <p>NOTE: Will account for custom damageable items in MC 1.20.5+</p>
+	 * @param itemType Item to grab durability from
+	 * @return Max amount of damage this item can take
+	 */
+	public static int getMaxDamage(ItemType itemType) {
+		ItemMeta meta = itemType.getItemMeta();
+		if (HAS_MAX_DAMAGE && meta instanceof Damageable && ((Damageable) meta).hasMaxDamage())
+			return ((Damageable) meta).getMaxDamage();
+		return itemType.getMaterial().getMaxDurability();
+	}
+
+	/**
+	 * Sets damage/durability of an item if possible.
+	 * @param itemType Item to modify.
+	 * @param damage New damage. Note that on some Minecraft versions,
+	 * this might be truncated to short.
+	 */
+	public static void setDamage(ItemType itemType, int damage) {
+		ItemMeta meta = itemType.getItemMeta();
 		if (meta instanceof Damageable) {
 			((Damageable) meta).setDamage(damage);
-			stack.setItemMeta(meta);
+			itemType.setItemMeta(meta);
 		}
+	}
+
+	/**
+	 * Sets the owner of a player head.
+	 * @param skull player head item to modify
+	 * @param player owner of the head
+	 */
+	public static void setHeadOwner(ItemType skull, OfflinePlayer player) {
+		ItemMeta meta = skull.getItemMeta();
+		if (!(meta instanceof SkullMeta))
+			return;
+
+		SkullMeta skullMeta = (SkullMeta) meta;
+
+		if (REQUIRES_TEXTURE_LOOKUP) {
+			PlayerProfile profile = player.getPlayerProfile();
+			if (!profile.hasTextures())
+				profile.complete(true); // BLOCKING MOJANG API CALL
+			skullMeta.setPlayerProfile(profile);
+		} else if (player.getName() != null) {
+			skullMeta.setOwningPlayer(player);
+		} else if (CAN_CREATE_PLAYER_PROFILE) {
+			//noinspection deprecation
+			skullMeta.setOwnerProfile(Bukkit.createPlayerProfile(player.getUniqueId(), ""));
+		} else {
+			skullMeta.setOwningPlayer(null);
+		}
+
+		skull.setItemMeta(skullMeta);
 	}
 
 	/**
@@ -87,19 +196,44 @@ public class ItemUtils {
 		// Assume (naively) that all types are valid items
 		return type;
 	}
+
+	/**
+	 * Convert an ItemType/Slot to ItemStack
+	 * Will also accept an ItemStack that will return itself
+	 *
+	 * @param object Object to convert
+	 * @return ItemStack from slot/itemtype
+	 */
+	public static @Nullable ItemStack asItemStack(@Nullable Object object) {
+		if (object instanceof ItemType itemType) {
+			return itemType.getRandom();
+		} else if (object instanceof Slot slot) {
+			return slot.getItem();
+		} else if (object instanceof ItemStack itemStack) {
+			return itemStack;
+		}
+		return null;
+	}
 	
 	/**
 	 * Tests whether two item stacks are of the same type, i.e. it ignores the amounts.
 	 *
-	 * @param is1
-	 * @param is2
+	 * @param itemStack1
+	 * @param itemStack2
 	 * @return Whether the item stacks are of the same type
 	 */
-	public static boolean itemStacksEqual(final @Nullable ItemStack is1, final @Nullable ItemStack is2) {
-		if (is1 == null || is2 == null)
-			return is1 == is2;
-		return is1.getType() == is2.getType() && ItemUtils.getDamage(is1) == ItemUtils.getDamage(is2)
-			&& is1.getItemMeta().equals(is2.getItemMeta());
+	public static boolean itemStacksEqual(@Nullable ItemStack itemStack1, @Nullable ItemStack itemStack2) {
+		if (itemStack1 == null || itemStack2 == null)
+			return itemStack1 == itemStack2;
+		if (itemStack1.getType() != itemStack2.getType())
+			return false;
+
+		ItemMeta itemMeta1 = itemStack1.getItemMeta();
+		ItemMeta itemMeta2 = itemStack2.getItemMeta();
+		if (itemMeta1 == null || itemMeta2 == null)
+			return itemMeta1 == itemMeta2;
+
+		return itemStack1.getItemMeta().equals(itemStack2.getItemMeta());
 	}
 
 	// Only 1.15 and versions after have Material#isAir method
@@ -162,10 +296,113 @@ public class ItemUtils {
 		// cherry
 		if (Skript.isRunningMinecraft(1, 19, 4))
 			TREE_TO_SAPLING_MAP.put(TreeType.CHERRY, Material.CHERRY_SAPLING);
+
+		// mega pine (2x2 spruce tree with minimal leaves at top)
+		if (Skript.isRunningMinecraft(1, 20, 5))
+			TREE_TO_SAPLING_MAP.put(TreeType.MEGA_PINE, Material.SPRUCE_SAPLING);
+
+		// pale oak
+		if (Skript.isRunningMinecraft(1, 21, 3)) {
+			TREE_TO_SAPLING_MAP.put(TreeType.PALE_OAK, Material.PALE_OAK_SAPLING);
+			TREE_TO_SAPLING_MAP.put(TreeType.PALE_OAK_CREAKING, Material.PALE_OAK_SAPLING);
+		}
 	}
 
 	public static Material getTreeSapling(TreeType treeType) {
 		return TREE_TO_SAPLING_MAP.get(treeType);
 	}
-	
+
+
+	private static final boolean HAS_FENCE_TAGS = !Skript.isRunningMinecraft(1, 14);
+
+	/**
+	 * Whether the block is a fence or a wall.
+	 * @param block the block to check.
+	 * @return whether the block is a fence/wall.
+	 */
+	public static boolean isFence(Block block) {
+		// TODO: 1.13 only, so remove in 2.10
+		if (!HAS_FENCE_TAGS) {
+			BlockData data = block.getBlockData();
+			return data instanceof Fence
+				|| data instanceof Wall
+				|| data instanceof Gate;
+		}
+
+		Material type = block.getType();
+		return Tag.FENCES.isTagged(type)
+			|| Tag.FENCE_GATES.isTagged(type)
+			|| Tag.WALLS.isTagged(type);
+	}
+
+	/**
+	 * @param material The material to check
+	 * @return whether the material is a full glass block
+	 */
+	public static boolean isGlass(Material material) {
+		switch (material) {
+			case GLASS:
+			case RED_STAINED_GLASS:
+			case ORANGE_STAINED_GLASS:
+			case YELLOW_STAINED_GLASS:
+			case LIGHT_BLUE_STAINED_GLASS:
+			case BLUE_STAINED_GLASS:
+			case CYAN_STAINED_GLASS:
+			case LIME_STAINED_GLASS:
+			case GREEN_STAINED_GLASS:
+			case MAGENTA_STAINED_GLASS:
+			case PURPLE_STAINED_GLASS:
+			case PINK_STAINED_GLASS:
+			case WHITE_STAINED_GLASS:
+			case LIGHT_GRAY_STAINED_GLASS:
+			case GRAY_STAINED_GLASS:
+			case BLACK_STAINED_GLASS:
+			case BROWN_STAINED_GLASS:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/**
+	 * Applies a provided {@code Consumer} to the meta of the provided {@code ItemStack} and returns the updated {@code ItemStack} (with updated {@code ItemMeta}).
+	 *
+	 * @param itemStack the item whose meta is to be changed using the provided Consumer
+	 * @param metaChanger a consumer to update the meta of the provided ItemStack
+	 * @param <T>
+	 * @return the updated item
+	 */
+	public static <T extends ItemMeta> ItemStack changeItemMeta(@NotNull Class<T> metaClass, @NotNull ItemStack itemStack, @NotNull Consumer<T> metaChanger) {
+		ItemMeta originalMeta = itemStack.getItemMeta();
+		if (metaClass.isInstance(originalMeta)) {
+			//noinspection unchecked
+			T itemMeta = (T) originalMeta;
+			metaChanger.accept(itemMeta);
+			itemStack.setItemMeta(itemMeta);
+		}
+		return itemStack;
+	}
+
+	/**
+	 * Updates the provided object's ({@code Slot}, {@code ItemType}, {@code ItemStack}) {@link ItemMeta} by setting it to the provided {@code ItemStack}.
+	 *
+	 * @param object the object to update
+	 * @param itemMeta the {@link ItemMeta} to change to
+	 * @see #asItemStack(Object)
+	 */
+	public static void setItemMeta(Object object, @NotNull ItemMeta itemMeta) {
+		if (object instanceof Slot slot) {
+			ItemStack itemStack = slot.getItem();
+			if (itemStack == null)
+				return;
+			itemStack.setItemMeta(itemMeta);
+			slot.setItem(itemStack);
+		} else if (object instanceof ItemType itemType) {
+			itemType.setItemMeta(itemMeta);
+		} else if (object instanceof ItemStack itemStack) {
+			itemStack.setItemMeta(itemMeta);
+		}
+		throw new IllegalArgumentException("Object was not a Slot, ItemType or ItemStack.");
+	}
+
 }

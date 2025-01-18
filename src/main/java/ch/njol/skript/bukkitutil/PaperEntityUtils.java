@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.bukkitutil;
 
 import java.util.EnumSet;
@@ -28,7 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
@@ -114,8 +96,8 @@ public class PaperEntityUtils {
 				Player player = (Player) entity;
 				if (target instanceof Vector) {
 					Vector vector = (Vector) target;
-					player.lookAt(vector.getX(), vector.getY(), vector.getZ(), LookAnchor.EYES);
-					player.lookAt(vector.getX(), vector.getY(), vector.getZ(), LookAnchor.FEET);
+					player.lookAt(player.getEyeLocation().add(vector), LookAnchor.EYES);
+					player.lookAt(player.getEyeLocation().add(vector), LookAnchor.FEET);
 				} else if (target instanceof Location) {
 					player.lookAt((Location) target, LookAnchor.EYES);
 					player.lookAt((Location) target, LookAnchor.FEET);
@@ -159,7 +141,7 @@ public class PaperEntityUtils {
 			switch (type) {
 				case VECTOR:
 					Vector vector = ((Vector)target);
-					mob.lookAt(vector.getX(), vector.getY(), vector.getZ(), speed, maxPitch);
+					mob.lookAt(mob.getEyeLocation().add(vector), speed, maxPitch);
 					break;
 				case LOCATION:
 					mob.lookAt((Location) target, speed, maxPitch);

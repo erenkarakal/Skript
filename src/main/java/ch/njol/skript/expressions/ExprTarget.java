@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.expressions;
 
 import java.util.function.Predicate;
@@ -171,20 +153,6 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	}
 
 	/**
-	 * Gets an entity's target.
-	 *
-	 * @param origin The entity to get the target of.
-	 * @param type The exact EntityData to find. Can be null for any entity.
-	 * @return The entity's target.
-	 * @deprecated Use {@link #getTarget(LivingEntity, EntityData, double)} to include raysize.
-	 */
-	@Deprecated
-	@ScheduledForRemoval
-	public static <T extends Entity> T getTarget(LivingEntity origin, @Nullable EntityData<T> type) {
-		return getTarget(origin, type, 0.0D);
-	}
-
-	/**
 	 * Gets an entity's target entity.
 	 *
 	 * @param origin The entity to get the target of.
@@ -197,31 +165,31 @@ public class ExprTarget extends PropertyExpression<LivingEntity, Entity> {
 	public static <T extends Entity> T getTarget(LivingEntity origin, @Nullable EntityData<T> type, double raysize) {
 		if (origin instanceof Mob)
 			return ((Mob) origin).getTarget() == null || type != null && !type.isInstance(((Mob) origin).getTarget()) ? null : (T) ((Mob) origin).getTarget();
-		Location location = origin.getLocation();
-		RayTraceResult result = null;
-		// TODO when DisplayData is added.
-//		if (type.getClass().equals(DisplayData.class))
-//			raysize = 1.0D;
+
 		Predicate<Entity> predicate = entity -> {
 			if (entity.equals(origin))
 				return false;
 			if (type != null && !type.isInstance(entity))
 				return false;
+			//noinspection RedundantIfStatement
 			if (entity instanceof Player && ((Player) entity).getGameMode() == GameMode.SPECTATOR)
 				return false;
 			return true;
 		};
+
+		Location eyes = origin.getEyeLocation();
+		Vector direction = origin.getLocation().getDirection();
+
+		double distance = targetBlockDistance;
 		if (!ignoreBlocks) {
-			RayTraceResult blockResult = origin.getWorld().rayTraceBlocks(origin.getEyeLocation(), location.getDirection(), targetBlockDistance);
+			RayTraceResult blockResult = origin.getWorld().rayTraceBlocks(eyes, direction, targetBlockDistance);
 			if (blockResult != null) {
 				Vector hit = blockResult.getHitPosition();
-				Location eyes = origin.getEyeLocation();
-				if (hit != null)
-					result = origin.getWorld().rayTraceEntities(eyes, location.getDirection(), eyes.toVector().distance(hit), raysize, predicate);
+				distance = eyes.toVector().distance(hit);
 			}
-		} else {
-			result = origin.getWorld().rayTraceEntities(origin.getEyeLocation(), location.getDirection(), targetBlockDistance, raysize, predicate);
 		}
+
+		RayTraceResult result = origin.getWorld().rayTraceEntities(eyes, direction, distance, raysize, predicate);
 		if (result == null)
 			return null;
 		Entity hitEntity = result.getHitEntity();

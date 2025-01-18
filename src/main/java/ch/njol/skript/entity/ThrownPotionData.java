@@ -1,32 +1,15 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.entity;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.LingeringPotion;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.Aliases;
@@ -51,9 +34,9 @@ public class ThrownPotionData extends EntityData<ThrownPotion> {
 	@SuppressWarnings("removal")
 	private static final Class<? extends ThrownPotion> LINGERING_POTION_ENTITY_CLASS =
 		LINGERING_POTION_ENTITY_USED ? LingeringPotion.class : ThrownPotion.class;
-	private static final ItemType POTION = Aliases.javaItemType("potion");
-	private static final ItemType SPLASH_POTION = Aliases.javaItemType("splash potion");
-	private static final ItemType LINGER_POTION = Aliases.javaItemType("lingering potion");
+	private static final Material POTION = Material.POTION;
+	private static final Material SPLASH_POTION = Material.SPLASH_POTION;
+	private static final Material LINGER_POTION = Material.LINGERING_POTION;
 	
 	@Nullable
 	private ItemType[] types;
@@ -63,18 +46,18 @@ public class ThrownPotionData extends EntityData<ThrownPotion> {
 		if (exprs.length > 0 && exprs[0] != null) {
 			return (types = Converters.convert((ItemType[]) exprs[0].getAll(), ItemType.class, t -> {
 				// If the itemtype is a potion, lets make it a splash potion (required by Bukkit)
-				if (t.isSupertypeOf(POTION)) {
+				if (t.getMaterial() == POTION) {
 					ItemMeta meta = t.getItemMeta();
-					ItemType itemType = SPLASH_POTION.clone();
+					ItemType itemType = new ItemType(SPLASH_POTION);
 					itemType.setItemMeta(meta);
 					return itemType;
-				} else if (!t.isSupertypeOf(SPLASH_POTION ) && !t.isSupertypeOf(LINGER_POTION)) {
+				} else if (t.getMaterial() != SPLASH_POTION && t.getMaterial() != LINGER_POTION) {
 					return null;
 				}
 				return t;
 			})).length != 0; // no error message - other things can be thrown as well
 		} else {
-			types = new ItemType[]{SPLASH_POTION.clone()};
+			types = new ItemType[]{new ItemType(SPLASH_POTION)};
 		}
 		return true;
 	}
@@ -109,7 +92,7 @@ public class ThrownPotionData extends EntityData<ThrownPotion> {
 		if (i == null)
 			return null;
 
-		Class<ThrownPotion> thrownPotionClass = (Class) (LINGER_POTION.isOfType(i) ? LINGERING_POTION_ENTITY_CLASS : ThrownPotion.class);
+		Class<ThrownPotion> thrownPotionClass = (Class) (i.getType() == LINGER_POTION ? LINGERING_POTION_ENTITY_CLASS : ThrownPotion.class);
 		ThrownPotion potion;
 		if (consumer != null) {
 			potion = EntityData.spawn(location, thrownPotionClass, consumer);
@@ -131,7 +114,7 @@ public class ThrownPotionData extends EntityData<ThrownPotion> {
 			ItemStack i = t.getRandom();
 			if (i == null)
 				return; // Missing item, can't make thrown potion of it
-			if (LINGERING_POTION_ENTITY_USED && (LINGERING_POTION_ENTITY_CLASS.isInstance(entity) != LINGER_POTION.isOfType(i)))
+			if (LINGERING_POTION_ENTITY_USED && (LINGERING_POTION_ENTITY_CLASS.isInstance(entity) != (LINGER_POTION == i.getType())))
 				return;
 			entity.setItem(i);
 		}

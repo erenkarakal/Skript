@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.aliases;
 
 import java.util.ArrayList;
@@ -27,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.AliasesProvider.Variation;
@@ -218,9 +200,20 @@ public class AliasesParser {
 				throw new AssertionError("missing space between id and tags in " + item);
 			}
 			id = item.substring(0, firstBracket - 1);
-			String json = item.substring(firstBracket);
-			assert json != null;
-			tags = provider.parseMojangson(json);
+			String json;
+			int jsonEndIndex = item.indexOf("} ["); // may also have block states/data
+			if (jsonEndIndex == -1) {
+				json = item.substring(firstBracket);
+			} else {
+				json = item.substring(firstBracket, jsonEndIndex + 1);
+				id = id + item.substring(jsonEndIndex + 2); // essentially rips out json part
+			}
+			if (Aliases.USING_ITEM_COMPONENTS) {
+				json = "[" + json.substring(1, json.length() - 1) + "]"; // replace brackets (not json :))
+				tags = Collections.singletonMap("components", json);
+			} else {
+				tags = provider.parseMojangson(json);
+			}
 		}
 		
 		// Separate block state from id

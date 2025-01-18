@@ -1,22 +1,3 @@
-/**
- * This file is part of Skript.
- *
- * Skript is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Skript is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.expressions;
 
 import ch.njol.skript.Skript;
@@ -29,14 +10,16 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.skript.util.Utils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import ch.njol.skript.lang.util.SimpleExpression;
 import org.bukkit.event.Event;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 @Name("Nearest Entity")
@@ -80,8 +63,8 @@ public class ExprNearestEntity extends SimpleExpression<Entity> {
 	protected Entity[] get(Event event) {
 		Object relativeTo = this.relativeTo.getSingle(event);
 		if (relativeTo == null || (relativeTo instanceof Location && ((Location) relativeTo).getWorld() == null))
-			return new Entity[0];
-		Entity[] nearestEntities = new Entity[entityDatas.length];
+			return (Entity[]) Array.newInstance(this.getReturnType(), 0);;
+		Entity[] nearestEntities = (Entity[]) Array.newInstance(this.getReturnType(), entityDatas.length);
 		for (int i = 0; i < nearestEntities.length; i++) {
 			if (relativeTo instanceof Entity) {
 				nearestEntities[i] = getNearestEntity(entityDatas[i], ((Entity) relativeTo).getLocation(), (Entity) relativeTo);
@@ -97,9 +80,17 @@ public class ExprNearestEntity extends SimpleExpression<Entity> {
 		return entityDatas.length == 1;
 	}
 
+	private transient @Nullable Class<? extends Entity> knownReturnType;
+
 	@Override
 	public Class<? extends Entity> getReturnType() {
-		return entityDatas.length == 1 ? entityDatas[0].getType() : Entity.class;
+		if (knownReturnType != null)
+			return knownReturnType;
+		Class<? extends Entity>[] types = new Class[entityDatas.length];
+		for (int i = 0; i < types.length; i++) {
+			types[i] = entityDatas[i].getType();
+		}
+		return knownReturnType = Utils.highestDenominator(Entity.class, types);
 	}
 
 	@Override

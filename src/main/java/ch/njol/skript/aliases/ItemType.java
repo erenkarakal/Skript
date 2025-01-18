@@ -1,27 +1,11 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.aliases;
 
 import ch.njol.skript.aliases.ItemData.OldItemData;
 import ch.njol.skript.bukkitutil.BukkitUnsafe;
 import ch.njol.skript.bukkitutil.ItemUtils;
 import ch.njol.skript.lang.Unit;
+import ch.njol.skript.lang.util.common.AnyAmount;
+import ch.njol.skript.lang.util.common.AnyNamed;
 import ch.njol.skript.localization.Adjective;
 import ch.njol.skript.localization.GeneralWords;
 import ch.njol.skript.localization.Language;
@@ -40,6 +24,8 @@ import ch.njol.yggdrasil.YggdrasilSerializable.YggdrasilExtendedSerializable;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Tag;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Skull;
@@ -51,7 +37,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.NotSerializableException;
 import java.io.StreamCorruptedException;
@@ -60,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,9 +56,11 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.RandomAccess;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @ContainerType(ItemStack.class)
-public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>, YggdrasilExtendedSerializable {
+public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>, YggdrasilExtendedSerializable,
+	AnyNamed, AnyAmount {
 
 	static {
 		// This handles updating ItemType and ItemData variable records
@@ -170,6 +160,18 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 	public ItemType(Material id) {
 		add_(new ItemData(id));
+	}
+
+	public ItemType(Material... ids) {
+		for (Material id : ids) {
+			add_(new ItemData(id));
+		}
+	}
+
+	public ItemType(Tag<Material> tag) {
+		for (Material id : tag.getValues()) {
+			add_(new ItemData(id));
+		}
 	}
 
 	public ItemType(Material id, String tags) {
@@ -315,7 +317,7 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 	public boolean isOfType(Material id) {
 		// TODO avoid object creation
-		return isOfType(new ItemData(id, null));
+		return isOfType(new ItemData(id, (String) null));
 	}
 
 	/**
@@ -343,7 +345,7 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 	 */
 	public boolean hasItem() {
 		for (ItemData d : types) {
-			if (!d.type.isBlock())
+			if (d.type.isItem())
 				return true;
 		}
 		return false;
@@ -377,22 +379,35 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 	 */
 	public boolean setBlock(Block block, boolean applyPhysics) {
 		for (int i = random.nextInt(types.size()); i < types.size(); i++) {
-			ItemData d = types.get(i);
-			Material blockType = ItemUtils.asBlock(d.type);
+			ItemData data = types.get(i);
+			Material blockType = ItemUtils.asBlock(data.type);
+
 			if (blockType == null) // Ignore items which cannot be placed
 				continue;
-			if (BlockUtils.set(block, blockType, d.getBlockValues(), applyPhysics)) {
-				ItemMeta itemMeta = getItemMeta();
-				if (itemMeta instanceof SkullMeta) {
-					OfflinePlayer offlinePlayer = ((SkullMeta) itemMeta).getOwningPlayer();
-					if (offlinePlayer == null)
-						continue;
-					Skull skull = (Skull) block.getState();
+
+			if (!BlockUtils.set(block, blockType, data.getBlockValues(), applyPhysics))
+				continue;
+
+			ItemMeta itemMeta = getItemMeta();
+
+			if (itemMeta instanceof SkullMeta) {
+				OfflinePlayer offlinePlayer = ((SkullMeta) itemMeta).getOwningPlayer();
+				if (offlinePlayer == null)
+					continue;
+				Skull skull = (Skull) block.getState();
+				if (offlinePlayer.getName() != null) {
 					skull.setOwningPlayer(offlinePlayer);
-					skull.update(false, applyPhysics);
+				} else if (ItemUtils.CAN_CREATE_PLAYER_PROFILE) {
+					//noinspection deprecation
+					skull.setOwnerProfile(Bukkit.createPlayerProfile(offlinePlayer.getUniqueId(), ""));
+				} else {
+					//noinspection deprecation
+					skull.setOwner("");
 				}
-				return true;
+				skull.update(false, applyPhysics);
 			}
+
+			return true;
 		}
 		return false;
 	}
@@ -487,9 +502,13 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 			@Override
 			public ItemStack next() {
-				if (!hasNext())
-					throw new NoSuchElementException();
-				ItemStack is = iter.next().getStack().clone();
+				ItemStack is = null;
+				while (is == null) {
+					if (!hasNext())
+						throw new NoSuchElementException();
+					is = iter.next().getStack();
+				}
+				is = is.clone();
 				is.setAmount(getAmount());
 				return is;
 			}
@@ -588,12 +607,31 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 	 * @see #removeFrom(ItemStack)
 	 * @see #removeFrom(List...)
 	 */
-	public ItemStack getRandom() {
-		int numItems = types.size();
-		int index = random.nextInt(numItems);
-		ItemStack is = types.get(index).getStack().clone();
+	public @Nullable ItemStack getRandom() {
+		List<ItemData> datas = types.stream()
+				.filter(data -> data.stack != null)
+				.collect(Collectors.toList());
+		if (datas.isEmpty())
+			return null;
+		ItemStack is = datas.get(random.nextInt(datas.size())).getStack();
+		assert is != null; // verified above
+		is = is.clone();
 		is.setAmount(getAmount());
 		return is;
+	}
+
+	/**
+	 * @return One random ItemStack or Material that this ItemType represents.
+	 * A Material may only be returned for ItemStacks containing a Material where {@link Material#isItem()} is false.
+	 */
+	public Object getRandomStackOrMaterial() {
+		ItemData randomData = types.get(random.nextInt(types.size()));
+		ItemStack stack = randomData.getStack();
+		if (stack == null)
+			return randomData.getType();
+		stack = stack.clone();
+		stack.setAmount(getAmount());
+		return stack;
 	}
 
 	/**
@@ -869,7 +907,9 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 	 */
 	public void addTo(final List<ItemStack> list) {
 		if (!isAll()) {
-			list.add(getItem().getRandom());
+			ItemStack random = getItem().getRandom();
+			if (random != null)
+				list.add(getItem().getRandom());
 			return;
 		}
 		for (final ItemStack is : getItem().getAll())
@@ -936,7 +976,9 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 	public boolean addTo(final ItemStack[] buf) {
 		if (!isAll()) {
-			return addTo(getItem().getRandom(), buf);
+			ItemStack random = getItem().getRandom();
+			if (random != null)
+				return addTo(getItem().getRandom(), buf);
 		}
 		boolean ok = true;
 		for (ItemStack is : getItem().getAll()) {
@@ -1367,11 +1409,41 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 		globalMeta = null;
 	}
 
+	/**
+	 * @return A random Material this ItemType represents.
+	 */
 	public Material getMaterial() {
-		ItemData data = types.get(0);
+		ItemData data = types.get(random.nextInt(types.size()));
 		if (data == null)
 			throw new IllegalStateException("material not found");
 		return data.getType();
+	}
+
+	/**
+	 * @return All Materials this ItemType represents.
+	 */
+	public Material[] getMaterials() {
+		Set<Material> materials = new HashSet<>();
+		for (ItemData data : types) {
+			materials.add(data.getType());
+		}
+		return materials.toArray(new Material[0]);
+  }
+
+  /**
+	 * @return A random block material this ItemType represents.
+	 * @throws IllegalStateException If {@link #hasBlock()} is false.
+	 */
+	public Material getBlockMaterial() {
+		List<ItemData> blockItemDatas = new ArrayList<>();
+		for (ItemData d : types) {
+			if (d.type.isBlock())
+				blockItemDatas.add(d);
+		}
+		if (blockItemDatas.isEmpty())
+			throw new IllegalStateException("This ItemType does not represent a material. " +
+					"ItemType#hasBlock() should return true before invoking this method.");
+		return blockItemDatas.get(random.nextInt(blockItemDatas.size())).getType();
 	}
 
 	/**
@@ -1387,4 +1459,38 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 		}
 		return copy;
 	}
+
+	@Override
+	public @Nullable String name() {
+		ItemMeta meta = this.getItemMeta();
+		return meta.hasDisplayName() ? meta.getDisplayName() : null;
+	}
+
+	@Override
+	public boolean supportsNameChange() {
+		return true;
+	}
+
+	@Override
+	public void setName(String name) {
+		ItemMeta meta = this.getItemMeta();
+		meta.setDisplayName(name);
+		this.setItemMeta(meta);
+	}
+
+	@Override
+	public @NotNull Number amount() {
+		return this.getAmount();
+	}
+
+	@Override
+	public boolean supportsAmountChange() {
+		return true;
+	}
+
+	@Override
+	public void setAmount(@Nullable Number amount) throws UnsupportedOperationException {
+		this.setAmount(amount != null ? amount.intValue() : 0);
+	}
+
 }

@@ -1,28 +1,10 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.test.runner;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.event.Event;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
@@ -102,12 +84,13 @@ public class EffObjectives extends Effect  {
 	public static void fail() {
 		for (String test : requirements.keySet()) {
 			if (!completeness.containsKey(test)) {
-				TestTracker.JUnitTestFailed("JUnit test '" + test + "'", "didn't complete any objectives.");
+				TestTracker.JUnitTestFailed("JUnit: '" + test + "'", "didn't complete any objectives.");
 				continue;
 			}
 			List<String> failures = Lists.newArrayList(requirements.get(test));
 			failures.removeAll(completeness.get(test));
-			TestTracker.JUnitTestFailed("JUnit test '" + test + "'", "failed objectives: " + Arrays.toString(failures.toArray(new String[0])));
+			if (!failures.isEmpty())
+				TestTracker.JUnitTestFailed("JUnit: '" + test + "'", "failed objectives: " + Arrays.toString(failures.toArray(new String[0])));
 		}
 	}
 
