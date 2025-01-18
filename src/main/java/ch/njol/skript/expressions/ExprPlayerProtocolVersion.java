@@ -37,10 +37,8 @@ import java.util.UUID;
 @RequiredPlugins("Paper 1.12.2 or newer")
 public class ExprPlayerProtocolVersion extends SimplePropertyExpression<Player, Integer> {
 
-	@Nullable
-	private static Object VIA_API;
-	@Nullable
-	private static Method VIA_GET_PLAYER_VERSION;
+	private static @Nullable Object VIA_API;
+	private static @Nullable Method VIA_GET_PLAYER_VERSION;
 
 	static {
 		boolean viaVersionExists = Skript.classExists("com.viaversion.viaversion.api.ViaAPI");
