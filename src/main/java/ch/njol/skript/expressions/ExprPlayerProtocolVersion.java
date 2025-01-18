@@ -60,8 +60,7 @@ public class ExprPlayerProtocolVersion extends SimplePropertyExpression<Player, 
 	}
 
 	@Override
-	@Nullable
-	public Integer convert(Player player) {
+	public @Nullable Integer convert(Player player) {
 		int version = -1;
 		if (VIA_API != null && VIA_GET_PLAYER_VERSION != null) {
 			try {
