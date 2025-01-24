@@ -27,6 +27,11 @@ public class EffParse extends Effect {
 		toParse = (Expression<String>) expressions[0];
 		classInfo = ((Literal<ClassInfo<?>>) expressions[1]).getSingle();
 
+		if (!toParse.getAnd()) {
+			Skript.error("Can't use 'or' in a parse effect");
+			return false;
+		}
+
 		if (classInfo.getC() == String.class) {
 			Skript.error("Parsing as text is useless as only things that are already text may be parsed");
 			return false;
