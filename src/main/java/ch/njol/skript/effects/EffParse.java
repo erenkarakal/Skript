@@ -37,10 +37,6 @@ public class EffParse extends Effect {
 			return false;
 		}
 
-		if (toParse == null) {
-			return false;
-		}
-
 		Parser<?> parser = classInfo.getParser();
 		if (parser == null || !parser.canParse(ParseContext.PARSE)) {
 			Skript.error("Text cannot be parsed as " + classInfo.getName().withIndefiniteArticle());
