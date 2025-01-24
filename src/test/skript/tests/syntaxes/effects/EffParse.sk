@@ -23,3 +23,10 @@ test "parse effect":
     assert {_a} = 3 with "couldn't parse multiple expressions - 1"
     assert {_b} isn't set with "couldn't parse multiple expressions - 2"
     assert {_c} = 5 with "couldn't parse multiple expressions - 3"
+
+    # test if lists keep their indices
+    set {_a::a} to "3"
+    set {_a::b} to "5"
+    parse {_a::*} as integer
+    assert {_a::a} = 3 with "lists didn't keep their indices - 1"
+    assert {_a::b} = 5 with "lists didn't keep their indices - 2"
