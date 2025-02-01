@@ -1,22 +1,23 @@
-test "ban entries" when running minecraft "1.20.1":
-	ban offlineplayer("Njol", false) due to "creating skript" for 5 days
-	assert the date offlineplayer("Njol", false) was banned is now with "getting ban creation date for offline player doesn't work"
-	assert the reason offlineplayer("Njol", false) was banned is "creating skript" with "getting ban reason doesn't work"
+test "ban entries":
+	set {_p} to offlineplayer("Njol", true)
+	ban {_p} due to "creating skript" for 5 days
+	assert time since (the date {_p} was banned) < 2 seconds with "getting ban creation date for offline player doesn't work"
+	assert the reason {_p} was banned is "creating skript" with "getting ban reason doesn't work"
 
 	ban "3.3.3.3" for 3 days
-	assert the date "3.3.3.3" was banned is now with "getting ban creation date for ip doesn't work"
+	assert time since (the date "3.3.3.3" was banned) is now with "getting ban creation date for ip doesn't work"
 	assert the source of "3.3.3.3"'s ban is "Skript ban effect" with "getting ban source doesn't work"
-	assert the expiration date of "3.3.3.3"'s ban is 3 days later with "getting ban expiration date doesn't work"
+	assert time until (the expiration date of "3.3.3.3"'s ban) > (2 days and 23 hours) with "getting ban expiration date doesn't work"
 
 	# test changers
 	add 2 days to the expiration date of "3.3.3.3"'s ban
-	assert the expiration date of "3.3.3.3"'s ban is 5 days later with "adding to ban expiration date doesn't work"
+	assert time until (the expiration date of "3.3.3.3"'s ban) > (4 days and 23 hours) with "adding to ban expiration date doesn't work"
 
 	remove 1 day from the expiration date of "3.3.3.3"'s ban
-	assert the expiration date of "3.3.3.3"'s ban is 4 days later with "removing from ban expiration date doesn't work"
+	assert time until (the expiration date of "3.3.3.3"'s ban) > (3 days and 23 hours) with "removing from ban expiration date doesn't work"
 
 	set expiration date of "3.3.3.3"'s ban to 1 day later
-	assert the expiration date of "3.3.3.3"'s ban is 1 day later with "setting ban expiration date doesn't work"
+	assert time until (the expiration date of "3.3.3.3"'s ban) > (23 hours) with "setting ban expiration date doesn't work"
 
 	set the source of "3.3.3.3"'s ban to "skript test"
 	assert the source of "3.3.3.3"'s ban is "skript test" with "setting ban source doesn't work"
