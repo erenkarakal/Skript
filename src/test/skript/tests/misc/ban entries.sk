@@ -5,7 +5,7 @@ test "ban entries":
 	assert the reason {_p} was banned is "creating skript" with "getting ban reason doesn't work"
 
 	ban "3.3.3.3" for 3 days
-	assert time since (the date "3.3.3.3" was banned) is now with "getting ban creation date for ip doesn't work"
+	assert time since (the date "3.3.3.3" was banned) < 2 seconds with "getting ban creation date for ip doesn't work"
 	assert the source of "3.3.3.3"'s ban is "Skript ban effect" with "getting ban source doesn't work"
 	assert time until (the expiration date of "3.3.3.3"'s ban) > (2 days and 23 hours) with "getting ban expiration date doesn't work"
 
@@ -23,4 +23,4 @@ test "ban entries":
 	assert the source of "3.3.3.3"'s ban is "skript test" with "setting ban source doesn't work"
 
 	set the reason "3.3.3.3" was banned to "hello"
-	assert the reason "3.3.3.3" was banned is "hello" with "setting ban reason doesn't work"
+	assert (the reason "3.3.3.3" was banned) is "hello" with "setting ban reason doesn't work"
