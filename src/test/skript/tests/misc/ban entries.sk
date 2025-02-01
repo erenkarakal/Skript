@@ -1,4 +1,4 @@
-test "ban entries":
+test "ban entries" when running minecraft "1.20.1":
 	set {_p} to offlineplayer("Njol", true)
 	ban {_p} due to "creating skript" for 5 days
 	assert time since (the date {_p} was banned) < 2 seconds with "getting ban creation date for offline player doesn't work"
