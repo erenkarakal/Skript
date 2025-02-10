@@ -40,14 +40,18 @@ public class ExprBanData extends SimpleExpression<Object> {
 			Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.SIMPLE,
 				"[the] date %offlineplayer/string% was banned",
 				"[the] date of %offlineplayer/string%'s ban",
+				"[the] ban date of %offlineplayer/string%",
 
 				"[the] source of %offlineplayer/string%'s ban",
+				"[the] ban source of %offlineplayer/string%",
 
 				"[the] date %offlineplayer/string%'s ban expires",
 				"[the] expiration date of %offlineplayer/string%'s ban",
+				"[the] ban expiration date of %offlineplayer/string%",
 
 				"[the] reason %offlineplayer/string% was banned",
-				"[the] reason for %offlineplayer/string%'s ban"
+				"[the] reason for %offlineplayer/string%'s ban",
+				"[the] ban reason of %offlineplayer/string%"
 		);
 	}
 
@@ -210,10 +214,10 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 		public static BanEntryType fromInt(int value) {
 			return switch (value) {
-				case 0, 1 -> BAN_DATE;
-				case 2 -> SOURCE;
-				case 3, 4 -> EXPIRE_DATE;
-				case 5, 6 -> REASON;
+				case 0, 1, 2 -> BAN_DATE;
+				case 3, 4 -> SOURCE;
+				case 5, 6, 7 -> EXPIRE_DATE;
+				case 8, 9, 10 -> REASON;
 				default -> null;
 			};
 		}
