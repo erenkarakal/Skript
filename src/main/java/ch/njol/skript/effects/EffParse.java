@@ -5,13 +5,26 @@ import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.classes.Changer.ChangerUtils;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.classes.Parser;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
+import ch.njol.skript.expressions.ExprParseError;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
-import ch.njol.skript.registrations.Classes;
+import ch.njol.skript.log.ParseLogHandler;
 import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
+@Name("Parse")
+@Description("Parses a string or a list of strings as a type.")
+@Examples({"set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
+			"parse {_a::*} as integer",
+			"send {_a::*} # would send 1, 3 and 5",
+			"send last parse errors # would print errors about 2a and 4c"
+})
+@Since("INSERT VERSION")
 public class EffParse extends Effect {
 
 	static {
@@ -62,13 +75,36 @@ public class EffParse extends Effect {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void execute(Event event) {
-		if (toParse instanceof ExpressionList<String> toParseExpressions) {
-			for (int i = 0; i < toParseExpressions.getAllExpressions().size(); i++) {
-				Expression<String> expression = (Expression<String>) toParseExpressions.getAllExpressions().get(i);
-				expression.changeInPlace(event, (stringToParse) -> Classes.parseSimple(stringToParse, classInfo.getC(), ParseContext.PARSE));
+		Parser<?> parser = classInfo.getParser();
+		assert parser != null;
+		ExprParseError.clearErrors();
+
+		ParseLogHandler parseLogHandler = new ParseLogHandler().start();
+		try {
+			if (toParse instanceof ExpressionList<String> toParseExpressions) {
+				for (int i = 0; i < toParseExpressions.getAllExpressions().size(); i++) {
+					Expression<String> expression = (Expression<String>) toParseExpressions.getAllExpressions().get(i);
+					expression.changeInPlace(event, (stringToParse) -> {
+						Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
+						if (parsed == null) {
+							ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
+							parseLogHandler.clearError();
+						}
+						return parsed;
+					});
+				}
+			} else {
+				toParse.changeInPlace(event, (stringToParse) -> {
+					Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
+					if (parsed == null) {
+						ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
+					}
+					return parsed;
+				});
 			}
-		} else {
-			toParse.changeInPlace(event, (stringToParse) -> Classes.parseSimple(stringToParse, classInfo.getC(), ParseContext.PARSE));
+		} finally {
+			parseLogHandler.clear();
+			parseLogHandler.printLog();
 		}
 	}
 
