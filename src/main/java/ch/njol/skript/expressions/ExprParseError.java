@@ -57,7 +57,7 @@ public class ExprParseError extends SimpleExpression<String> {
 	
 	@Override
 	public boolean isSingle() {
-		return true;
+		return allErrors;
 	}
 	
 	@Override
