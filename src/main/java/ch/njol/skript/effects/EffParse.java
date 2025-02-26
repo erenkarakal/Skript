@@ -43,7 +43,7 @@ public class EffParse extends Effect {
 		classInfo = ((Literal<ClassInfo<?>>) expressions[1]).getSingle();
 
 		if (!toParse.getAnd()) {
-			Skript.error("Can't use 'or' in a parse effect");
+			Skript.error("Can't use 'or' lists in a parse effect");
 			return false;
 		}
 
