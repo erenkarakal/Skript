@@ -112,7 +112,7 @@ public class EffParse extends Effect {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "parse " + toParse + " as " + classInfo.getName().withIndefiniteArticle();
+		return (tryTo ? "try to " : "") + "parse " + toParse + " as " + classInfo.getName().withIndefiniteArticle();
 	}
 
 }
