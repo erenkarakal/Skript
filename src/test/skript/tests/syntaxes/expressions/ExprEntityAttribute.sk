@@ -13,7 +13,7 @@ test "attributes 1":
 		assert movement speed attribute of event-entity is 0 with "attribute delete failed"
 		delete event-entity
 
-test "attributes 2" when minecraft version is not "1.9.4":
+test "attributes 2":
 	# Test the Reset ChangeMode only on versions that have it
 	spawn cow at test-location:
 		reset movement speed attribute of event-entity
