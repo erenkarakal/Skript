@@ -25,8 +25,7 @@ import java.util.stream.Stream;
 @Name("Entity Attribute")
 @Description({
 	"The numerical value of an entity's particular attribute.",
-	"Note that the movement speed attribute cannot be reliably used for players. For that purpose, use the speed expression instead.",
-	"Resetting an entity's attribute is only available in Minecraft 1.11 and above."
+	"Note that the movement speed attribute cannot be reliably used for players. For that purpose, use the speed expression instead."
 })
 @Examples({
 	"on damage of player:",
@@ -60,9 +59,9 @@ public class ExprEntityAttribute extends PropertyExpression<Entity, Number> {
 	protected Number[] get(Event event, Entity[] entities) {
 		Attribute attribute = attributes.getSingle(event);
 		return Stream.of(entities)
-		    .map(ent -> getAttribute(ent, attribute))
+		    .map(entity -> getAttribute(entity, attribute))
 			.filter(Objects::nonNull)
-		    .map(att -> withModifiers ? att.getValue() : att.getBaseValue())
+		    .map(attr -> withModifiers ? attr.getValue() : attr.getBaseValue())
 		    .toArray(Number[]::new);
 	}
 
@@ -82,24 +81,15 @@ public class ExprEntityAttribute extends PropertyExpression<Entity, Number> {
 		for (Entity entity : getExpr().getArray(event)) {
 			AttributeInstance instance = getAttribute(entity, attribute);
 			if (instance != null) {
-				switch(mode) {
-					case ADD:
-						instance.setBaseValue(instance.getBaseValue() + deltaValue);
-						break;
-					case SET:
-						instance.setBaseValue(deltaValue);
-						break;
-					case DELETE:
-						instance.setBaseValue(0);
-						break;
-					case RESET:
-						instance.setBaseValue(instance.getDefaultValue());
-						break;
-					case REMOVE:
-						instance.setBaseValue(instance.getBaseValue() - deltaValue);
-						break;
-					case REMOVE_ALL:
+				switch (mode) {
+					case ADD -> instance.setBaseValue(instance.getBaseValue() + deltaValue);
+					case SET -> instance.setBaseValue(deltaValue);
+					case DELETE -> instance.setBaseValue(0);
+					case RESET -> instance.setBaseValue(instance.getDefaultValue());
+					case REMOVE -> instance.setBaseValue(instance.getBaseValue() - deltaValue);
+					case REMOVE_ALL -> {
 						assert false;
+					}
 				}
 			}
 		}
@@ -118,8 +108,8 @@ public class ExprEntityAttribute extends PropertyExpression<Entity, Number> {
 	
 	@Nullable
 	private static AttributeInstance getAttribute(Entity entity, @Nullable Attribute attribute) {
-	    if (attribute != null && entity instanceof Attributable) {
-	        return ((Attributable) entity).getAttribute(attribute);
+	    if (attribute != null && entity instanceof Attributable attributable) {
+	        return attributable.getAttribute(attribute);
 	    }
 	   return null;
 	}
