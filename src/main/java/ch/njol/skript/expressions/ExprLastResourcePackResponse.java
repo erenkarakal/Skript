@@ -16,7 +16,7 @@ import ch.njol.skript.expressions.base.SimplePropertyExpression;
 @Description("Returns the last resource pack response received from a player.")
 @Examples("if player's last resource pack response is deny or download fail:")
 @Since("2.4")
-@RequiredPlugins("Paper 1.9 or newer")
+@RequiredPlugins("Paper")
 public class ExprLastResourcePackResponse extends SimplePropertyExpression<Player, Status> {
 
 	static {
@@ -26,8 +26,8 @@ public class ExprLastResourcePackResponse extends SimplePropertyExpression<Playe
 
 	@Override
 	@Nullable
-	public Status convert(final Player p) {
-		return p.getResourcePackStatus();
+	public Status convert(Player player) {
+		return player.getResourcePackStatus();
 	}
 
 	@Override
