@@ -37,11 +37,5 @@ public abstract class PassengerUtils {
 			return;
 		vehicle.removePassenger(passenger);
 	}
-	/**
-	 * @return True if it supports multiple passengers
-	 */
-	public static boolean hasMultiplePassenger(){
-		return true;
-	}
 	
 }
