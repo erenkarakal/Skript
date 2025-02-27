@@ -1,14 +1,10 @@
 package ch.njol.skript.conditions;
 
-import org.bukkit.Material;
-
-import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.conditions.base.PropertyCondition;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
-import ch.njol.skript.doc.RequiredPlugins;
 import ch.njol.skript.doc.Since;
 
 @Name("Is Fuel")
@@ -19,13 +15,10 @@ import ch.njol.skript.doc.Since;
 	"\t\tcancel event"
 })
 @Since("2.5.1")
-@RequiredPlugins("Minecraft 1.11.2+")
 public class CondIsFuel extends PropertyCondition<ItemType> {
 	
 	static {
-		if (Skript.methodExists(Material.class, "isFuel")) {
-			register(CondIsFuel.class, "[furnace] fuel", "itemtypes");
-		}
+		register(CondIsFuel.class, "[furnace] fuel", "itemtypes");
 	}
 	
 	@Override
