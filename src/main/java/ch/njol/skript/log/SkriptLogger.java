@@ -27,7 +27,7 @@ public abstract class SkriptLogger {
 	private static boolean debug;
 	
 	@SuppressWarnings("null")
-	public final static Level DEBUG = Level.INFO; // CraftBukkit 1.7+ uses the worst logging library I've ever encountered
+	public final static Level DEBUG = Level.INFO;
 
 	@SuppressWarnings("null")
 	public final static Logger LOGGER = Bukkit.getServer() != null ? Bukkit.getLogger() : Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); // cannot use Bukkit in tests
@@ -133,8 +133,6 @@ public abstract class SkriptLogger {
 	 * 	Skript.info(&quot;this information is displayed on verbosity normal or higher&quot;);
 	 * </pre>
 	 * 
-	 * @param level
-	 * @param message
 	 * @see Skript#info(String)
 	 * @see Skript#warning(String)
 	 * @see Skript#error(String)
