@@ -12,7 +12,7 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.expressions.base.SimplePropertyExpression;
 
 @Name("Glowing")
-@Description("Indicates if targeted entity is glowing (new 1.9 effect) or not. Glowing entities can be seen through walls.")
+@Description("Indicates if targeted entity is glowing or not. Glowing entities can be seen through walls.")
 @Examples({"set glowing of player to true"})
 @Since("2.2-dev18")
 public class ExprGlowing extends SimplePropertyExpression<Entity, Boolean> {
@@ -22,8 +22,8 @@ public class ExprGlowing extends SimplePropertyExpression<Entity, Boolean> {
 	}
 	
 	@Override
-	public Boolean convert(final Entity e) {
-		return e.isGlowing();
+	public Boolean convert(Entity entity) {
+		return entity.isGlowing();
 	}
 	
 	@Override
@@ -38,15 +38,15 @@ public class ExprGlowing extends SimplePropertyExpression<Entity, Boolean> {
 	
 	@Override
 	@Nullable
-	public Class<?>[] acceptChange(final ChangeMode mode) {
+	public Class<?>[] acceptChange(ChangeMode mode) {
 		if (mode == ChangeMode.SET || mode == ChangeMode.RESET)
 			return new Class[] {Boolean.class};
 		return null;
 	}
 	
 	@Override
-	public void change(final Event e, final @Nullable Object[] delta, final ChangeMode mode) throws UnsupportedOperationException {
-		for (final Entity entity : getExpr().getArray(e))
-			entity.setGlowing(delta == null ? false : (Boolean) delta[0]);
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) throws UnsupportedOperationException {
+		for (final Entity entity : getExpr().getArray(event))
+			entity.setGlowing(delta != null && (Boolean) delta[0]);
 	}
 }
