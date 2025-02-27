@@ -25,9 +25,7 @@ import ch.njol.util.coll.CollectionUtils;
 		"So this is a Minecraft related thing, not Bukkit, so the tags will not get removed when the server stops. " +
 		"You can visit <a href='https://minecraft.wiki/w/Scoreboard#Tags'>visit Minecraft Wiki</a> for more info.",
 		"This is changeable and valid for any type of entity. " +
-		"Also you can use use the <a href='conditions.html#CondHasScoreboardTag'>Has Scoreboard Tag</a> condition to check whether an entity has the given tags.",
-		"",
-		"Requires Minecraft 1.11+ (actually added in 1.9 to the game, but added in 1.11 to Spigot)."})
+		"Also you can use use the <a href='conditions.html#CondHasScoreboardTag'>Has Scoreboard Tag</a> condition to check whether an entity has the given tags."})
 @Examples({"on spawn of a monster:",
         "\tif the spawn reason is mob spawner:",
         "\t\tadd \"spawned by a spawner\" to the scoreboard tags of event-entity",
@@ -57,8 +55,8 @@ public class ExprScoreboardTags extends SimpleExpression<String> {
 
 	@Override
 	@Nullable
-	public String[] get(Event e) {
-		return Stream.of(entities.getArray(e))
+	public String[] get(Event event) {
+		return Stream.of(entities.getArray(event))
 				.map(Entity::getScoreboardTags)
 				.flatMap(Set::stream)
 				.toArray(String[]::new);
@@ -67,21 +65,15 @@ public class ExprScoreboardTags extends SimpleExpression<String> {
 	@Override
 	@Nullable
 	public Class<?>[] acceptChange(ChangeMode mode) {
-		switch (mode) {
-			case SET:
-			case ADD:
-			case REMOVE:
-			case DELETE:
-			case RESET:
-				return CollectionUtils.array(String[].class);
-			default:
-				return null;
-		}
+		return switch (mode) {
+			case SET, ADD, REMOVE, DELETE, RESET -> CollectionUtils.array(String[].class);
+			default -> null;
+		};
 	}
 
 	@Override
-	public void change(Event e, @Nullable Object[] delta, ChangeMode mode) {
-		for (Entity entity : entities.getArray(e)) {
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
+		for (Entity entity : entities.getArray(event)) {
 			switch (mode) {
 				case SET:
 					assert delta != null;
@@ -99,8 +91,7 @@ public class ExprScoreboardTags extends SimpleExpression<String> {
 					for (Object tag : delta)
 						entity.removeScoreboardTag((String) tag);
 					break;
-				case DELETE:
-				case RESET:
+				case DELETE, RESET:
 					entity.getScoreboardTags().clear();
 			}
 		}
@@ -117,8 +108,8 @@ public class ExprScoreboardTags extends SimpleExpression<String> {
 	}
 
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		return "the scoreboard tags of " + entities.toString(e, debug);
+	public String toString(@Nullable Event event, boolean debug) {
+		return "the scoreboard tags of " + entities.toString(event, debug);
 	}
 
 }
