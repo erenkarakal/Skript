@@ -30,14 +30,9 @@ import ch.njol.util.Kleenean;
  * @author Peter Güttinger
  */
 @Name("Passenger")
-@Description({"The passenger of a vehicle, or the rider of a mob.",
-		"For 1.11.2 and above, it returns a list of passengers and you can use all changers in it.",
+@Description({"Returns a modifiable list of passengers of a vehicle, or the rider of a mob.",
 		"See also: <a href='#ExprVehicle'>vehicle</a>"})
-@Examples({"#for 1.11 and lower",
-		"passenger of the minecart is a creeper or a cow",
-		"the saddled pig's passenger is a player",
-		"#for 1.11.2+",
-		"passengers of the minecart contains a creeper or a cow",
+@Examples({"passengers of the minecart contains a creeper or a cow",
 		"the boat's passenger contains a pig",
 		"add a cow and a zombie to passengers of last spawned boat",
 		"set passengers of player's vehicle to a pig and a horse",
@@ -54,20 +49,21 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 	
 	@Override
 	@Nullable
-	protected Entity[] get(Event e) {
-		Entity[] source = vehicle.getAll(e);
-		Converter<Entity, Entity[]> conv = new Converter<Entity, Entity[]>(){
+	protected Entity[] get(Event event) {
+		Entity[] source = vehicle.getAll(event);
+		Converter<Entity, Entity[]> conv = new Converter<>() {
 			@Override
 			@Nullable
-			public Entity[] convert(Entity v) {
-				if (getTime() >= 0 && e instanceof VehicleEnterEvent && v.equals(((VehicleEnterEvent) e).getVehicle()) && !Delay.isDelayed(e)) {
-					return new Entity[] {((VehicleEnterEvent) e).getEntered()};
+			public Entity[] convert(Entity vehicle) {
+				if (getTime() >= 0 && event instanceof VehicleEnterEvent vehicleEnterEvent && vehicle.equals(vehicleEnterEvent.getVehicle()) && !Delay.isDelayed(event)) {
+					return new Entity[] {vehicleEnterEvent.getEntered()};
 				}
-				if (getTime() >= 0 && e instanceof VehicleExitEvent && v.equals(((VehicleExitEvent) e).getVehicle()) && !Delay.isDelayed(e)) {
-					return new Entity[] {((VehicleExitEvent) e).getExited()};
+				if (getTime() >= 0 && event instanceof VehicleExitEvent vehicleExitEvent && vehicle.equals(vehicleExitEvent.getVehicle()) && !Delay.isDelayed(event)) {
+					return new Entity[] {vehicleExitEvent.getExited()};
 				}
-				return PassengerUtils.getPassenger(v);
-			}};
+				return PassengerUtils.getPassenger(vehicle);
+			}
+		};
 			
 		List<Entity> entities = new ArrayList<>();
 		for (Entity v : source) {
@@ -77,7 +73,7 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 			if (array != null && array.length > 0)
 				entities.addAll(Arrays.asList(array));
 		}
-		return entities.toArray(new Entity[entities.size()]);
+		return entities.toArray(new Entity[0]);
 	}
 	
 	
@@ -90,7 +86,7 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 
 	@Override
 	@Nullable
-	public Class<?>[] acceptChange(final ChangeMode mode) {
+	public Class<?>[] acceptChange(ChangeMode mode) {
 		if (!isSingle())
 			return new Class[] {Entity[].class, EntityData[].class}; // To support more than one entity
 		if (mode == ChangeMode.SET)
@@ -100,52 +96,46 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 
 	@SuppressWarnings("null")
 	@Override
-	public void change(final Event e, final @Nullable Object[] delta, final ChangeMode mode) {
-		Entity[] vehicles = this.vehicle.getArray(e);
-		if (!isSingle() || mode == ChangeMode.SET) {
-			for (Entity vehicle: vehicles){
-				if (vehicle == null)
-					continue;
-				switch(mode){
-					case SET: 
-						vehicle.eject();
-						//$FALL-THROUGH$
-					case ADD:
-						if (delta == null || delta.length == 0)
-							return;
-						for (Object obj : delta){
-							if (obj == null)
-								continue;
-							Entity passenger = obj instanceof Entity ? (Entity)obj: ((EntityData<?>)obj).spawn(vehicle.getLocation());
-							PassengerUtils.addPassenger(vehicle, passenger);
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
+		if (isSingle() && mode != ChangeMode.SET) {
+			super.change(event, delta, mode);
+			return;
+		}
+		Entity[] vehicles = this.vehicle.getArray(event);
+		for (Entity vehicle : vehicles) {
+			if (vehicle == null)
+				continue;
+			switch (mode) {
+				case SET, RESET, DELETE -> vehicle.eject();
+				case ADD -> {
+					if (delta == null || delta.length == 0)
+						return;
+					for (Object obj : delta) {
+						if (obj == null)
+							continue;
+						Entity passenger = obj instanceof Entity entity ? entity : ((EntityData<?>) obj).spawn(vehicle.getLocation());
+						PassengerUtils.addPassenger(vehicle, passenger);
+					}
+				}
+				case REMOVE_ALL, REMOVE -> {
+					if (delta == null || delta.length == 0)
+						return;
+					for (Object obj : delta) {
+						if (obj == null)
+							continue;
+						if (obj instanceof Entity passenger) {
+							PassengerUtils.removePassenger(vehicle, passenger);
+						} else {
+							for (Entity passenger : PassengerUtils.getPassenger(vehicle))
+								if (((EntityData<?>) obj).isInstance(passenger)) {
+									PassengerUtils.removePassenger(vehicle, passenger);
+								}
 						}
-						break;
-					case REMOVE_ALL:
-					case REMOVE:
-						if (delta == null || delta.length == 0)
-							return;
-						for (Object obj : delta){
-							if (obj == null)
-								continue;
-							if (obj instanceof Entity){
-								PassengerUtils.removePassenger(vehicle, (Entity)obj);
-							} else {
-								for (Entity passenger : PassengerUtils.getPassenger(vehicle))
-									if (passenger != null && ((EntityData<?>)obj).isInstance((passenger))){
-										PassengerUtils.removePassenger(vehicle, passenger);
-									}
-							}
-						}
-						break;
-					case RESET:
-					case DELETE:
-						vehicle.eject();
+					}
 				}
 			}
-		} else {
-			super.change(e, delta, mode);
 		}
-		
+
 	}
 	
 	@Override
@@ -160,13 +150,11 @@ public class ExprPassenger extends SimpleExpression<Entity> { // REMIND create '
 	
 	@Override
 	public boolean isSingle() {
-		// In case it doesn't have multiple passenger support, it's up to the source expression to determine if it's single, otherwise is always false
-		return !PassengerUtils.hasMultiplePassenger() ? vehicle.isSingle() : false;
+		return false;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public boolean setTime(final int time) {
+	public boolean setTime(int time) {
 		return super.setTime(time, vehicle, VehicleEnterEvent.class, VehicleExitEvent.class);
 	}	
 }

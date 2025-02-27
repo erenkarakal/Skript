@@ -27,7 +27,7 @@ import ch.njol.util.Kleenean;
 public class EffVehicle extends Effect {
 	static {
 		Skript.registerEffect(EffVehicle.class,
-				"(make|let|force) %entities% [to] (ride|mount) [(in|on)] %" + (PassengerUtils.hasMultiplePassenger() ? "entities" : "entity") + "/entitydatas%",
+				"(make|let|force) %entities% [to] (ride|mount) [(in|on)] %entities/entitydatas%",
 				"(make|let|force) %entities% [to] (dismount|(dismount|leave) (from|of|) (any|the[ir]|his|her|) vehicle[s])",
 				"(eject|dismount) (any|the|) passenger[s] (of|from) %entities%");
 	}
@@ -42,8 +42,6 @@ public class EffVehicle extends Effect {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		passengers = matchedPattern == 2 ? null : (Expression<Entity>) exprs[0];
 		vehicles = matchedPattern == 1 ? null : exprs[exprs.length - 1];
-		if (!PassengerUtils.hasMultiplePassenger() && passengers != null && vehicles != null && !passengers.isSingle() && vehicles.isSingle() && Entity.class.isAssignableFrom(vehicles.getReturnType()))
-			Skript.warning("An entity can only have one passenger");
 		return true;
 	}
 	
