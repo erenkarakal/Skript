@@ -18,7 +18,7 @@ public class EvtPlayerInput extends SkriptEvent {
 		if (Skript.classExists("org.bukkit.event.player.PlayerInputEvent")) {
 			Skript.registerEvent("Player Input", EvtPlayerInput.class, PlayerInputEvent.class,
 					"[player] (toggle|toggling|1:press[ing]|2:release|2:releasing) of (%-inputkeys%|(an|any) input key)",
-					"([player] %-inputkeys%|[an|any [player]] input key) (toggle|toggling|1:press[ing]|2:release|2:releasing)")
+					"([player] %-inputkeys%|[an|player] input key) (toggle|toggling|1:press[ing]|2:release|2:releasing)")
 				.description("Called when a player sends an updated input to the server.",
 					"Note: The input keys event value is the set of keys the player is currently pressing, not the keys that were pressed or released.")
 				.examples("on input key press:",
