@@ -78,7 +78,7 @@ public class EffParse extends Effect {
 	@SuppressWarnings("unchecked")
 	protected void execute(Event event) {
 		Parser<?> parser = classInfo.getParser();
-		assert parser != null;
+		assert parser != null; // checked in init()
 		ExprParseError.clearErrors();
 
 		ParseLogHandler parseLogHandler = new ParseLogHandler().start();
@@ -86,22 +86,24 @@ public class EffParse extends Effect {
 			if (toParse instanceof ExpressionList<String> toParseExpressions) {
 				for (int i = 0; i < toParseExpressions.getAllExpressions().size(); i++) {
 					Expression<String> expression = (Expression<String>) toParseExpressions.getAllExpressions().get(i);
-					expression.changeInPlace(event, (stringToParse) -> {
+					expression.changeInPlace(event, stringToParse -> {
 						Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
 						if (parsed == null) {
 							ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
 							parseLogHandler.clearError();
+							return tryTo ? stringToParse : null;
 						}
-						return tryTo ? stringToParse : parsed;
+						return parsed;
 					});
 				}
 			} else {
-				toParse.changeInPlace(event, (stringToParse) -> {
+				toParse.changeInPlace(event, stringToParse -> {
 					Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
 					if (parsed == null) {
 						ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
+						return tryTo ? stringToParse : null;
 					}
-					return tryTo ? stringToParse : parsed;
+					return parsed;
 				});
 			}
 		} finally {
