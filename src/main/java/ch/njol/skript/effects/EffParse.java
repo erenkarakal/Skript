@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public class EffParse extends Effect {
 
 	static {
-		Skript.registerEffect(EffParse.class, "[try:try to] parse %~strings% as %*classinfo%");
+		Skript.registerEffect(EffParse.class, "[try:(try|attempt) to] parse %~strings% as %*classinfo%");
 	}
 
 	private Expression<String> toParse;
