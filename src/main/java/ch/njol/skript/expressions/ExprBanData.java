@@ -73,12 +73,13 @@ public class ExprBanData extends SimpleExpression<Object> {
 		Object banTarget = banTargetExpr.getSingle(event);
 		BanEntry<?> banEntry;
 
-		if (banTarget instanceof String ipTarget)
+		if (banTarget instanceof String ipTarget) {
 			banEntry = getBanEntry(ipTarget);
-		else if (banTarget instanceof OfflinePlayer playerTarget)
+		} else if (banTarget instanceof OfflinePlayer playerTarget) {
 			banEntry = getBanEntry(playerTarget);
-		else
+		} else {
 			return null;
+		}
 
 		if (banEntry == null)
 			return null;
