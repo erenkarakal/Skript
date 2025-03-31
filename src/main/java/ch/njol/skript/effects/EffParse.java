@@ -19,10 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 @Name("Parse")
 @Description("Parses a string or a list of strings as a type. If \"try to\" is used, the value won't be deleted if the parse fails.")
-@Examples({"set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
-			"parse {_a::*} as integer",
-			"send {_a::*} # would send 1, 3 and 5",
-			"send last parse errors   # would print errors about 2a and 4c"
+@Examples({
+        "set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
+	"parse {_a::*} as integer",
+	"send {_a::*} # would send 1, 3 and 5",
+	"send last parse errors   # would print errors about 2a and 4c"
 })
 @Since("INSERT VERSION")
 public class EffParse extends Effect {
