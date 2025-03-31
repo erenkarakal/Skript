@@ -7,6 +7,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.Date;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
 import com.destroystokyo.paper.profile.PlayerProfile;
@@ -56,26 +57,32 @@ public class ExprBanData extends SimpleExpression<Object> {
 	}
 
 	private BanEntryType entryType;
-	private Expression<Object> banTargetExpr; // offline player or string (ip)
+	private Expression<Object> banTarget; // offline player or string (ip)
 
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		entryType = BanEntryType.fromInt(matchedPattern);
-		banTargetExpr = (Expression<Object>) expressions[0];
+		entryType = switch (matchedPattern) {
+			case 0, 1, 2 -> BanEntryType.BAN_DATE;
+			case 3, 4 -> BanEntryType.SOURCE;
+			case 5, 6, 7 -> BanEntryType.EXPIRE_DATE;
+			case 8, 9, 10 -> BanEntryType.REASON;
+			default -> null;
+		};
+		banTarget = (Expression<Object>) expressions[0];
 		return true;
 	}
 
 	@Override
 	protected Object @Nullable [] get(Event event) {
-		if (banTargetExpr == null)
+		if (banTarget == null)
 			return null;
 
-		Object banTarget = banTargetExpr.getSingle(event);
+		Object target = banTarget.getSingle(event);
 		BanEntry<?> banEntry;
 
-		if (banTarget instanceof String ipTarget) {
+		if (target instanceof String ipTarget) {
 			banEntry = getBanEntry(ipTarget);
-		} else if (banTarget instanceof OfflinePlayer playerTarget) {
+		} else if (target instanceof OfflinePlayer playerTarget) {
 			banEntry = getBanEntry(playerTarget);
 		} else {
 			return null;
@@ -87,18 +94,18 @@ public class ExprBanData extends SimpleExpression<Object> {
 		return switch (entryType) {
 			case BAN_DATE -> {
 				java.util.Date creation = banEntry.getCreated();
-				ch.njol.skript.util.Date skriptCreation = new ch.njol.skript.util.Date(creation.getTime());
-				yield new Object[]{ skriptCreation };
+				Date skriptCreation = new Date(creation.getTime());
+				yield new Date[]{ skriptCreation };
 			}
-			case SOURCE -> new Object[]{ banEntry.getSource() };
+			case SOURCE -> new String[]{ banEntry.getSource() };
 			case EXPIRE_DATE -> {
 				java.util.Date expiration = banEntry.getExpiration();
 				if (expiration == null)
 					yield null;
-				ch.njol.skript.util.Date skriptExpiration = new ch.njol.skript.util.Date(expiration.getTime());
-				yield new Object[]{ skriptExpiration };
+				Date skriptExpiration = new Date(expiration.getTime());
+				yield new Date[]{ skriptExpiration };
 			}
-			case REASON -> new Object[]{ banEntry.getReason() };
+			case REASON -> new String[]{ banEntry.getReason() };
 		};
 	}
 
@@ -110,7 +117,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 	@Override
 	public Class<?> getReturnType() {
 		return switch (entryType) {
-			case BAN_DATE, EXPIRE_DATE -> ch.njol.skript.util.Date.class;
+			case BAN_DATE, EXPIRE_DATE -> Date.class;
 			case SOURCE, REASON -> String.class;
 		};
 	}
@@ -119,7 +126,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
 		if (mode == ChangeMode.SET) {
 			return switch (entryType) {
-				case EXPIRE_DATE -> new Class<?>[]{ ch.njol.skript.util.Date.class };
+				case EXPIRE_DATE -> new Class<?>[]{ Date.class };
 				case SOURCE, REASON -> new Class<?>[]{ String.class };
 				default -> null;
 			};
@@ -132,29 +139,29 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
-		Object banTarget = banTargetExpr.getSingle(event);
+		Object target = banTarget.getSingle(event);
 		BanEntry<?> banEntry;
 
-		if (banTarget instanceof String ipTarget)
+		if (target instanceof String ipTarget) {
 			banEntry = getBanEntry(ipTarget);
-		else if (banTarget instanceof OfflinePlayer playerTarget)
+		} else if (target instanceof OfflinePlayer playerTarget) {
 			banEntry = getBanEntry(playerTarget);
-		else
+		} else {
 			return;
+		}
 
 		if (banEntry == null)
 			return;
 
+		assert delta != null;
 		if (mode == ChangeMode.SET) {
 			switch (entryType) {
 				case SOURCE -> {
 					String newSource = (String) delta[0];
-					if (newSource == null)
-						return;
 					banEntry.setSource(newSource);
 				}
 				case EXPIRE_DATE -> {
-					ch.njol.skript.util.Date newDate = (ch.njol.skript.util.Date) delta[0];
+					Date newDate = (Date) delta[0];
 					if (newDate == null)
 						return;
 					banEntry.setExpiration(new java.util.Date(newDate.getTime()));
@@ -190,15 +197,16 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
+		String target = banTarget.toString(event, debug);
 		return switch (entryType) {
-			case BAN_DATE -> "the date " + banTargetExpr.toString(event, debug) + " was banned";
-			case SOURCE -> "the source of " + banTargetExpr.toString(event, debug) + "'s ban";
-			case EXPIRE_DATE -> "the date " + banTargetExpr.toString(event, debug) + "'s ban expires";
-			case REASON -> "the reason " + banTargetExpr.toString(event, debug) + " was banned";
+			case BAN_DATE -> "the date " + target + " was banned";
+			case SOURCE -> "the source of " + target + "'s ban";
+			case EXPIRE_DATE -> "the date " + target + "'s ban expires";
+			case REASON -> "the reason " + target + " was banned";
 		};
 	}
 
-	private BanEntry<InetAddress> getBanEntry(String ipTarget) {
+	private static BanEntry<InetAddress> getBanEntry(String ipTarget) {
 		try {
 			InetAddress address = InetAddress.getByName(ipTarget);
 			return Bukkit.getBanList(BanListType.IP).getBanEntry(address);
@@ -206,22 +214,12 @@ public class ExprBanData extends SimpleExpression<Object> {
 		return null;
 	}
 
-	private BanEntry<PlayerProfile> getBanEntry(OfflinePlayer playerTarget) {
+	private static BanEntry<PlayerProfile> getBanEntry(OfflinePlayer playerTarget) {
 		return Bukkit.getBanList(BanListType.PROFILE).getBanEntry(playerTarget.getPlayerProfile());
 	}
 
-	private enum BanEntryType {
-		BAN_DATE, SOURCE, EXPIRE_DATE, REASON;
-
-		public static BanEntryType fromInt(int value) {
-			return switch (value) {
-				case 0, 1, 2 -> BAN_DATE;
-				case 3, 4 -> SOURCE;
-				case 5, 6, 7 -> EXPIRE_DATE;
-				case 8, 9, 10 -> REASON;
-				default -> null;
-			};
-		}
+	protected enum BanEntryType {
+		BAN_DATE, SOURCE, EXPIRE_DATE, REASON
 	}
 
 }
