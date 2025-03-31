@@ -37,7 +37,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	static {
 		if (Skript.methodExists(BanEntry.class, "remove"))
-			Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.SIMPLE,
+			Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.COMBINED,
 				"[the] date %offlineplayer/string% was banned",
 				"[the] date of %offlineplayer/string%'s ban",
 				"[the] ban date of %offlineplayer/string%",
