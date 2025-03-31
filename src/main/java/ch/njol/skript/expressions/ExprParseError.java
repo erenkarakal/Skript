@@ -70,10 +70,19 @@ public class ExprParseError extends SimpleExpression<String> {
 		return "the last parse error";
 	}
 
+	/**
+	 * Adds a new error to the list of errors that will be returned by this expression.
+	 * Examples of this being used are ExprParse and EffParse.
+	 * @param error the error to add
+	 */
 	public static void addError(String error) {
 		lastErrors.add(error);
 	}
 
+	/**
+	 * Clears all errors from this expression. This method should be called before you begin adding new errors.
+	 * Examples of this being used are ExprParse and EffParse.
+	 */
 	public static void clearErrors() {
 		lastErrors.clear();
 	}
