@@ -504,12 +504,12 @@ public final class BukkitEventValues {
 		});
 		// CraftItemEvent
 		EventValues.registerEventValue(CraftItemEvent.class, ItemStack.class, event -> event.getRecipe().getResult());
+		//InventoryEvent
+		EventValues.registerEventValue(InventoryEvent.class, Inventory.class, InventoryEvent::getInventory);
 		//InventoryOpenEvent
 		EventValues.registerEventValue(InventoryOpenEvent.class, Player.class, event -> (Player) event.getPlayer());
-		EventValues.registerEventValue(InventoryOpenEvent.class, Inventory.class, InventoryEvent::getInventory);
 		//InventoryCloseEvent
 		EventValues.registerEventValue(InventoryCloseEvent.class, Player.class, event -> (Player) event.getPlayer());
-		EventValues.registerEventValue(InventoryCloseEvent.class, Inventory.class, InventoryEvent::getInventory);
 		if (Skript.classExists("org.bukkit.event.inventory.InventoryCloseEvent$Reason"))
 			EventValues.registerEventValue(InventoryCloseEvent.class, InventoryCloseEvent.Reason.class, InventoryCloseEvent::getReason);
 		//InventoryPickupItemEvent
