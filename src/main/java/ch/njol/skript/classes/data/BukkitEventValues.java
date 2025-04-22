@@ -463,11 +463,6 @@ public final class BukkitEventValues {
 		// PrepareAnvilEvent
 		if (Skript.classExists("com.destroystokyo.paper.event.inventory.PrepareResultEvent"))
 			EventValues.registerEventValue(PrepareAnvilEvent.class, ItemStack.class, PrepareResultEvent::getResult);
-		EventValues.registerEventValue(PrepareAnvilEvent.class, Inventory.class, PrepareAnvilEvent::getInventory);
-		// AnvilDamagedEvent
-		if (Skript.classExists("com.destroystokyo.paper.event.block.AnvilDamagedEvent")) {
-			EventValues.registerEventValue(AnvilDamagedEvent.class, Inventory.class, AnvilDamagedEvent::getInventory);
-		}
 		//BlockFertilizeEvent
 		EventValues.registerEventValue(BlockFertilizeEvent.class, Player.class, BlockFertilizeEvent::getPlayer);
 		EventValues.registerEventValue(BlockFertilizeEvent.class, Block[].class, event -> event.getBlocks().stream()
@@ -479,7 +474,6 @@ public final class BukkitEventValues {
 			ItemStack item = event.getInventory().getResult();
 			return item != null ? item : AIR_IS;
 		});
-		EventValues.registerEventValue(PrepareItemCraftEvent.class, Inventory.class, PrepareItemCraftEvent::getInventory);
 		EventValues.registerEventValue(PrepareItemCraftEvent.class, Player.class, event -> {
 			List<HumanEntity> viewers = event.getInventory().getViewers(); // Get all viewers
 			if (viewers.isEmpty()) // ... if we don't have any
