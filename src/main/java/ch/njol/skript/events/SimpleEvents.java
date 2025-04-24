@@ -532,7 +532,7 @@ public class SimpleEvents {
 					.description("Called when a player stops using an item. For example, when the player releases the " +
 							"interact button when holding a bow, an edible item, or a spyglass.",
 							"Note that event-timespan will return the time the item was used for.")
-					.requiredPlugins("Paper 1.18.2+")
+					.requiredPlugins("Paper")
 					.examples(
 						"on player stop using item:",
 							"\tbroadcast \"%player% used %event-item% for %event-timespan%.\"")
