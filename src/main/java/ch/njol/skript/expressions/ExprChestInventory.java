@@ -79,7 +79,10 @@ public class ExprChestInventory extends SimpleExpression<Inventory> {
 			size = 27;
 
 		// Sanitize inventory size
-		size = Math.clamp(size, 0, 54);
+		if (size < 0)
+			size = 0;
+		if (size > 54) // Too big values cause visual weirdness, or exceptions on newer server versions
+			size = 54;
 
 		if (serializer != null) {
 			BaseComponent[] components = BungeeConverter.convert(ChatMessages.parseToArray(name));
