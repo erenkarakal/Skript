@@ -58,8 +58,8 @@ public class LiteralUtils {
 					.anyMatch(e -> {
 						if (e instanceof UnparsedLiteral) {
 							return true;
-						} else if (e instanceof ExpressionList<?>) {
-							return hasUnparsedLiteral((ExpressionList<?>) e);
+						} else if (e instanceof ExpressionList<?> nestedExprList) {
+							return hasUnparsedLiteral(nestedExprList);
 						}
 						return false;
 					});
