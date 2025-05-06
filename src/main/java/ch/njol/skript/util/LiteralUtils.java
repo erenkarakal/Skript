@@ -55,7 +55,7 @@ public class LiteralUtils {
 			return true;
 		} else if (expr instanceof ExpressionList) {
 			return Stream.of(((ExpressionList) expr).getExpressions())
-				.anyMatch(LiteralUtils::hasUnparsedLiteral);
+					.anyMatch(LiteralUtils::hasUnparsedLiteral);
 		}
 		return false;
 	}
