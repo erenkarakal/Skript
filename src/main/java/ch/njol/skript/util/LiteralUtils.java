@@ -53,16 +53,9 @@ public class LiteralUtils {
 	public static boolean hasUnparsedLiteral(Expression<?> expr) {
 		if (expr instanceof UnparsedLiteral) {
 			return true;
-		} else if (expr instanceof ExpressionList exprList) {
-			return Stream.of(exprList.getExpressions())
-					.anyMatch(e -> {
-						if (e instanceof UnparsedLiteral) {
-							return true;
-						} else if (e instanceof ExpressionList<?> nestedExprList) {
-							return hasUnparsedLiteral(nestedExprList);
-						}
-						return false;
-					});
+		} else if (expr instanceof ExpressionList) {
+			return Stream.of(((ExpressionList) expr).getExpressions())
+				.anyMatch(LiteralUtils::hasUnparsedLiteral);
 		}
 		return false;
 	}
