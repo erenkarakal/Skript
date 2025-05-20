@@ -10,6 +10,9 @@ import ch.njol.util.coll.CollectionUtils;
 import ch.njol.yggdrasil.YggdrasilSerializable;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.lang.arithmetic.Arithmetics;
+import org.skriptlang.skript.lang.arithmetic.Operation;
+import org.skriptlang.skript.lang.arithmetic.Operator;
 
 import java.time.Duration;
 import java.time.temporal.*;
@@ -28,6 +31,10 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 	private static final Pattern TIMESPAN_NUMBER_PATTERN = Pattern.compile("^\\d+(\\.\\d+)?$");
 	private static final Pattern TIMESPAN_SPLIT_PATTERN = Pattern.compile("[:.]");
 	private static final Pattern SHORT_FORM_PATTERN = Pattern.compile("^(\\d+(?:\\.\\d+)?)([a-zA-Z]+)$");
+	private static final Operation<Timespan, Timespan, Timespan> TIMESPAN_ADD_OPERATION
+		= Arithmetics.getOperation(Operator.ADDITION, Timespan.class, Timespan.class, Timespan.class);
+	private static final Operation<Timespan, Timespan, Timespan> TIMESPAN_SUBTRACT_OPERATION
+		= Arithmetics.getOperation(Operator.SUBTRACTION, Timespan.class, Timespan.class, Timespan.class);
 
 	private static final List<NonNullPair<Noun, Long>> SIMPLE_VALUES = Arrays.asList(
 		new NonNullPair<>(TimePeriod.YEAR.name, TimePeriod.YEAR.time),
@@ -173,7 +180,7 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 		return pair.getFirst().withAmount(amount, flags);
 	}
 
-	private final long millis;
+	private long millis;
 
 	public Timespan() {
 		millis = 0;
@@ -252,6 +259,26 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 	 */
 	public Duration getDuration() {
 		return Duration.ofMillis(millis);
+	}
+
+	/**
+	 * Safely adds the specified timespan to this timespan, handling potential overflow or underflow.
+	 * @param timespan The timespan to subtract from this timespan
+	 * @return this object
+	 */
+	public Timespan add(Timespan timespan) {
+		this.millis = TIMESPAN_ADD_OPERATION.calculate(this, timespan).getAs(TimePeriod.MILLISECOND);
+		return this;
+	}
+
+	/**
+	 * Safely subtracts the specified timespan from this timespan, handling potential overflow or underflow.
+	 * @param timespan The timespan to subtract from this timespan
+	 * @return this object
+	 */
+	public Timespan subtract(Timespan timespan) {
+		this.millis = TIMESPAN_SUBTRACT_OPERATION.calculate(this, timespan).getAs(TimePeriod.MILLISECOND);
+		return this;
 	}
 
 	@Override
