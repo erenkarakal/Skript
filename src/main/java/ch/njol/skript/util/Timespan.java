@@ -174,7 +174,7 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 		return pair.getFirst().withAmount(amount, flags);
 	}
 
-	private long millis;
+	private final long millis;
 
 	public Timespan() {
 		millis = 0;
@@ -258,21 +258,21 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 	/**
 	 * Safely adds the specified timespan to this timespan, handling potential overflow.
 	 * @param timespan The timespan to add to this timespan
-	 * @return this object
+	 * @return a new Timespan object
 	 */
 	public Timespan add(Timespan timespan) {
-		millis = Math2.addClamped(millis, timespan.getAs(TimePeriod.MILLISECOND));
-		return this;
+		long millis = Math2.addClamped(this.millis, timespan.getAs(TimePeriod.MILLISECOND));
+		return new Timespan(millis);
 	}
 
 	/**
 	 * Safely subtracts the specified timespan from this timespan, handling potential underflow.
 	 * @param timespan The timespan to subtract from this timespan
-	 * @return this object
+	 * @return a new Timespan object
 	 */
 	public Timespan subtract(Timespan timespan) {
-		millis = Math.max(0, millis - timespan.getAs(TimePeriod.MILLISECOND));
-		return this;
+		long millis = Math.max(0, this.millis - timespan.getAs(TimePeriod.MILLISECOND));
+		return new Timespan(millis);
 	}
 
 	/**
