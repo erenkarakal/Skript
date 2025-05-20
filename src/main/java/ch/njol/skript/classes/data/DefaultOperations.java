@@ -90,9 +90,9 @@ public class DefaultOperations {
 		});
 
 		// Timespan - Timespan
-		Arithmetics.registerOperation(Operator.ADDITION, Timespan.class, (left, right) -> left.add(right));
-		Arithmetics.registerOperation(Operator.SUBTRACTION, Timespan.class, (left, right) -> left.subtract(right));
-		Arithmetics.registerDifference(Timespan.class, (left, right) -> left.difference(right));
+		Arithmetics.registerOperation(Operator.ADDITION, Timespan.class, Timespan::add);
+		Arithmetics.registerOperation(Operator.SUBTRACTION, Timespan.class, Timespan::subtract);
+		Arithmetics.registerDifference(Timespan.class, Timespan::difference);
 		Arithmetics.registerDefaultValue(Timespan.class, Timespan::new);
 
 		// Timespan - Number
