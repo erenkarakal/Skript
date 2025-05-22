@@ -175,17 +175,17 @@ public class EvtClick extends SkriptEvent {
 		if (type != null) {
 			BlockData blockDataCheck = block != null ? block.getBlockData() : null;
 			return type.check(event, (Predicate<Object>) object -> {
-				if (entity != null) {
+				if (object instanceof BlockData blockData) {
+					return blockDataCheck != null && blockDataCheck.matches(blockData);
+				} else if (entity != null) {
 					if (object instanceof EntityData<?> entityData) {
 						return entityData.isInstance(entity);
-					} else {
-						Relation compare = DefaultComparators.entityItemComparator.compare(EntityData.fromEntity(entity), (ItemType) object);
+					} else if (object instanceof ItemType itemType) {
+						Relation compare = DefaultComparators.entityItemComparator.compare(EntityData.fromEntity(entity), itemType);
 						return Relation.EQUAL.isImpliedBy(compare);
 					}
 				} else if (object instanceof ItemType itemType) {
 					return itemType.isOfType(block);
-				} else if (blockDataCheck != null && object instanceof BlockData blockData)  {
-					return blockDataCheck.matches(blockData);
 				}
 				return false;
 			});
