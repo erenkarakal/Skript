@@ -175,7 +175,7 @@ public class EvtClick extends SkriptEvent {
 		if (type != null) {
 			BlockData blockDataCheck = block != null ? block.getBlockData() : null;
 			return type.check(event, (Predicate<Object>) object -> {
-				 if (entity != null) {
+				if (entity != null) {
 					if (object instanceof EntityData<?> entityData) {
 						return entityData.isInstance(entity);
 					} else if (object instanceof ItemType itemType) {
