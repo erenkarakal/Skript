@@ -179,6 +179,8 @@ public class EvtClick extends SkriptEvent {
 					if (object instanceof EntityData<?> entityData) {
 						return entityData.isInstance(entity);
 					} else if (object instanceof ItemType itemType) {
+						// for cases like `on right click on oak boat` try to compare the boat item to the boat entity
+						// therefore blockdata check isn't needed here
 						Relation compare = DefaultComparators.entityItemComparator.compare(EntityData.fromEntity(entity), itemType);
 						return Relation.EQUAL.isImpliedBy(compare);
 					}
