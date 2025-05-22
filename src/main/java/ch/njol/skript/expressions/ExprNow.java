@@ -48,15 +48,19 @@ public class ExprNow extends SimpleExpression<Date> {
 				return new Date[0];
 			}
 
-			ZoneId zoneId;
+			ZoneId targetZoneId;
 			try {
-				zoneId = ZoneId.of(timezone);
+				targetZoneId = ZoneId.of(timezone);
 			} catch (DateTimeException e) { // invalid zone format
 				return new Date[0];
 			}
 
-			Instant instant = ZonedDateTime.now(zoneId).toInstant();
-			java.util.Date javaDate = java.util.Date.from(instant);
+			ZoneId localZoneId = ZoneId.systemDefault();
+			Instant shiftedNow = ZonedDateTime.now(targetZoneId)
+				.toLocalDateTime()
+				.atZone(localZoneId)
+				.toInstant();
+			java.util.Date javaDate = java.util.Date.from(shiftedNow);
 			Date date = Date.fromJavaDate(javaDate);
 			return new Date[]{ date };
  		}
