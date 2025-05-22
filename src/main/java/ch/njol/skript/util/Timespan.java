@@ -281,7 +281,8 @@ public class Timespan implements YggdrasilSerializable, Comparable<Timespan>, Te
 	 * @return a new Timespan object
 	 */
 	public Timespan difference(Timespan timespan) {
-		return new Timespan(Math.abs(millis - timespan.getAs(TimePeriod.MILLISECOND)));
+		long millis = Math.abs(this.millis - timespan.getAs(TimePeriod.MILLISECOND));
+		return new Timespan(millis);
 	}
 
 	@Override
