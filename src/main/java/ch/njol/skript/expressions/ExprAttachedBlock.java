@@ -19,7 +19,7 @@ import java.util.List;
 @Name("Arrow Attached Block")
 @Description({
 	"Returns the attached block of an arrow.",
-	"If running Paper 1.21.4+, the plural version of the expression should be used as the single version is unreliable."
+	"If running Paper 1.21.4+, the plural version of the expression should be used as it is more reliable compared to the single version."
 })
 @Example("set hit block of last shot arrow to diamond block")
 @Example("""
