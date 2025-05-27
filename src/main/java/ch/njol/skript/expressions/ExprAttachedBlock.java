@@ -48,6 +48,12 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		isMultiple = parseResult.hasTag("multiple");
 		setExpr((Expression<? extends Projectile>) expressions[0]);
+
+		if (!SUPPORTS_MULTIPLE && isMultiple) {
+			Skript.error("The plural version of this expression is only available in Paper 1.21.4+.");
+			return false;
+		}
+
 		return true;
 	}
 
