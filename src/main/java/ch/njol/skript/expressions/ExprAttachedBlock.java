@@ -2,10 +2,11 @@ package ch.njol.skript.expressions;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.doc.*;
+import ch.njol.skript.expressions.base.PropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
-import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AbstractArrow;
@@ -29,7 +30,7 @@ import java.util.List;
   	kill event-projectile
 	""")
 @Since("2.8.0, INSERT VERSION (multiple blocks)")
-public class ExprAttachedBlock extends SimpleExpression<Block> {
+public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 
 	static {
 		Skript.registerExpression(ExprAttachedBlock.class, Block.class, ExpressionType.PROPERTY,
@@ -42,26 +43,19 @@ public class ExprAttachedBlock extends SimpleExpression<Block> {
 	private static final boolean SUPPORTS_MULTIPLE = Skript.methodExists(AbstractArrow.class, "getAttachedBlocks");
 
 	private boolean isMultiple;
-	private Expression<Projectile> projectiles;
 
 	@Override
-	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
+	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		isMultiple = parseResult.hasTag("multiple");
-		projectiles = (Expression<Projectile>) expressions[0];
-
-		if (!SUPPORTS_MULTIPLE && isMultiple) {
-			Skript.error("The plural version of this expression is only available in Paper 1.21.4+.");
-			return false;
-		}
-
+		setExpr((Expression<? extends Projectile>) expressions[0]);
 		return true;
 	}
 
 	@Override
-	protected Block @Nullable [] get(Event event) {
+	protected Block[] get(Event event, Projectile[] source) {
 		List<Block> blocks = new ArrayList<>();
 
-		for (Projectile projectile : projectiles.getAll(event)) {
+		for (Projectile projectile : source) {
 			if (projectile instanceof AbstractArrow abstractArrow) {
 				if (isMultiple) {
 					blocks.addAll(abstractArrow.getAttachedBlocks());
@@ -70,12 +64,8 @@ public class ExprAttachedBlock extends SimpleExpression<Block> {
 				}
 			}
 		}
-		return blocks.toArray(new Block[0]);
-	}
 
-	@Override
-	public boolean isSingle() {
-		return !isMultiple;
+		return blocks.toArray(new Block[0]);
 	}
 
 	@Override
@@ -84,8 +74,13 @@ public class ExprAttachedBlock extends SimpleExpression<Block> {
 	}
 
 	@Override
+	public boolean isSingle() {
+		return !isMultiple;
+	}
+
+	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "attached block" + (isMultiple ? "s" : "") + " of " + projectiles.toString(event, debug);
+		return "attached block" + (isMultiple ? "s" : "");
 	}
 
 }
