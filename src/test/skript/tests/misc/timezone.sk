@@ -7,9 +7,9 @@ test "timezone syntaxes":
 	assert timezone "hello!" is invalid with "single timezone should've been invalid"
 	assert timezones ("hello!", "Asia/Tokyo") are invalid with "multiple timezones should've been invalid"
 
-	set {_d} to date(2030, 6, 4, 11, 23)
-	set {_d.in.nyc} to date(2030, 6, 4, 4, 23)
-	set {_d.in.istanbul} to date(2030, 6, 4, 11, 23)
+	set {_d} to date(2030, 6, 4, 7, 23)
+	set {_d.in.nyc} to date(2030, 6, 4, 3, 23)
+	set {_d.in.istanbul} to date(2030, 6, 4, 10, 23)
 
 	assert difference between ({_d} in timezone "America/New_York") and {_d.in.nyc} < 1 second with "returned incorrect date for New York"
 	assert difference between ({_d} in timezone "Europe/Istanbul") and {_d.in.istanbul} < 1 second with "returned incorrect date for Istanbul"
