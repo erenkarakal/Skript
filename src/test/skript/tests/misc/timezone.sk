@@ -1,0 +1,15 @@
+test "timezone syntaxes":
+	assert size of all timezones > 0 with "timezones aren't set"
+
+	assert timezone "Europe/Istanbul" is valid with "single timezone should've been valid"
+	assert timezones ("Europe/Istanbul", "Asia/Tokyo") are valid with "multiple timezones should've been valid"
+
+	assert timezone "hello!" is invalid with "single timezone should've been invalid"
+	assert timezones ("hello!", "Asia/Tokyo") are invalid with "multiple timezones should've been invalid"
+
+	set {_d} to date(2030, 6, 4, 11, 23)
+	set {_d.in.nyc} to date(2030, 6, 4, 4, 23)
+	set {_d.in.istanbul} to date(2030, 6, 4, 11, 23)
+
+	assert {_d} in timezone "America/New_York" is {_d.in.nyc} with "returned incorrect date for New York"
+	assert {_d} in timezone "Europe/Istanbul" is {_d.in.istanbul} with "returned incorrect date for Istanbul"
