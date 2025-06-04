@@ -9,6 +9,7 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Date;
 import ch.njol.util.Kleenean;
@@ -32,19 +33,17 @@ import java.time.ZonedDateTime;
 	send "It is currently %{_clock}% in Istanbul!" to player
 	""")
 @Since("INSERT VERSION")
-public class ExprDateInTimezone extends SimpleExpression<Date> implements SyntaxRuntimeErrorProducer {
+public class ExprDateInTimezone extends SimpleExpression<Date> {
 
 	static {
-		Skript.registerExpression(ExprDateInTimezone.class, Date.class, ExpressionType.SIMPLE, "[date] %date% in time[ ]zone %string%");
+		Skript.registerExpression(ExprDateInTimezone.class, Date.class, ExpressionType.SIMPLE, "[the] [date] %date% in time[ ]zone %string%");
 	}
 
-	private Node node;
 	private Expression<Date> date;
 	private Expression<String> timezone;
 
 	@Override
-	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-		node = getParser().getNode();
+	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		date = (Expression<Date>) expressions[0];
 		timezone = (Expression<String>) expressions[1];
 		return true;
@@ -96,11 +95,6 @@ public class ExprDateInTimezone extends SimpleExpression<Date> implements Syntax
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
 		return "date " + date.toString(event, debug) + " in timezone " + timezone.toString(event, debug);
-	}
-
-	@Override
-	public Node getNode() {
-		return node;
 	}
 
 }

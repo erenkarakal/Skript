@@ -17,13 +17,15 @@ import java.time.ZoneId;
 
 @Name("All Timezones")
 @Description("Returns a list of all timezones that can be used in the <a href='#ExprNow'>now</a> expression.")
-@Since("INSERT VERSION")
 @Example("set {_timezones::*} to all timezones")
+@Since("INSERT VERSION")
 public class ExprAllTimezones extends SimpleExpression<String> {
 
 	static {
-		Skript.registerExpression(ExprAllTimezones.class, String.class, ExpressionType.SIMPLE, "all time[ ]zones");
+		Skript.registerExpression(ExprAllTimezones.class, String.class, ExpressionType.SIMPLE, "all [of [the]] time[ ]zones");
 	}
+
+	private static String[] timezones = ZoneId.getAvailableZoneIds().toArray(new String[0]);
 
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
@@ -32,7 +34,7 @@ public class ExprAllTimezones extends SimpleExpression<String> {
 
 	@Override
 	protected String @Nullable [] get(Event event) {
-		return ZoneId.getAvailableZoneIds().toArray(new String[0]);
+		return timezones;
 	}
 
 	@Override
