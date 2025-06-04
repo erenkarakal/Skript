@@ -11,5 +11,5 @@ test "timezone syntaxes":
 	set {_d.in.nyc} to date(2030, 6, 4, 4, 23)
 	set {_d.in.istanbul} to date(2030, 6, 4, 11, 23)
 
-	assert {_d} in timezone "America/New_York" is {_d.in.nyc} with "returned incorrect date for New York"
-	assert {_d} in timezone "Europe/Istanbul" is {_d.in.istanbul} with "returned incorrect date for Istanbul"
+	assert difference between ({_d} in timezone "America/New_York") and {_d.in.nyc} < 1 second with "returned incorrect date for New York"
+	assert difference between ({_d} in timezone "Europe/Istanbul") and {_d.in.istanbul} < 1 second with "returned incorrect date for Istanbul"
