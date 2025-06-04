@@ -1,6 +1,7 @@
 package ch.njol.skript.conditions;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
@@ -11,6 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 
+@Name("Is Timezone Valid")
+@Description("Checks if a timezone is valid.")
+@Example("""
+	set {_timezone} to "America/New_York"
+	if timezone {_timezone} is valid:
+		set {_date} to now in timezone {_timezone}
+	""")
+@Since("1.4")
 public class CondIsTimezoneValid extends Condition {
 
 	static {
