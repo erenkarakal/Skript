@@ -14,7 +14,6 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 
-
 @Name("Vectors - Location Vector Offset")
 @Description("Returns the location offset by vectors.")
 @Example("set {_loc} to {_loc} ~ {_v}")
