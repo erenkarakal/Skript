@@ -19,7 +19,8 @@ import ch.njol.util.coll.CollectionUtils;
 @Example("set {_loc} to {_loc} ~ {_v}")
 @Example("""
 	# spawn a tnt 5 blocks infront of player
-	spawn tnt at player offset by vector(0, 1, 5) using local axes
+	set {_l} to player's location offset by vector(0, 1, 5) using local axes
+	spawn tnt at {_l}
 	""")
 @Since("2.2-dev28, INSERT VERSION (facing relative)")
 public class ExprLocationVectorOffset extends SimpleExpression<Location> {
