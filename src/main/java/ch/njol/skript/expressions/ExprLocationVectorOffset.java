@@ -15,9 +15,6 @@ import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 
 
-/**
- * @author bi0qaw
- */
 @Name("Vectors - Location Vector Offset")
 @Description("Returns the location offset by vectors.")
 @Example("set {_loc} to {_loc} ~ {_v}")
@@ -34,16 +31,12 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 				"%location%[ ]~[~][ ]%vectors%");
 	}
 
-	@SuppressWarnings("null")
 	private Expression<Location> location;
-
-	@SuppressWarnings("null")
 	private Expression<Vector> vectors;
 
 	private boolean usingLocalAxes;
 
 	@Override
-	@SuppressWarnings({"unchecked", "null"})
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		location = (Expression<Location>) exprs[0];
 		vectors = (Expression<Vector>) exprs[1];
@@ -51,7 +44,6 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 		return true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected Location[] get(Event event) {
 		Location location = this.location.getSingle(event);
