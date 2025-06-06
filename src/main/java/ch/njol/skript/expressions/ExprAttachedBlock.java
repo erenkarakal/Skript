@@ -54,7 +54,7 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 		}
 
 		if (SUPPORTS_MULTIPLE && !isMultiple) {
-			Skript.warning("It is recommended to use the plural version of this expression instead.");
+			Skript.warning("It is recommended to use the plural version of this expression instead: 'attached blocks of %projectile%'.");
 		}
 
 		return true;
