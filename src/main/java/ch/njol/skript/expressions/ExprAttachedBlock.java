@@ -5,7 +5,6 @@ import ch.njol.skript.doc.*;
 import ch.njol.skript.expressions.base.PropertyExpression;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
-import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import org.bukkit.block.Block;
@@ -14,8 +13,8 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Name("Arrow Attached Block")
 @Description({
@@ -54,12 +53,16 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 			return false;
 		}
 
+		if (SUPPORTS_MULTIPLE && !isMultiple) {
+			Skript.warning("It is recommended to use the plural version of this expression instead.");
+		}
+
 		return true;
 	}
 
 	@Override
 	protected Block[] get(Event event, Projectile[] source) {
-		List<Block> blocks = new ArrayList<>();
+		Set<Object> blocks = new HashSet<>();
 
 		for (Projectile projectile : source) {
 			if (projectile instanceof AbstractArrow abstractArrow) {
