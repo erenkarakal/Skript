@@ -39,7 +39,7 @@ public class CondIsTimezoneValid extends Condition {
 
 	@Override
 	public boolean check(Event event) {
-		for (String timezone : timezones.getAll(event)) {
+		for (String timezone : timezones.getArray(event)) {
 			if (timezone == null) {
 				return isNegated;
 			}
