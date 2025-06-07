@@ -4,7 +4,6 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
@@ -17,14 +16,14 @@ import java.time.ZoneId;
 @Description("Checks if a timezone is valid.")
 @Example("""
 	set {_timezone} to "America/New_York"
-	if timezone {_timezone} is valid:
+	if {_timezone} is a valid timezone:
 		set {_date} to now in timezone {_timezone}
 	""")
 @Since("INSERT VERSION")
 public class CondIsTimezoneValid extends Condition {
 
 	static {
-		Skript.registerCondition(CondIsTimezoneValid.class, "%strings% (is [a]|are) [negate:in]valid time[ ]zone[s]");
+		Skript.registerCondition(CondIsTimezoneValid.class, "%strings% (are|is [an]) [negate:in]valid time[ ]zone[s]");
 	}
 
 	private Expression<String> timezones;
@@ -39,24 +38,22 @@ public class CondIsTimezoneValid extends Condition {
 
 	@Override
 	public boolean check(Event event) {
-		for (String timezone : timezones.getArray(event)) {
-			if (timezone == null) {
-				return isNegated;
-			}
-
-			try {
-				ZoneId.of(timezone);
-			} catch (DateTimeException e) {
-				return isNegated;
-			}
-		}
-
-		return !isNegated;
+		return timezones.check(event, CondIsTimezoneValid::isValidTimezone, isNegated);
 	}
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "timezone " + timezones.toString(event, debug) + " is " + (isNegated ? "in" : "") + "valid";
+		return timezones.toString(event, debug) + " are " + (isNegated ? "in" : "") + "valid timezones";
+	}
+
+	private static boolean isValidTimezone(String timezone) {
+		try {
+			ZoneId.of(timezone);
+		} catch (DateTimeException e) {
+			return false;
+		}
+
+		return true;
 	}
 
 }
