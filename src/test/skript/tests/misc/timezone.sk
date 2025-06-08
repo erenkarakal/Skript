@@ -3,7 +3,7 @@ test "timezone syntaxes":
 
 	assert "Europe/Istanbul" is a valid timezone with "single timezone should've been valid"
 	assert ("Europe/Istanbul" and "Asia/Tokyo") are valid timezones with "multiple timezones with 'and' should've been valid"
-	assert ("Europe/Istanbul" or "Asia/Tokyo") are valid timezones with "multiple timezones with 'or' should've been valid"
+	assert ("Europe/Istanbul" or "Asia/Tokyo") is a valid timezone with "multiple timezones with 'or' should've been valid"
 
 	assert "hello!" is an invalid timezone with "single timezone should've been invalid"
 	assert ("hello!" and "Asia/Tokyo") are invalid timezones with "multiple timezones with 'and' should've been invalid"
