@@ -6,7 +6,7 @@ test "timezone syntaxes":
 	assert ("Europe/Istanbul" or "Asia/Tokyo") is a valid timezone with "multiple timezones with 'or' should've been valid"
 
 	assert "hello!" is an invalid timezone with "single timezone should've been invalid"
-	assert ("hello!" and "Asia/Tokyo") are invalid timezones with "multiple timezones with 'and' should've been invalid"
+	assert ("hello!" and "hi!") are invalid timezones with "multiple timezones with 'and' should've been invalid"
 	assert ("hello!" or "Asia/Tokyo") is an invalid timezone with "multiple timezones with 'or' should've been invalid"
 
 	set {_d} to date(2030, 6, 4, 7, 23)
