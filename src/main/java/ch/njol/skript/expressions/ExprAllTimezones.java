@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.ZoneId;
 
 @Name("All Timezones")
-@Description("Returns a list of all timezones that can be used in the <a href='#ExprNow'>now</a> expression.")
+@Description("Returns a list of all timezones that can be used in the <a href='#ExprDateInTimezone'>date in timezone</a> expression.")
 @Example("set {_timezones::*} to all timezones")
 @Since("INSERT VERSION")
 public class ExprAllTimezones extends SimpleExpression<String> {
