@@ -23,7 +23,7 @@ import java.time.ZoneId;
 public class CondIsTimezoneValid extends Condition {
 
 	static {
-		Skript.registerCondition(CondIsTimezoneValid.class, "%strings% (are|is [an]) [negate:in]valid time[ ]zone[s]");
+		Skript.registerCondition(CondIsTimezoneValid.class, "%strings% (are|is [a[n]]) [negate:in]valid time[ ]zone[s]");
 	}
 
 	private Expression<String> timezones;

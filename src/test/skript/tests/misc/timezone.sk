@@ -1,11 +1,13 @@
 test "timezone syntaxes":
 	assert size of all timezones > 0 with "timezones aren't set"
 
-	assert timezone "Europe/Istanbul" is valid with "single timezone should've been valid"
-	assert timezones ("Europe/Istanbul", "Asia/Tokyo") are valid with "multiple timezones should've been valid"
+	assert "Europe/Istanbul" is a valid timezone with "single timezone should've been valid"
+	assert ("Europe/Istanbul" and "Asia/Tokyo") are valid timezones with "multiple timezones with 'and' should've been valid"
+	assert ("Europe/Istanbul" or "Asia/Tokyo") are valid timezones with "multiple timezones with 'or' should've been valid"
 
-	assert timezone "hello!" is invalid with "single timezone should've been invalid"
-	assert timezones ("hello!", "Asia/Tokyo") are invalid with "multiple timezones should've been invalid"
+	assert "hello!" is an invalid timezone with "single timezone should've been invalid"
+	assert ("hello!" and "Asia/Tokyo") are invalid timezones with "multiple timezones with 'and' should've been invalid"
+	assert ("hello!" or "Asia/Tokyo") is an invalid timezone with "multiple timezones with 'or' should've been invalid"
 
 	set {_d} to date(2030, 6, 4, 7, 23)
 	set {_d.in.nyc} to date(2030, 6, 4, 3, 23)
