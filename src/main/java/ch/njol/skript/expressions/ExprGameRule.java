@@ -65,12 +65,12 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 				value = number.intValue();
 			} else if (!value.getClass().equals(gamerule.getType())) {
 				String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
-				currentClassName = Utils.a(currentClassName) + " " + currentClassName;
+				currentClassName = Utils.a(currentClassName);
 
 				String targetClassName = Classes.toString(Classes.getSuperClassInfo(gamerule.getType()));
-				targetClassName = Utils.a(targetClassName) + " " + targetClassName;
+				targetClassName = Utils.a(targetClassName);
 
-				error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName);
+				error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName + ".");
 			}
 
 			for (World gameruleWorld : worlds.getArray(event)) {
