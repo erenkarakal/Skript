@@ -43,7 +43,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	
 	@Override
 	@Nullable
-	public Class<?>[] acceptChange(final ChangeMode mode) {
+	public Class<?>[] acceptChange(ChangeMode mode) {
 		if (mode == ChangeMode.SET) {
 			return new Class[]{Boolean.class, Number.class};
 		}
@@ -51,9 +51,9 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	}
 	
 	@Override
-	public void change(final Event e, final @Nullable Object[] delta, final ChangeMode mode) {
+	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
 		if (mode == ChangeMode.SET) {
-			GameRule gamerule = this.gamerule.getSingle(e);
+			GameRule gamerule = this.gamerule.getSingle(event);
 			if (gamerule == null) {
 				return;
 			}
@@ -63,7 +63,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 				value = number.intValue();
 			}
 
-			for (World gameruleWorld : worlds.getArray(e)) {
+			for (World gameruleWorld : worlds.getArray(event)) {
                 gameruleWorld.setGameRule(gamerule, value);
 			}
 		}
@@ -71,13 +71,13 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 		
 	@Nullable
 	@Override
-	protected GameruleValue[] get(Event e) {
-		GameRule<?> gamerule = this.gamerule.getSingle(e);
+	protected GameruleValue[] get(Event event) {
+		GameRule<?> gamerule = this.gamerule.getSingle(event);
 		if (gamerule == null) {
 			return null;
 		}
 
-		World[] worlds = this.worlds.getArray(e);
+		World[] worlds = this.worlds.getArray(event);
 		GameruleValue[] gameruleValues = new GameruleValue[worlds.length];
 		int index = 0;
 
@@ -101,8 +101,8 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	}
 	
 	@Override
-	public String toString(@Nullable Event e, boolean debug) {
-		return "the gamerule " + gamerule.toString(e, debug) + " of worlds " + worlds.toString(e, debug);
+	public String toString(@Nullable Event event, boolean debug) {
+		return "the gamerule " + gamerule.toString(event, debug) + " of worlds " + worlds.toString(event, debug);
 	}
 
 }
