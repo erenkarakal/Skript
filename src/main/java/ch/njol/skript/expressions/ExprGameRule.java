@@ -1,5 +1,7 @@
 package ch.njol.skript.expressions;
 
+import ch.njol.skript.registrations.Classes;
+import ch.njol.skript.util.Utils;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.event.Event;
@@ -61,6 +63,14 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 			Object value = delta[0];
 			if (value instanceof Number number && gamerule.getType().equals(Integer.class)) {
 				value = number.intValue();
+			} else if (!value.getClass().equals(gamerule.getType())) {
+				String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
+				currentClassName = Utils.a(currentClassName) + " " + currentClassName;
+
+				String targetClassName = Classes.toString(Classes.getSuperClassInfo(gamerule.getType()));
+				targetClassName = Utils.a(targetClassName) + " " + targetClassName;
+
+				error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName);
 			}
 
 			for (World gameruleWorld : worlds.getArray(event)) {
