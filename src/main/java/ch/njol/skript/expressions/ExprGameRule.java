@@ -82,7 +82,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 		
 	@Nullable
 	@Override
-	protected GameruleValue[] get(Event event) {
+	protected @Nullable GameruleValue[] get(Event event) {
 		GameRule<?> gamerule = this.gamerule.getSingle(event);
 		if (gamerule == null) {
 			return null;
