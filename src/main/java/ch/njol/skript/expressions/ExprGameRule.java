@@ -71,6 +71,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 				targetClassName = Utils.a(targetClassName);
 
 				error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName + ".");
+				return;
 			}
 
 			for (World gameruleWorld : worlds.getArray(event)) {
