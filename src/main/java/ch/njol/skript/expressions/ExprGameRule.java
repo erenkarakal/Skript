@@ -45,7 +45,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	
 	@Override
 	@Nullable
-	public Class<?>[] acceptChange(ChangeMode mode) {
+	public @Nullable Class<?>[] acceptChange(ChangeMode mode) {
 		if (mode == ChangeMode.SET) {
 			return new Class[]{Boolean.class, Number.class};
 		}
