@@ -30,8 +30,6 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 		Skript.registerExpression(ExprGameRule.class, GameruleValue.class, ExpressionType.COMBINED, "[the] gamerule %gamerule% of %worlds%");
 	}
 
-	private boolean isSingleWorld;
-
 	private Expression<GameRule> gamerule;
 	private Expression<World> worlds;
 	
@@ -39,15 +37,13 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		gamerule = (Expression<GameRule>) exprs[0];
 		worlds = (Expression<World>) exprs[1];
-		isSingleWorld = worlds.isSingle();
 		return true;
 	}
 	
 	@Override
-	@Nullable
-	public @Nullable Class<?>[] acceptChange(ChangeMode mode) {
+	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
 		if (mode == ChangeMode.SET) {
-			return new Class[]{Boolean.class, Number.class};
+			return new Class[]{Boolean.class, Integer.class};
 		}
 		return null;
 	}
@@ -79,10 +75,9 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 			}
 		}
 	}
-		
-	@Nullable
+
 	@Override
-	protected @Nullable GameruleValue[] get(Event event) {
+	protected GameruleValue @Nullable [] get(Event event) {
 		GameRule<?> gamerule = this.gamerule.getSingle(event);
 		if (gamerule == null) {
 			return null;
@@ -103,7 +98,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	
 	@Override
 	public boolean isSingle() {
-		return isSingleWorld;
+		return worlds.isSingle();
 	}
 	
 	@Override
@@ -113,7 +108,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 	
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "the gamerule " + gamerule.toString(event, debug) + " of worlds " + worlds.toString(event, debug);
+		return "the gamerule " + gamerule.toString(event, debug) + " of " + worlds.toString(event, debug);
 	}
 
 }
