@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 @Description({
 	"Whether a location is within something else. The \"something\" can be a block, an entity, a chunk, a world, " +
 	"or a cuboid formed by two other locations.",
-	"Note that using the <a href='conditions.html#CondCompare'>is between</a> condition will refer to a straight line " +
+	"Note that using the <a href='#CondCompare'>is between</a> condition will refer to a straight line " +
 	"between locations, while this condition will refer to the cuboid between locations."
 })
 @Examples({
@@ -91,7 +91,7 @@ public class CondIsWithin extends Condition {
 			return locsToCheck.check(event, box::contains, isNegated());
 		}
 
-		Object[] areas = area.getArray(event);
+		Object[] areas = area.getAll(event);
 		return locsToCheck.check(event, location ->
 				SimpleExpression.check(areas, object -> {
 					if (object instanceof Entity entity) {
