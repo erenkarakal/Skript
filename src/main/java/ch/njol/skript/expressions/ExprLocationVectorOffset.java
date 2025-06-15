@@ -13,6 +13,8 @@ import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 @Name("Vectors - Location Vector Offset")
 @Description("Returns the location offset by vectors.")
@@ -89,16 +91,15 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 	 * @return The offset location
 	 */
 	private static Location getFacingRelativeOffset(Location loc, Vector offset) {
-		Vector forward = loc.getDirection();
-		Vector up = new Vector(0, 1, 0);
-		Vector left = up.clone().crossProduct(forward).normalize();
+		float yawRad = (float) Math.toRadians(-loc.getYaw());
+		float pitchRad = (float) Math.toRadians(loc.getPitch());
+		float rollRad = 0f;
 
-		Vector o = new Vector(0, 0, 0);
-		o.add(left.multiply(offset.getX()));
-		o.add(up.multiply(offset.getY()));
-		o.add(forward.multiply(offset.getZ()));
+		Quaternionf rotation = new Quaternionf().rotateYXZ(yawRad, pitchRad, rollRad);
+		Vector3f localOffset = offset.toVector3f();
+		rotation.transform(localOffset);
 
-		return loc.add(o);
+		return loc.add(localOffset.x, localOffset.y, localOffset.z);
 	}
 
 }
