@@ -37,6 +37,7 @@ import java.net.UnknownHostException;
 public class ExprBanData extends SimpleExpression<Object> {
 
 	static {
+		// TODO - remove this check when 1.20.1 support is dropped
 		if (Skript.methodExists(BanEntry.class, "remove"))
 			Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.COMBINED,
 				"[the] date %offlineplayer/string% was banned",
@@ -74,9 +75,6 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	protected Object @Nullable [] get(Event event) {
-		if (banTarget == null)
-			return null;
-
 		Object target = banTarget.getSingle(event);
 		BanEntry<?> banEntry;
 
@@ -94,7 +92,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 		return switch (entryType) {
 			case BAN_DATE -> {
 				java.util.Date creation = banEntry.getCreated();
-				Date skriptCreation = new Date(creation.getTime());
+				Date skriptCreation = Date.fromJavaDate(creation);
 				yield new Date[]{ skriptCreation };
 			}
 			case SOURCE -> new String[]{ banEntry.getSource() };
@@ -102,7 +100,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 				java.util.Date expiration = banEntry.getExpiration();
 				if (expiration == null)
 					yield null;
-				Date skriptExpiration = new Date(expiration.getTime());
+				Date skriptExpiration = Date.fromJavaDate(expiration);
 				yield new Date[]{ skriptExpiration };
 			}
 			case REASON -> new String[]{ banEntry.getReason() };
@@ -150,10 +148,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 			return;
 		}
 
-		if (banEntry == null)
+		if (banEntry == null) // target isn't banned
 			return;
 
-		assert delta != null;
 		if (mode == ChangeMode.SET) {
 			switch (entryType) {
 				case SOURCE -> {
@@ -162,9 +159,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 				}
 				case EXPIRE_DATE -> {
 					Date newDate = (Date) delta[0];
-					if (newDate == null)
-						return;
-					banEntry.setExpiration(new java.util.Date(newDate.getTime()));
+					banEntry.setExpiration(newDate);
 				}
 				case REASON -> {
 					String newReason = (String) delta[0];
@@ -179,17 +174,16 @@ public class ExprBanData extends SimpleExpression<Object> {
 				return;
 
 			if (entryType == BanEntryType.EXPIRE_DATE) {
-				java.util.Date expiration = banEntry.getExpiration();
-				if (expiration == null)
-					return;
-				long newExpirationMillis;
+				Date expiration = Date.fromJavaDate(banEntry.getExpiration());
+
 				if (mode == ChangeMode.ADD)
-					newExpirationMillis = expiration.getTime() + timespan.getAs(Timespan.TimePeriod.MILLISECOND);
+					expiration = expiration.plus(timespan);
 				else if (mode == ChangeMode.REMOVE)
-					newExpirationMillis = expiration.getTime() - timespan.getAs(Timespan.TimePeriod.MILLISECOND);
+					expiration = expiration.minus(timespan);
 				else
 					return;
-				banEntry.setExpiration(new java.util.Date(newExpirationMillis));
+
+				banEntry.setExpiration(expiration);
 			}
 		}
 		banEntry.save();
@@ -218,7 +212,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 		return Bukkit.getBanList(BanListType.PROFILE).getBanEntry(playerTarget.getPlayerProfile());
 	}
 
-	protected enum BanEntryType {
+	private enum BanEntryType {
 		BAN_DATE, SOURCE, EXPIRE_DATE, REASON
 	}
 
