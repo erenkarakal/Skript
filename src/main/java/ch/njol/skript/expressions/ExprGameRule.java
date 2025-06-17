@@ -39,42 +39,6 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 		worlds = (Expression<World>) exprs[1];
 		return true;
 	}
-	
-	@Override
-	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
-		if (mode == ChangeMode.SET) {
-			return new Class[]{Boolean.class, Integer.class};
-		}
-		return null;
-	}
-	
-	@Override
-	public void change(Event event, @Nullable Object[] delta, ChangeMode mode) {
-		if (mode == ChangeMode.SET) {
-			GameRule gamerule = this.gamerule.getSingle(event);
-			if (gamerule == null) {
-				return;
-			}
-
-			Object value = delta[0];
-			if (value instanceof Number number && gamerule.getType().equals(Integer.class)) {
-				value = number.intValue();
-			} else if (!value.getClass().equals(gamerule.getType())) {
-				String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
-				currentClassName = Utils.a(currentClassName);
-
-				String targetClassName = Classes.toString(Classes.getSuperClassInfo(gamerule.getType()));
-				targetClassName = Utils.a(targetClassName);
-
-				error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName + ".");
-				return;
-			}
-
-			for (World gameruleWorld : worlds.getArray(event)) {
-                gameruleWorld.setGameRule(gamerule, value);
-			}
-		}
-	}
 
 	@Override
 	protected GameruleValue @Nullable [] get(Event event) {
@@ -95,7 +59,45 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 
 		return gameruleValues;
 	}
-	
+
+	@Override
+	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
+		if (mode == ChangeMode.SET) {
+			return new Class[]{Boolean.class, Integer.class};
+		}
+		return null;
+	}
+
+	@Override
+	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
+		if (mode != ChangeMode.SET) {
+			return;
+		}
+
+		GameRule gamerule = this.gamerule.getSingle(event);
+		if (gamerule == null) {
+			return;
+		}
+
+		Object value = delta[0];
+		if (value instanceof Number number && gamerule.getType().equals(Integer.class)) {
+			value = number.intValue();
+		} else if (!value.getClass().equals(gamerule.getType())) {
+			String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
+			currentClassName = Utils.a(currentClassName);
+
+			String targetClassName = Classes.toString(Classes.getSuperClassInfo(gamerule.getType()));
+			targetClassName = Utils.a(targetClassName);
+
+			error("The " + gamerule.getName() + " gamerule can only be set to " + targetClassName + ", not " + currentClassName + ".");
+			return;
+		}
+
+		for (World gameruleWorld : worlds.getArray(event)) {
+			gameruleWorld.setGameRule(gamerule, value);
+		}
+	}
+
 	@Override
 	public boolean isSingle() {
 		return worlds.isSingle();
