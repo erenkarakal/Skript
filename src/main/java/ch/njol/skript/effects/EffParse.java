@@ -18,6 +18,7 @@ import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Name("Parse")
 @Description("Parses a string or a list of strings as a type. If \"try to\" is used, " +
@@ -110,7 +111,11 @@ public class EffParse extends Effect {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return (tryTo ? "try to " : "") + "parse " + exprs + " as " + classInfo.getName().withIndefiniteArticle();
+		String exprs = this.exprs.stream()
+			.map(e -> e.toString(event, debug))
+			.collect(Collectors.joining());
+		String classInfo = this.classInfo.getName().withIndefiniteArticle();
+		return (tryTo ? "try to " : "") + "parse " + exprs + " as " + classInfo;
 	}
 
 }
