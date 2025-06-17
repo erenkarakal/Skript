@@ -70,12 +70,14 @@ public class EffParse extends Effect {
 					return false;
 				}
 			}
-		} else if (!ChangerUtils.acceptsChange(toParse, ChangeMode.SET, classInfo.getC())) {
-			Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
-			return false;
-		}
+		} else {
+			exprs = List.of(toParse);
 
-		exprs = List.of(toParse);
+			if (!ChangerUtils.acceptsChange(toParse, ChangeMode.SET, classInfo.getC())) {
+				Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
+				return false;
+			}
+		}
 
 		return true;
 	}
