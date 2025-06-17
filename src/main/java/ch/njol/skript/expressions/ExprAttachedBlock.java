@@ -23,12 +23,13 @@ import java.util.Set;
 })
 @Example("set hit block of last shot arrow to diamond block")
 @Example("""
-  on projectile hit:
-  	wait 1 tick
-  	break attached blocks of event-projectile
-  	kill event-projectile
+	on projectile hit:
+		wait 1 tick
+		break attached blocks of event-projectile
+		kill event-projectile
 	""")
 @Since("2.8.0, INSERT VERSION (multiple blocks)")
+@RequiredPlugins("Paper 1.21.4+ (multiple blocks)")
 public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 
 	static {
@@ -84,12 +85,12 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 
 	@Override
 	public boolean isSingle() {
-		return !isMultiple;
+		return !isMultiple && getExpr().isSingle();
 	}
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "attached block" + (isMultiple ? "s" : "");
+		return "attached block" + (isMultiple ? "s" : "") + " of " + getExpr().toString(event, debug);
 	}
 
 }
