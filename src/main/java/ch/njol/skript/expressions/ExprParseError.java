@@ -17,9 +17,6 @@ import ch.njol.util.Kleenean;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author Peter Güttinger
- */
 @Name("Parse Error")
 @Description("The error which caused the last <a href='#ExprParse'>parse operation</a> to fail, which might not be set if a pattern was used and the pattern didn't match the provided text at all.")
 @Examples({"set {var} to line 1 parsed as integer",
@@ -39,13 +36,13 @@ public class ExprParseError extends SimpleExpression<String> {
 	private boolean allErrors = false;
 	
 	@Override
-	public boolean init(final Expression<?>[] exprs, final int matchedPattern, final Kleenean isDelayed, final ParseResult parseResult) {
+	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		allErrors = parseResult.hasTag("all");
 		return true;
 	}
 	
 	@Override
-	protected String[] get(final Event e) {
+	protected String[] get(Event event) {
 		if (lastErrors.isEmpty())
 			return new String[0];
 
@@ -66,7 +63,7 @@ public class ExprParseError extends SimpleExpression<String> {
 	}
 	
 	@Override
-	public String toString(final @Nullable Event e, final boolean debug) {
+	public String toString(@Nullable Event event, boolean debug) {
 		return "the last parse error";
 	}
 

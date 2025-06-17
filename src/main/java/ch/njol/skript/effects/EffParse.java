@@ -17,13 +17,16 @@ import ch.njol.util.Kleenean;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 @Name("Parse")
-@Description("Parses a string or a list of strings as a type. If \"try to\" is used, the value won't be deleted if the parse fails.")
+@Description("Parses a string or a list of strings as a type. If \"try to\" is used, " +
+	"the existing value won't be deleted if the attempt to parse fails.")
 @Examples({
-        "set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
+	"set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
 	"parse {_a::*} as integer",
 	"send {_a::*} # would send 1, 3 and 5",
-	"send last parse errors   # would print errors about 2a and 4c"
+	"send last parse errors # would print errors about 2a and 4c"
 })
 @Since("INSERT VERSION")
 public class EffParse extends Effect {
@@ -32,7 +35,7 @@ public class EffParse extends Effect {
 		Skript.registerEffect(EffParse.class, "[try:(try|attempt) to] parse %~strings% as %*classinfo%");
 	}
 
-	private Expression<String> toParse;
+	private List<Expression<? extends String>> exprs;
 	private ClassInfo<?> classInfo;
 	private boolean tryTo;
 
@@ -40,7 +43,7 @@ public class EffParse extends Effect {
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		tryTo = parseResult.hasTag("try");
-		toParse = (Expression<String>) expressions[0];
+		Expression<String> toParse = (Expression<String>) expressions[0];
 		classInfo = ((Literal<ClassInfo<?>>) expressions[1]).getSingle();
 
 		if (!toParse.getAnd()) {
@@ -60,8 +63,8 @@ public class EffParse extends Effect {
 		}
 
 		if (toParse instanceof ExpressionList<String> toParseExpressions) {
-			for (int i = 0; i < toParseExpressions.getAllExpressions().size(); i++) {
-				Expression<String> expression = (Expression<String>) toParseExpressions.getAllExpressions().get(i);
+			exprs = toParseExpressions.getAllExpressions();
+			for (Expression<? extends String> expression : exprs) {
 				if (!ChangerUtils.acceptsChange(expression, ChangeMode.SET, classInfo.getC())) {
 					Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
 					return false;
@@ -71,6 +74,8 @@ public class EffParse extends Effect {
 			Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
 			return false;
 		}
+
+		exprs = List.of(toParse);
 
 		return true;
 	}
@@ -84,24 +89,12 @@ public class EffParse extends Effect {
 
 		ParseLogHandler parseLogHandler = new ParseLogHandler().start();
 		try {
-			if (toParse instanceof ExpressionList<String> toParseExpressions) {
-				for (int i = 0; i < toParseExpressions.getAllExpressions().size(); i++) {
-					Expression<String> expression = (Expression<String>) toParseExpressions.getAllExpressions().get(i);
-					expression.changeInPlace(event, stringToParse -> {
-						Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
-						if (parsed == null) {
-							ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
-							parseLogHandler.clearError();
-							return tryTo ? stringToParse : null;
-						}
-						return parsed;
-					});
-				}
-			} else {
-				toParse.changeInPlace(event, stringToParse -> {
+			for (Expression<? extends String> expression : exprs) {
+				expression.changeInPlace(event, stringToParse -> {
 					Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
 					if (parsed == null) {
 						ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());
+						parseLogHandler.clearError();
 						return tryTo ? stringToParse : null;
 					}
 					return parsed;
@@ -115,7 +108,7 @@ public class EffParse extends Effect {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return (tryTo ? "try to " : "") + "parse " + toParse + " as " + classInfo.getName().withIndefiniteArticle();
+		return (tryTo ? "try to " : "") + "parse " + exprs + " as " + classInfo.getName().withIndefiniteArticle();
 	}
 
 }
