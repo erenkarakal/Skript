@@ -38,15 +38,12 @@ public class ExprDateInTimezone extends SimpleExpression<Date> {
 			"[the] [date[s]] %dates% in [the] %string% time[ ]zone");
 	}
 
-	private boolean isSingle;
-
 	private Expression<Date> dates;
 	private Expression<String> timezone;
 
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		dates = (Expression<Date>) expressions[0];
-		isSingle = dates.isSingle();
 		timezone = (Expression<String>) expressions[1];
 		return true;
 	}
@@ -71,7 +68,7 @@ public class ExprDateInTimezone extends SimpleExpression<Date> {
 
 	@Override
 	public boolean isSingle() {
-		return isSingle;
+		return dates.isSingle();
 	}
 
 	@Override
