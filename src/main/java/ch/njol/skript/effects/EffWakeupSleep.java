@@ -16,7 +16,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
-import org.skriptlang.skript.log.runtime.SyntaxRuntimeErrorProducer;
 
 @Name("Wake And Sleep")
 @Description({
@@ -35,8 +34,8 @@ import org.skriptlang.skript.log.runtime.SyntaxRuntimeErrorProducer;
 	"make player go to sleep at location(0, 0, 0) with force",
 	"make player wake up without spawn location update"
 })
-@Since("INSERT VERSION")
-public class EffWakeupSleep extends Effect implements SyntaxRuntimeErrorProducer {
+@Since("2.11")
+public class EffWakeupSleep extends Effect {
 
 	static {
 		Skript.registerEffect(EffWakeupSleep.class,
@@ -55,7 +54,6 @@ public class EffWakeupSleep extends Effect implements SyntaxRuntimeErrorProducer
 	private boolean sleep;
 	private boolean force;
 	private boolean setSpawn;
-	private Node node;
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
@@ -70,7 +68,6 @@ public class EffWakeupSleep extends Effect implements SyntaxRuntimeErrorProducer
 			//noinspection unchecked
 			this.location = Direction.combine((Expression<Direction>) exprs[1], (Expression<Location>) exprs[2]);
 		}
-		node = getParser().getNode();
 		return true;
 	}
 
@@ -109,11 +106,6 @@ public class EffWakeupSleep extends Effect implements SyntaxRuntimeErrorProducer
 		}
 		if (failed)
 			warning("The provided location is not set. This effect will have no effect for villagers and players.");
-	}
-
-	@Override
-	public Node getNode() {
-		return node;
 	}
 
 	@Override
