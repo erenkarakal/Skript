@@ -9,7 +9,6 @@ import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionList;
 import ch.njol.skript.lang.ExpressionType;
-import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.Variable;
 import ch.njol.skript.lang.util.SimpleExpression;
@@ -66,9 +65,6 @@ public class ExprAmount extends SimpleExpression<Number> {
 		this.exprs = exprs[0] instanceof ExpressionList ? (ExpressionList<?>) exprs[0] : new ExpressionList<>(new Expression<?>[]{exprs[0]}, Object.class, false);
 		this.recursive = matchedPattern == 2;
 		for (Expression<?> expr : this.exprs.getExpressions()) {
-			if (expr instanceof Literal<?>) {
-				return false;
-			}
 			if (expr.isSingle()) {
 				Skript.error("'" + expr.toString(null, false) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
 				return false;
@@ -111,7 +107,7 @@ public class ExprAmount extends SimpleExpression<Number> {
 	}
 
 	@Override
-	public void change(Event event,  Object @Nullable [] delta, ChangeMode mode) {
+	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
 		if (any == null) {
 			super.change(event, delta, mode);
 			return;
