@@ -39,9 +39,9 @@ public class ExprAmount extends SimpleExpression<Number> {
 
 	static {
 		Skript.registerExpression(ExprAmount.class, Number.class, ExpressionType.PROPERTY,
-			"[the] (amount|number|size) of %numbered%",
-			"[the] (amount|number|size) of %objects%",
-			"[the] recursive (amount|number|size) of %objects%");
+				"[the] (amount|number|size) of %numbered%",
+				"[the] (amount|number|size) of %objects%",
+				"[the] recursive (amount|number|size) of %objects%");
 	}
 
 	@SuppressWarnings("null")
