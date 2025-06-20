@@ -2,10 +2,7 @@ package ch.njol.skript.expressions;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.classes.Changer.ChangeMode;
-import ch.njol.skript.doc.Description;
-import ch.njol.skript.doc.Examples;
-import ch.njol.skript.doc.Name;
-import ch.njol.skript.doc.Since;
+import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
@@ -20,23 +17,23 @@ import java.util.Map;
 
 @Name("Amount")
 @Description({"The amount or size of something.",
-	"Please note that <code>amount of %items%</code> will not return the number of items, but the number of stacks, e.g. 1 for a stack of 64 torches. To get the amount of items in a stack, see the <a href='#ExprItemAmount'>item amount</a> expression.",
-	"",
-	"Also, you can get the recursive size of a list, which will return the recursive size of the list with sublists included, e.g.",
-	"",
-	"<pre>",
-	"{list::*} Structure<br>",
-	"  ├──── {list::1}: 1<br>",
-	"  ├──── {list::2}: 2<br>",
-	"  │     ├──── {list::2::1}: 3<br>",
-	"  │     │    └──── {list::2::1::1}: 4<br>",
-	"  │     └──── {list::2::2}: 5<br>",
-	"  └──── {list::3}: 6",
-	"</pre>",
-	"",
-	"Where using %size of {list::*}% will only return 3 (the first layer of indices only), while %recursive size of {list::*}% will return 6 (the entire list)",
-	"Please note that getting a list's recursive size can cause lag if the list is large, so only use this expression if you need to!"})
-@Examples({"message \"There are %number of all players% players online!\""})
+		"Please note that <code>amount of %items%</code> will not return the number of items, but the number of stacks, e.g. 1 for a stack of 64 torches. To get the amount of items in a stack, see the <a href='#ExprItemAmount'>item amount</a> expression.",
+		"",
+		"Also, you can get the recursive size of a list, which will return the recursive size of the list with sublists included, e.g.",
+		"",
+		"<pre>",
+		"{list::*} Structure<br>",
+		"  ├──── {list::1}: 1<br>",
+		"  ├──── {list::2}: 2<br>",
+		"  │     ├──── {list::2::1}: 3<br>",
+		"  │     │    └──── {list::2::1::1}: 4<br>",
+		"  │     └──── {list::2::2}: 5<br>",
+		"  └──── {list::3}: 6",
+		"</pre>",
+		"",
+		"Where using %size of {list::*}% will only return 3 (the first layer of indices only), while %recursive size of {list::*}% will return 6 (the entire list)",
+		"Please note that getting a list's recursive size can cause lag if the list is large, so only use this expression if you need to!"})
+@Example("message \"There are %number of all players% players online!\"")
 @Since("1.0")
 public class ExprAmount extends SimpleExpression<Number> {
 
