@@ -58,14 +58,14 @@ public class ExprAmount extends SimpleExpression<Number> {
 			return true;
 		}
 
+		this.exprs = exprs[0] instanceof ExpressionList<?> exprList
+			? exprList
+			: new ExpressionList<>(new Expression<?>[]{ exprs[0] }, Object.class, false);
+
 		this.exprs = (ExpressionList<?>) LiteralUtils.defendExpression(this.exprs);
 		if (!LiteralUtils.canInitSafely(this.exprs)) {
 			return false;
 		}
-
-		this.exprs = exprs[0] instanceof ExpressionList<?> exprList
-			? exprList
-			: new ExpressionList<>(new Expression<?>[]{ exprs[0] }, Object.class, false);
 
 		if (this.exprs.isSingle()) {
 			Skript.error("'" + this.exprs.toString(null, false) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
