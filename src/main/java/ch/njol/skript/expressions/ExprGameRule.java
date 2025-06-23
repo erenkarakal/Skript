@@ -30,25 +30,27 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 		Skript.registerExpression(ExprGameRule.class, GameruleValue.class, ExpressionType.COMBINED, "[the] gamerule %gamerule% of %worlds%");
 	}
 
-	private Expression<GameRule> gamerule;
+	private Expression<GameRule<?>> gamerule;
 	private Expression<World> worlds;
 	
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		gamerule = (Expression<GameRule>) exprs[0];
+		// noinspection unchecked
+		gamerule = (Expression<GameRule<?>>) exprs[0];
+		// noinspection unchecked
 		worlds = (Expression<World>) exprs[1];
 		return true;
 	}
 
 	@Override
-	protected GameruleValue @Nullable [] get(Event event) {
+	protected GameruleValue<?> @Nullable [] get(Event event) {
 		GameRule<?> gamerule = this.gamerule.getSingle(event);
 		if (gamerule == null) {
 			return null;
 		}
 
 		World[] worlds = this.worlds.getArray(event);
-		GameruleValue[] gameruleValues = new GameruleValue[worlds.length];
+		GameruleValue<?>[] gameruleValues = new GameruleValue[worlds.length];
 		int index = 0;
 
 		for (World world : worlds) {
@@ -79,6 +81,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 			return;
 		}
 
+		assert delta != null;
 		Object value = delta[0];
 		if (value instanceof Number number && gamerule.getType().equals(Integer.class)) {
 			value = number.intValue();
