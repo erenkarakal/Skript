@@ -58,17 +58,17 @@ public class ExprAmount extends SimpleExpression<Number> {
 			return true;
 		}
 
-		this.exprs = exprs[0] instanceof ExpressionList exprList
+		this.exprs = (ExpressionList<?>) LiteralUtils.defendExpression(this.exprs);
+		if (!LiteralUtils.canInitSafely(this.exprs)) {
+			return false;
+		}
+
+		this.exprs = exprs[0] instanceof ExpressionList<?> exprList
 			? exprList
 			: new ExpressionList<>(new Expression<?>[]{ exprs[0] }, Object.class, false);
 
 		if (this.exprs.isSingle()) {
 			Skript.error("'" + this.exprs.toString(null, false) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
-			return false;
-		}
-
-		this.exprs = (ExpressionList<?>) LiteralUtils.defendExpression(this.exprs);
-		if (!LiteralUtils.canInitSafely(this.exprs)) {
 			return false;
 		}
 
@@ -83,7 +83,6 @@ public class ExprAmount extends SimpleExpression<Number> {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected Number[] get(Event event) {
 		if (any != null)
 			return new Number[] {any.getOptionalSingle(event).orElse(() -> 0).amount()};
@@ -92,6 +91,7 @@ public class ExprAmount extends SimpleExpression<Number> {
 			for (Expression<?> expr : exprs.getExpressions()) {
 				Object var = ((Variable<?>) expr).getRaw(event);
 				if (var != null) { // Should already be a map
+					// noinspection unchecked
 					currentSize += getRecursiveSize((Map<String, ?>) var);
 				}
 			}
@@ -139,20 +139,19 @@ public class ExprAmount extends SimpleExpression<Number> {
 		}
 	}
 
-	private static int getRecursiveSize(Map<String, ?> map) {
+	private static int getRecursiveSize(Map<?, ?> map) {
 		return getRecursiveSize(map, true);
 	}
 
-	@SuppressWarnings("unchecked")
-	private static int getRecursiveSize(Map<String, ?> map, boolean skipNull) {
+	private static int getRecursiveSize(Map<?, ?> map, boolean skipNull) {
 		int count = 0;
-		for (Map.Entry<String, ?> entry : map.entrySet()) {
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
 			if (skipNull && entry.getKey() == null)
 				continue; // when getting the recursive size of {a::*}, ignore {a}
 
 			Object value = entry.getValue();
-			if (value instanceof Map)
-				count += getRecursiveSize((Map<String, ?>) value, false);
+			if (value instanceof Map<?, ?> nestedMap)
+				count += getRecursiveSize(nestedMap, false);
 			else
 				count++;
 		}
