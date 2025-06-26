@@ -68,7 +68,7 @@ public class ExprAmount extends SimpleExpression<Number> {
 		}
 
 		if (this.exprs.isSingle()) {
-			Skript.error("'" + this.exprs.toString(null, false) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
+			Skript.error("'" + this.exprs.toString(null, Skript.debug()) + "' can only ever have one value at most, thus the 'amount of ...' expression is useless. Use '... exists' instead to find out whether the expression has a value.");
 			return false;
 		}
 
