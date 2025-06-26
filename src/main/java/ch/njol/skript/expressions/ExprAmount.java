@@ -59,8 +59,8 @@ public class ExprAmount extends SimpleExpression<Number> {
 		}
 
 		this.exprs = exprs[0] instanceof ExpressionList<?> exprList
-			? exprList
-			: new ExpressionList<>(new Expression<?>[]{ exprs[0] }, Object.class, false);
+				? exprList
+				: new ExpressionList<>(new Expression<?>[]{ exprs[0] }, Object.class, false);
 
 		this.exprs = (ExpressionList<?>) LiteralUtils.defendExpression(this.exprs);
 		if (!LiteralUtils.canInitSafely(this.exprs)) {
