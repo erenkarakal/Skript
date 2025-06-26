@@ -1,6 +1,7 @@
 package ch.njol.skript.expressions;
 
 import ch.njol.skript.doc.*;
+import ch.njol.skript.lang.SyntaxStringBuilder;
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.util.Vector;
@@ -12,19 +13,19 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import ch.njol.util.coll.CollectionUtils;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 @Name("Vectors - Location Vector Offset")
-@Description("Returns the location offset by vectors.")
+@Description("Returns the location offset by vectors. Supports both global and local axes. " +
+	"When using local axes, the vector is applied relative to the direction the location is facing.")
 @Example("set {_loc} to {_loc} ~ {_v}")
 @Example("""
-	# spawn a tnt 5 blocks infront of player
+	# spawn a tnt 5 blocks in front of player
 	set {_l} to player's location offset by vector(0, 1, 5) using local axes
 	spawn tnt at {_l}
 	""")
-@Since("2.2-dev28, INSERT VERSION (facing relative)")
+@Since("2.2-dev28, INSERT VERSION (local axes)")
 public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 
 	static {
@@ -40,7 +41,9 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
+		// noinspection unchecked
 		location = (Expression<Location>) exprs[0];
+		// noinspection unchecked
 		vectors = (Expression<Vector>) exprs[1];
 		usingLocalAxes = parseResult.hasTag("facingrelative");
 		return true;
@@ -61,7 +64,7 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 				clone.add(vector);
 			}
 		}
-		return CollectionUtils.array(clone);
+		return new Location[]{ clone };
 	}
 
 	@Override
@@ -76,7 +79,12 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return location.toString(event, debug) + " offset by " + vectors.toString(event, debug) + (usingLocalAxes ? " using local axes" : "");
+		return new SyntaxStringBuilder(event, debug)
+			.append(location)
+			.append("offset by")
+			.append(vectors)
+			.append(usingLocalAxes ? "using local axes" : "")
+			.toString();
 	}
 
 	/**
