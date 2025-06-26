@@ -75,7 +75,7 @@ public class ExprAmount extends SimpleExpression<Number> {
 		this.recursive = matchedPattern == 2;
 		for (Expression<?> expr : this.exprs.getExpressions()) {
 			if (recursive && !(expr instanceof Variable<?>)) {
-				Skript.error("Getting the recursive size of a list only applies to variables, thus the '" + expr.toString(null, false) + "' expression is useless.");
+				Skript.error("Getting the recursive size of a list only applies to variables, thus the '" + expr.toString(null, Skript.debug()) + "' expression is useless.");
 				return false;
 			}
 		}
