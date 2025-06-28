@@ -33,13 +33,10 @@ import java.util.Set;
 public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 
 	static {
-		Skript.registerExpression(ExprAttachedBlock.class, Block.class, ExpressionType.PROPERTY,
-			"[the] (attached|hit) block[multiple:s] of %projectiles%",
-			"%projectiles%'[s] (attached|hit) block[multiple:s]"
-		);
+		register(ExprAttachedBlock.class, Block.class, "(attached|hit) block[multiple:s]", "projectiles");
 	}
 
-	// TODO - remove this when 1.21.4 is the minimum supported version
+	// TODO - remove this when 1.21.4 is the minimum supported version & paper support is dropped
 	private static final boolean SUPPORTS_MULTIPLE = Skript.methodExists(AbstractArrow.class, "getAttachedBlocks");
 
 	private boolean isMultiple;
@@ -47,15 +44,19 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		isMultiple = parseResult.hasTag("multiple");
+		// noinspection unchecked
 		setExpr((Expression<? extends Projectile>) expressions[0]);
 
 		if (!SUPPORTS_MULTIPLE && isMultiple) {
-			Skript.error("The plural version of this expression is only available in Paper 1.21.4+.");
+			Skript.error("The plural version of this expression is only available when running Paper 1.21.4 or newer.");
 			return false;
 		}
 
 		if (SUPPORTS_MULTIPLE && !isMultiple) {
-			Skript.warning("It is recommended to use the plural version of this expression instead: 'attached blocks of %projectile%'.");
+			isMultiple = true;
+			String expr = toString(null, Skript.debug());
+			isMultiple = false;
+			Skript.warning("It is recommended to use the plural version of this expression instead: '" + expr + "'");
 		}
 
 		return true;
