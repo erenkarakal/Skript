@@ -69,6 +69,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 			case 8, 9, 10 -> BanEntryType.REASON;
 			default -> null;
 		};
+		// noinspection unchecked
 		banTarget = (Expression<Object>) expressions[0];
 		return true;
 	}
@@ -151,6 +152,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 		if (banEntry == null) // target isn't banned
 			return;
 
+		assert delta != null;
 		if (mode == ChangeMode.SET) {
 			switch (entryType) {
 				case SOURCE -> {
