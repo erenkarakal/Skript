@@ -51,12 +51,11 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 
 		World[] worlds = this.worlds.getArray(event);
 		GameruleValue<?>[] gameruleValues = new GameruleValue[worlds.length];
-		int index = 0;
 
-		for (World world : worlds) {
-			Object gameruleValue = world.getGameRuleValue(gamerule);
+		for (int i = 0; i < worlds.length; i++) {
+			Object gameruleValue = worlds[i].getGameRuleValue(gamerule);
 			assert gameruleValue != null;
-			gameruleValues[index++] = new GameruleValue<>(gameruleValue);
+			gameruleValues[i] = new GameruleValue<>(gameruleValue);
 		}
 
 		return gameruleValues;
@@ -83,9 +82,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 
 		assert delta != null;
 		Object value = delta[0];
-		if (value instanceof Number number && gamerule.getType().equals(Integer.class)) {
-			value = number.intValue();
-		} else if (!value.getClass().equals(gamerule.getType())) {
+		if (!value.getClass().equals(gamerule.getType())) {
 			String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
 			currentClassName = Utils.a(currentClassName);
 
