@@ -36,7 +36,7 @@ public class ExprAttachedBlock extends PropertyExpression<Projectile, Block> {
 		register(ExprAttachedBlock.class, Block.class, "(attached|hit) block[multiple:s]", "projectiles");
 	}
 
-	// TODO - remove this when 1.21.4 is the minimum supported version & paper support is dropped
+	// TODO - remove this when only Paper 1.21.4+ is supported
 	private static final boolean SUPPORTS_MULTIPLE = Skript.methodExists(AbstractArrow.class, "getAttachedBlocks");
 
 	private boolean isMultiple;
