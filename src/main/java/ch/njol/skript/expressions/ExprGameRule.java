@@ -82,7 +82,7 @@ public class ExprGameRule extends SimpleExpression<GameruleValue> {
 
 		assert delta != null;
 		Object value = delta[0];
-		if (!value.getClass().equals(gamerule.getType())) {
+		if (!gamerule.getType().isAssignableFrom(value.getClass())) {
 			String currentClassName = Classes.toString(Classes.getSuperClassInfo(value.getClass()));
 			currentClassName = Utils.a(currentClassName);
 
