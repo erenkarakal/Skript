@@ -48,11 +48,6 @@ public class EffParse extends Effect {
 			return false;
 		}
 
-		if (!toParse.canReturn(String.class)) {
-			Skript.error(toParse + " can't be parsed as anything as it can't be a string.");
-			return false;
-		}
-
 		if (classInfo.getC() == String.class) {
 			Skript.error("Parsing as text is useless as only things that are already text may be parsed");
 			return false;
