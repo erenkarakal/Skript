@@ -2,6 +2,7 @@ package ch.njol.skript.expressions;
 
 import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.SyntaxStringBuilder;
+import ch.njol.skript.lang.Literal;
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.util.Vector;
@@ -15,6 +16,7 @@ import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 
 @Name("Vectors - Location Vector Offset")
 @Description("Returns the location offset by vectors. Supports both global and local axes. " +
@@ -76,6 +78,12 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 	public Class<? extends Location> getReturnType() {
 		return Location.class;
 	}
+  
+	public Expression<? extends Location> simplify() {
+		if (location instanceof Literal<Location> && vectors instanceof Literal<Vector>)
+			return SimplifiedLiteral.fromExpression(this);
+		return this;
+	}
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
@@ -106,8 +114,6 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 		Quaternionf rotation = new Quaternionf().rotateYXZ(yawRad, pitchRad, rollRad);
 		Vector3f localOffset = offset.toVector3f();
 		rotation.transform(localOffset);
-
-		return loc.add(localOffset.x, localOffset.y, localOffset.z);
 	}
 
 }
