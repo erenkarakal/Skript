@@ -1,14 +1,9 @@
 package ch.njol.skript.effects;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.classes.Changer.ChangeMode;
-import ch.njol.skript.classes.Changer.ChangerUtils;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.classes.Parser;
-import ch.njol.skript.doc.Description;
-import ch.njol.skript.doc.Examples;
-import ch.njol.skript.doc.Name;
-import ch.njol.skript.doc.Since;
+import ch.njol.skript.doc.*;
 import ch.njol.skript.expressions.ExprParseError;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
@@ -23,32 +18,38 @@ import java.util.stream.Collectors;
 @Name("Parse")
 @Description("Parses a string or a list of strings as a type. If \"try to\" is used, " +
 	"the existing value won't be deleted if the attempt to parse fails.")
-@Examples({
-	"set {_a::*} to \"1\", \"2a\", \"3\", \"4c\", \"5\"",
-	"parse {_a::*} as integer",
-	"send {_a::*} # would send 1, 3 and 5",
-	"send last parse errors # would print errors about 2a and 4c"
-})
+@Example("""
+	set {_a::*} to "1", "2a", "3", "4c", "5"
+	parse {_a::*} as integer
+	send {_a::*} # would send 1, 3 and 5
+	send last parse errors # would print errors about 2a and 4c
+	""")
 @Since("INSERT VERSION")
 public class EffParse extends Effect {
 
 	static {
-		Skript.registerEffect(EffParse.class, "[try:(try|attempt) to] parse %~strings% as %*classinfo%");
+		Skript.registerEffect(EffParse.class, "[try:(try|attempt) to] parse %~objects% as %*classinfo%");
 	}
 
-	private List<Expression<? extends String>> exprs;
+	private List<Expression<?>> exprs;
 	private ClassInfo<?> classInfo;
+	private Parser<?> parser;
 	private boolean tryTo;
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		tryTo = parseResult.hasTag("try");
-		Expression<String> toParse = (Expression<String>) expressions[0];
+		Expression<?> toParse = expressions[0];
 		classInfo = ((Literal<ClassInfo<?>>) expressions[1]).getSingle();
 
 		if (!toParse.getAnd()) {
 			Skript.error("Can't use 'or' lists in a parse effect");
+			return false;
+		}
+
+		if (!toParse.canReturn(String.class)) {
+			Skript.error(toParse + " can't be parsed as anything as it can't be a string.");
 			return false;
 		}
 
@@ -57,25 +58,25 @@ public class EffParse extends Effect {
 			return false;
 		}
 
-		Parser<?> parser = classInfo.getParser();
+		parser = classInfo.getParser();
 		if (parser == null || !parser.canParse(ParseContext.PARSE)) {
 			Skript.error("Text cannot be parsed as " + classInfo.getName().withIndefiniteArticle());
 			return false;
 		}
 
-		if (toParse instanceof ExpressionList<String> toParseExpressions) {
-			exprs = toParseExpressions.getAllExpressions();
-			for (Expression<? extends String> expression : exprs) {
-				if (!ChangerUtils.acceptsChange(expression, ChangeMode.SET, classInfo.getC())) {
-					Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
+		if (toParse instanceof ExpressionList<?> toParseExpressions) {
+			exprs = (List<Expression<?>>) toParseExpressions.getAllExpressions();
+			for (Expression<?> expression : exprs) {
+				if (!(expression instanceof Variable<?>)) {
+					Skript.error(expression + " can't be used here as it's not a variable");
 					return false;
 				}
 			}
 		} else {
 			exprs = List.of(toParse);
 
-			if (!ChangerUtils.acceptsChange(toParse, ChangeMode.SET, classInfo.getC())) {
-				Skript.error(toParse + " can't be set to " + classInfo.getName().withIndefiniteArticle());
+			if (!(toParse instanceof Variable<?>)) {
+				Skript.error(toParse + " can't be used here as it's not a variable");
 				return false;
 			}
 		}
@@ -84,16 +85,16 @@ public class EffParse extends Effect {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected void execute(Event event) {
-		Parser<?> parser = classInfo.getParser();
-		assert parser != null; // checked in init()
 		ExprParseError.clearErrors();
 
 		ParseLogHandler parseLogHandler = new ParseLogHandler().start();
 		try {
-			for (Expression<? extends String> expression : exprs) {
-				expression.changeInPlace(event, stringToParse -> {
+			for (Expression<?> expression : exprs) {
+				expression.changeInPlace(event, val -> {
+					if (!(val instanceof String stringToParse)) {
+						return tryTo ? val : null;
+					}
 					Object parsed = parser.parse(stringToParse, ParseContext.PARSE);
 					if (parsed == null) {
 						ExprParseError.addError(stringToParse + " could not be parsed as " + classInfo.getName().withIndefiniteArticle());

@@ -30,8 +30,19 @@ test "parse effect":
 	assert {_c} = 5 with "couldn't parse multiple expressions - 3"
 
 	# test if lists keep their indices
-	set {_a::a} to "3"
-	set {_a::b} to "5"
-	parse {_a::*} as integer
-	assert {_a::a} = 3 with "lists didn't keep their indices - 1"
-	assert {_a::b} = 5 with "lists didn't keep their indices - 2"
+	delete {_values::*}
+	set {_values::a} to "3"
+	set {_values::b} to "5"
+	parse {_values::*} as integer
+	assert {_values::a} = 3 with "lists didn't keep their indices - 1"
+	assert {_values::b} = 5 with "lists didn't keep their indices - 2"
+
+	# test multiple data types
+	delete {_values::*}
+	set {_values::1} to "2"
+	set {_values::2} to 6
+	set {_values::3} to "10"
+	parse {_values::*} as integer
+	assert {_values::1} = 2 with "multiple data types don't work - 1"
+	assert {_values::2} isn't set with "multiple data types don't work - 2"
+	assert {_values::3} = 10 with "multiple data types don't work - 3"
