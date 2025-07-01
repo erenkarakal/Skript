@@ -1,22 +1,21 @@
 package ch.njol.skript.expressions;
 
-import ch.njol.skript.doc.*;
-import ch.njol.skript.lang.SyntaxStringBuilder;
-import ch.njol.skript.lang.Literal;
+import ch.njol.skript.Skript;
+import ch.njol.skript.doc.Description;
+import ch.njol.skript.doc.Example;
+import ch.njol.skript.doc.Name;
+import ch.njol.skript.doc.Since;
+import ch.njol.skript.lang.*;
+import ch.njol.skript.lang.SkriptParser.ParseResult;
+import ch.njol.skript.lang.simplification.SimplifiedLiteral;
+import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.util.Kleenean;
 import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
-
-import ch.njol.skript.Skript;
-import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ExpressionType;
-import ch.njol.skript.lang.SkriptParser.ParseResult;
-import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.util.Kleenean;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import ch.njol.skript.lang.simplification.SimplifiedLiteral;
 
 @Name("Vectors - Location Vector Offset")
 @Description("Returns the location offset by vectors. Supports both global and local axes. " +
@@ -114,6 +113,8 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 		Quaternionf rotation = new Quaternionf().rotateYXZ(yawRad, pitchRad, rollRad);
 		Vector3f localOffset = offset.toVector3f();
 		rotation.transform(localOffset);
+
+		return loc.add(localOffset.x, localOffset.y, localOffset.z);
 	}
 
 }
