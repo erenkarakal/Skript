@@ -41,7 +41,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 
-public class SkriptCommand implements CommandExecutor {
+public class OldSkriptCommand implements CommandExecutor {
 
 	private static final String CONFIG_NODE = "skript command";
 	private static final ArgsMessage m_reloading = new ArgsMessage(CONFIG_NODE + ".reload.reloading");
