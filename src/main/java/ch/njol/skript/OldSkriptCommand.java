@@ -12,6 +12,7 @@ import ch.njol.skript.log.LogEntry;
 import ch.njol.skript.log.RedirectingLogHandler;
 import ch.njol.skript.log.TestingLogHandler;
 import ch.njol.skript.log.TimingLogHandler;
+import ch.njol.skript.skcommand.ScriptCommand;
 import ch.njol.skript.test.runner.SkriptTestEvent;
 import ch.njol.skript.test.runner.TestMode;
 import ch.njol.skript.test.runner.TestTracker;
@@ -212,7 +213,7 @@ public class OldSkriptCommand implements CommandExecutor {
 				if (args[1].equalsIgnoreCase("all")) {
 					try {
 						info(sender, "enable.all.enabling");
-						ScriptLoader.loadScripts(toggleFiles(Skript.getInstance().getScriptsFolder(), true), logHandler)
+						ScriptLoader.loadScripts(ScriptCommand.toggleFiles(Skript.getInstance().getScriptsFolder(), true), logHandler)
 							.thenAccept(scriptInfo -> {
 								if (logHandler.numErrors() == 0) {
 									info(sender, "enable.all.enabled");
@@ -235,7 +236,7 @@ public class OldSkriptCommand implements CommandExecutor {
 						}
 
 						try {
-							scriptFile = toggleFile(scriptFile, true);
+							scriptFile = ScriptCommand.toggleFile(scriptFile, true);
 						} catch (IOException e) {
 							error(sender, "enable.single.io error", scriptFile.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH), ExceptionUtils.toString(e));
 							return true;
@@ -254,7 +255,7 @@ public class OldSkriptCommand implements CommandExecutor {
 					} else {
 						Set<File> scriptFiles;
 						try {
-							scriptFiles = toggleFiles(scriptFile, true);
+							scriptFiles = ScriptCommand.toggleFiles(scriptFile, true);
 						} catch (IOException e) {
 							error(sender, "enable.folder.io error", scriptFile.getName(), ExceptionUtils.toString(e));
 							return true;
@@ -283,7 +284,7 @@ public class OldSkriptCommand implements CommandExecutor {
 				if (args[1].equalsIgnoreCase("all")) {
 					ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
 					try {
-						toggleFiles(Skript.getInstance().getScriptsFolder(), false);
+						ScriptCommand.toggleFiles(Skript.getInstance().getScriptsFolder(), false);
 						info(sender, "disable.all.disabled");
 					} catch (IOException e) {
 						error(sender, "disable.all.io error", ExceptionUtils.toString(e));
@@ -306,7 +307,7 @@ public class OldSkriptCommand implements CommandExecutor {
 						String fileName = scriptFile.getName();
 
 						try {
-							toggleFile(scriptFile, false);
+							ScriptCommand.toggleFile(scriptFile, false);
 						} catch (IOException e) {
 							error(sender, "disable.single.io error", scriptFile.getName(), ExceptionUtils.toString(e));
 							return true;
@@ -317,7 +318,7 @@ public class OldSkriptCommand implements CommandExecutor {
 
 						Set<File> scripts;
 						try {
-							scripts = toggleFiles(scriptFile, false);
+							scripts = ScriptCommand.toggleFiles(scriptFile, false);
 						} catch (IOException e) {
 							error(sender, "disable.folder.io error", scriptFile.getName(), ExceptionUtils.toString(e));
 							return true;
@@ -522,40 +523,6 @@ public class OldSkriptCommand implements CommandExecutor {
 		return ScriptLoader.getScriptFromName(script);
 	}
 
-	private static File toggleFile(File file, boolean enable) throws IOException {
-		if (enable)
-			return FileUtils.move(
-				file,
-				new File(file.getParentFile(), file.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH)),
-				false
-			);
-		return FileUtils.move(
-			file,
-			new File(file.getParentFile(), ScriptLoader.DISABLED_SCRIPT_PREFIX + file.getName()),
-			false
-		);
-	}
 
-	private static Set<File> toggleFiles(File folder, boolean enable) throws IOException {
-		FileFilter filter = enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter();
-
-		Set<File> changed = new HashSet<>();
-		for (File file : folder.listFiles()) {
-			if (file.isDirectory()) {
-				changed.addAll(toggleFiles(file, enable));
-			} else {
-				if (filter.accept(file)) {
-					String fileName = file.getName();
-					changed.add(FileUtils.move(
-						file,
-						new File(file.getParentFile(), enable ? fileName.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH) : ScriptLoader.DISABLED_SCRIPT_PREFIX + fileName),
-						false
-					));
-				}
-			}
-		}
-
-		return changed;
-	}
 
 }

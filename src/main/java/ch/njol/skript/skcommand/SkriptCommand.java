@@ -1,5 +1,9 @@
 package ch.njol.skript.skcommand;
 
+import ch.njol.skript.Skript;
+import ch.njol.skript.localization.Language;
+import ch.njol.skript.localization.PluralizingArgsMessage;
+import ch.njol.util.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -10,10 +14,27 @@ import java.util.*;
 
 public class SkriptCommand implements TabExecutor {
 
-	private static final Set<SubCommand> SUB_COMMANDS = Set.of(
-		new HelpCommand(),
-		new TestCommand()
-	);
+	public static final String CONFIG_NODE = "skript command";
+
+	private static final Set<SubCommand> SUB_COMMANDS;
+	private static final List<String> ALIASES;
+
+	static {
+		SUB_COMMANDS = Set.of(
+			new HelpCommand(),
+			new ReloadCommand(),
+			new EnableCommand(),
+			new DisableCommand(),
+			new TestCommand()
+		);
+
+		// cache subcommand aliases for tab completions
+		ALIASES = new ArrayList<>();
+
+		for (SubCommand subCommand : SUB_COMMANDS) {
+			ALIASES.addAll(Arrays.asList(subCommand.getAliases()));
+		}
+	}
 
 	/**
 	 * Gets a SubCommand by its alias
@@ -31,14 +52,25 @@ public class SkriptCommand implements TabExecutor {
 		return null;
 	}
 
+	/**
+	 * @return All aliases of all subcommands.
+	 */
 	public static List<String> getAllAliases() {
-		Set<String> aliases = new HashSet<>();
+		return ALIASES;
+	}
 
-		for (SubCommand subCommand : SUB_COMMANDS) {
-			aliases.addAll(Arrays.asList(subCommand.getAliases()));
-		}
+	public static void info(CommandSender sender, String what, Object... args) {
+		what = args.length == 0
+			? Language.get(CONFIG_NODE + "." + what)
+			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
+		Skript.info(sender, StringUtils.fixCapitalization(what));
+	}
 
-		return new ArrayList<>(aliases);
+	public static void error(CommandSender sender, String what, Object... args) {
+		what = args.length == 0
+			? Language.get(CONFIG_NODE + "." + what)
+			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
+		Skript.error(sender, StringUtils.fixCapitalization(what));
 	}
 
 	@Override
@@ -52,7 +84,6 @@ public class SkriptCommand implements TabExecutor {
 
 		if (subCommand == null) {
 			// TODO - send unknown command text
-			sender.sendMessage("");
 			return true;
 		}
 
@@ -75,6 +106,9 @@ public class SkriptCommand implements TabExecutor {
 		return subCommand.getTabCompletions(sender, args);
 	}
 
+	/**
+	 * Represents a subcommand of the /sk command, like /sk reload
+	 */
 	public static abstract class SubCommand {
 
 		public final String[] aliases;
