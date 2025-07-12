@@ -49,24 +49,24 @@ public class OldSkriptCommand implements CommandExecutor {
 
 	// TODO document this command on the website
 	private static final CommandHelp SKRIPT_COMMAND_HELP = new CommandHelp("<gray>/<gold>skript", SkriptColor.LIGHT_CYAN, CONFIG_NODE + ".help")
-			.add(new CommandHelp("reload", SkriptColor.DARK_RED)
+			.add(new CommandHelp("reload", SkriptColor.DARK_RED) // done
 				.add("all")
 				.add("config")
 				.add("aliases")
 				.add("scripts")
 				.add("<script>")
-			).add(new CommandHelp("enable", SkriptColor.DARK_RED)
+			).add(new CommandHelp("enable", SkriptColor.DARK_RED) // done
 				.add("all")
 				.add("<script>")
-			).add(new CommandHelp("disable", SkriptColor.DARK_RED)
+			).add(new CommandHelp("disable", SkriptColor.DARK_RED) // done
 				.add("all")
 				.add("<script>")
 			).add(new CommandHelp("update", SkriptColor.DARK_RED)
 				.add("check")
 				.add("changes")
 			)
-			.add("list")
-			.add("show")
+			.add("list") // done
+			.add("show") // done
 			.add("info")
 			.add("help");
 

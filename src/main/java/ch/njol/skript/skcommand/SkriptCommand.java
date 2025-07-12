@@ -1,8 +1,10 @@
 package ch.njol.skript.skcommand;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.doc.Documentation;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.localization.PluralizingArgsMessage;
+import ch.njol.skript.test.runner.TestMode;
 import ch.njol.util.StringUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,8 +27,19 @@ public class SkriptCommand implements TabExecutor {
 			new ReloadCommand(),
 			new EnableCommand(),
 			new DisableCommand(),
+			new ListCommand(),
 			new TestCommand()
 		);
+
+		// add a command to generate documentation
+		if (TestMode.GEN_DOCS || Documentation.isDocsTemplateFound()) {
+			// TODO - add /sk gen-docs
+		}
+
+		// add a command to run individual tests
+		if (TestMode.DEV_MODE) {
+			// TODO - add /sk test
+		}
 
 		// cache subcommand aliases for tab completions
 		ALIASES = new ArrayList<>();
@@ -84,6 +97,7 @@ public class SkriptCommand implements TabExecutor {
 
 		if (subCommand == null) {
 			// TODO - send unknown command text
+			sender.sendMessage("unknown command");
 			return true;
 		}
 
@@ -111,7 +125,7 @@ public class SkriptCommand implements TabExecutor {
 	 */
 	public static abstract class SubCommand {
 
-		public final String[] aliases;
+		private final String[] aliases;
 
 		public SubCommand(String... aliases) {
 			this.aliases = aliases;
