@@ -121,12 +121,13 @@ public class ScriptCommand {
 	}
 
 	public static File toggleFile(File file, boolean enable) throws IOException {
-		if (enable)
+		if (enable) {
 			return FileUtils.move(
 				file,
 				new File(file.getParentFile(), file.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH)),
 				false
 			);
+		}
 		return FileUtils.move(
 			file,
 			new File(file.getParentFile(), ScriptLoader.DISABLED_SCRIPT_PREFIX + file.getName()),
@@ -138,6 +139,7 @@ public class ScriptCommand {
 		FileFilter filter = enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter();
 
 		Set<File> changed = new HashSet<>();
+		//noinspection ConstantConditions
 		for (File file : folder.listFiles()) {
 			if (file.isDirectory()) {
 				changed.addAll(toggleFiles(file, enable));

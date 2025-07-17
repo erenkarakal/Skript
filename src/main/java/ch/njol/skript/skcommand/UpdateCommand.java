@@ -6,21 +6,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class HelpCommand extends SubCommand {
+public class UpdateCommand extends SubCommand {
 
-	public HelpCommand() {
-		super("help");
+	public UpdateCommand() {
+		super("update");
 	}
 
 	// TODO
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		sender.sendMessage("help");
+		sender.sendMessage("update");
 	}
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return List.of("help");
+		return List.of("update");
 	}
-
 }

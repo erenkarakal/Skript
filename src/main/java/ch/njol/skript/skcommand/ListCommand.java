@@ -45,6 +45,7 @@ public class ListCommand extends SubCommand {
 	private static List<File> getSubFiles(File file) {
 		List<File> files = new ArrayList<>();
 		if (file.isDirectory()) {
+			//noinspection ConstantConditions
 			for (File listFile : file.listFiles(f -> !f.isHidden())) {
 				if (listFile.isDirectory()) {
 					files.addAll(getSubFiles(listFile));

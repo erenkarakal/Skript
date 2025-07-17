@@ -22,23 +22,22 @@ public class SkriptCommand implements TabExecutor {
 	private static final List<String> ALIASES;
 
 	static {
-		SUB_COMMANDS = Set.of(
+		SUB_COMMANDS = new HashSet<>(Arrays.asList(
 			new HelpCommand(),
 			new ReloadCommand(),
 			new EnableCommand(),
 			new DisableCommand(),
-			new ListCommand(),
-			new TestCommand()
-		);
+			new ListCommand()
+		));
 
 		// add a command to generate documentation
 		if (TestMode.GEN_DOCS || Documentation.isDocsTemplateFound()) {
-			// TODO - add /sk gen-docs
+			SUB_COMMANDS.add(new GenDocsCommand());
 		}
 
 		// add a command to run individual tests
 		if (TestMode.DEV_MODE) {
-			// TODO - add /sk test
+			SUB_COMMANDS.add(new TestCommand());
 		}
 
 		// cache subcommand aliases for tab completions
