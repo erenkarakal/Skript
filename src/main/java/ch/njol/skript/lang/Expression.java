@@ -96,6 +96,15 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	}
 
 	/**
+	 * Gets a non-null stream for all values of this expression via {@link #getAll(Event)}.
+	 * @param event The event.
+	 */
+	default Stream<? extends @NotNull T> streamAll(Event event) {
+		Iterator<? extends T> iterator = Arrays.stream(getAll(event)).iterator();
+		return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
+	}
+
+	/**
 	 * @return true if this expression will ever only return one value at most, false if it can return multiple values.
 	 */
 	boolean isSingle();
@@ -245,6 +254,11 @@ public interface Expression<T> extends SyntaxElement, Debuggable, Loopable<T>, S
 	 * @return The unconverted source expression of this expression or this expression itself if it was never converted.
 	 */
 	Expression<?> getSource();
+
+	@Override
+	default Expression<? extends T> simplify() {
+		return this;
+	}
 
 	/**
 	 * Tests whether this expression supports the given mode, and if yes what type it expects the <code>delta</code> to be.

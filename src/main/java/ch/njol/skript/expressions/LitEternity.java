@@ -15,14 +15,15 @@ import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
 @Name("An Eternity")
-@Description({"Represents a timespan with an infinite duration. " +
+@Description({
+	"Represents a timespan with an infinite duration. " +
 	"An eternity is also created when arithmetic results in a timespan larger than about 292 million years.",
 	"Infinite timespans generally follow the rules of infinity, where most math operations do nothing. " +
 	"However, operations that would return NaN with numbers will instead return a timespan of 0 seconds.",
 	"Note that an eternity will often be treated as the longest duration something supports, rather than a true eternity."
 })
 @Example("set fire to the player for an eternity")
-@Since("INSERT VERSION")
+@Since("2.12")
 public class LitEternity extends SimpleLiteral<Timespan> {
 
 	static {
