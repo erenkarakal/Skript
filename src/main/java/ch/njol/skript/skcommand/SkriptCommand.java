@@ -71,6 +71,14 @@ public class SkriptCommand implements TabExecutor {
 		return ALIASES;
 	}
 
+	/**
+	 * @see SubCommand
+	 * @return All SubCommands
+	 */
+	public static Set<SubCommand> getSubCommands() {
+		return SUB_COMMANDS;
+	}
+
 	public static void info(CommandSender sender, String what, Object... args) {
 		what = args.length == 0
 			? Language.get(CONFIG_NODE + "." + what)
