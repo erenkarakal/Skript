@@ -27,7 +27,8 @@ public class SkriptCommand implements TabExecutor {
 			new ReloadCommand(),
 			new EnableCommand(),
 			new DisableCommand(),
-			new ListCommand()
+			new ListCommand(),
+			new InfoCommand()
 		));
 
 		// add a command to generate documentation
@@ -77,6 +78,13 @@ public class SkriptCommand implements TabExecutor {
 	 */
 	public static Set<SubCommand> getSubCommands() {
 		return SUB_COMMANDS;
+	}
+
+	public static void send(CommandSender sender, String what, Object... args) {
+		what = args.length == 0
+			? Language.get(CONFIG_NODE + "." + what)
+			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
+		sender.sendRichMessage(StringUtils.fixCapitalization(what));
 	}
 
 	public static void info(CommandSender sender, String what, Object... args) {
