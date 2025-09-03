@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ch.njol.skript.skcommand.SkriptCommand.send;
+import static ch.njol.skript.skcommand.SkriptCommand.info;
 
 public class InfoCommand extends SubCommand {
 
@@ -31,24 +31,24 @@ public class InfoCommand extends SubCommand {
 
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		send(sender, "info.aliases");
-		send(sender, "info.documentation");
-		send(sender, "info.tutorials");
+		info(sender, "info.aliases");
+		info(sender, "info.documentation");
+		info(sender, "info.tutorials");
 
-		send(sender, "info.server", getServerVersion());
-		send(sender, "info.version", getSkriptVersion());
+		info(sender, "info.server", getServerVersion());
+		info(sender, "info.version", getSkriptVersion());
 
 		if (Skript.getAddons().isEmpty()) {
-			send(sender, "info.addons", "None");
+			info(sender, "info.addons", "None");
 		} else {
-			send(sender, "info.addons", "");
+			info(sender, "info.addons", "");
 			getAddonList().forEach(sender::sendRichMessage);
 		}
 
 		if (getDependencyList().isEmpty()) {
-			send(sender, "info.dependencies", "None");
+			info(sender, "info.dependencies", "None");
 		} else {
-			send(sender, "info.dependencies", "");
+			info(sender, "info.dependencies", "");
 			getDependencyList().forEach(sender::sendRichMessage);
 		}
 	}

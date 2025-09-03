@@ -1,5 +1,6 @@
 package ch.njol.skript.skcommand;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import org.bukkit.command.CommandSender;
@@ -16,14 +17,13 @@ public class HelpCommand extends SubCommand {
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		String usage = Language.get(SkriptCommand.CONFIG_NODE + ".usage");
-		sender.sendRichMessage(usage + " <gold>/skript <red>...");
+		Skript.message(sender, usage + " <gold>/skript <red>...");
 
 		for (SubCommand subCommand : SkriptCommand.getSubCommands()) {
 			String command = String.join("/", subCommand.getAliases());
 			String description = getDescription(subCommand.getAliases()[0]);
-			sender.sendRichMessage("   <yellow>" + command + " <dark_gray>- <white>" + description);
+			Skript.message(sender, "   <yellow>" + command + " <dark_gray>- <white>" + description);
 		}
-
 	}
 
 	@Override

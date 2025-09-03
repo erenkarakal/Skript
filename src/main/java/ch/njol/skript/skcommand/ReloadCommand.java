@@ -26,6 +26,7 @@ public class ReloadCommand extends SubCommand {
 
 	public ReloadCommand() {
 		super("reload");
+		args("all", "scripts", "config", "aliases", "<script>");
 	}
 
 	@Override
@@ -60,7 +61,8 @@ public class ReloadCommand extends SubCommand {
 		Aliases.clear();
 		Aliases.loadAsync().thenRun(() -> {
 			ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
-			ScriptLoader.loadScripts(Skript.getInstance().getScriptsFolder(), OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
+			File scriptsFolder = Skript.getInstance().getScriptsFolder();
+			ScriptLoader.loadScripts(scriptsFolder, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
 				.thenAccept(info -> {
 					if (info.files == 0)
 						Skript.warning(Skript.m_no_scripts.toString());
@@ -74,7 +76,8 @@ public class ReloadCommand extends SubCommand {
 		reloading(sender, "scripts", redirectingLogHandler);
 
 		ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
-		ScriptLoader.loadScripts(Skript.getInstance().getScriptsFolder(), OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
+		File scriptsFolder = Skript.getInstance().getScriptsFolder();
+		ScriptLoader.loadScripts(scriptsFolder, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
 			.thenAccept(info -> {
 				if (info.files == 0)
 					Skript.warning(Skript.m_no_scripts.toString());

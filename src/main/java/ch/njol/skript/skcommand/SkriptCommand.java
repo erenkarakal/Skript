@@ -28,7 +28,8 @@ public class SkriptCommand implements TabExecutor {
 			new EnableCommand(),
 			new DisableCommand(),
 			new ListCommand(),
-			new InfoCommand()
+			new InfoCommand(),
+			new UpdateCommand()
 		));
 
 		// add a command to generate documentation
@@ -80,13 +81,6 @@ public class SkriptCommand implements TabExecutor {
 		return SUB_COMMANDS;
 	}
 
-	public static void send(CommandSender sender, String what, Object... args) {
-		what = args.length == 0
-			? Language.get(CONFIG_NODE + "." + what)
-			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
-		sender.sendRichMessage(StringUtils.fixCapitalization(what));
-	}
-
 	public static void info(CommandSender sender, String what, Object... args) {
 		what = args.length == 0
 			? Language.get(CONFIG_NODE + "." + what)
@@ -99,6 +93,22 @@ public class SkriptCommand implements TabExecutor {
 			? Language.get(CONFIG_NODE + "." + what)
 			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
 		Skript.error(sender, StringUtils.fixCapitalization(what));
+	}
+
+	/**
+	 * Sends a message showing all arguments of a SubCommand
+	 * @param sender Who to send it to
+	 * @param subCommand The command to show the arguments of
+	 */
+	public static void sendHelp(CommandSender sender, SubCommand subCommand) {
+		String command = subCommand.getAliases()[0];
+		String usage = Language.get(CONFIG_NODE + ".usage");
+		Skript.message(sender, usage + " <gold>/skript <yellow>" + command + " <red>...");
+
+		for (String arg : subCommand.args()) {
+			String description = Language.get(CONFIG_NODE + ".help." + command + "." + arg);
+			Skript.message(sender, "   <yellow>" + arg + " <gray>- <white>" + description);
+		}
 	}
 
 	@Override
@@ -116,13 +126,18 @@ public class SkriptCommand implements TabExecutor {
 			return true;
 		}
 
+		// sub command requires args but none was given
+		if (args.length == 1 && subCommand.args() != null) {
+			sendHelp(sender, subCommand);
+		}
+
 		subCommand.execute(sender, args);
 		return true;
 	}
 
 	@Override
-	public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-												@NotNull String @NotNull [] args) {
+	public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
+												@NotNull String label, @NotNull String @NotNull [] args) {
 		if (args.length == 0 || args[0].isEmpty()) {
 			return getAllAliases();
 		}
@@ -141,6 +156,7 @@ public class SkriptCommand implements TabExecutor {
 	public static abstract class SubCommand {
 
 		private final String[] aliases;
+		private String[] args;
 
 		public SubCommand(String... aliases) {
 			this.aliases = aliases;
@@ -148,6 +164,14 @@ public class SkriptCommand implements TabExecutor {
 
 		public String[] getAliases() {
 			return aliases;
+		}
+
+		public void args(String... args) {
+			this.args = args;
+		}
+
+		public String[] args() {
+			return args;
 		}
 
 		/**
