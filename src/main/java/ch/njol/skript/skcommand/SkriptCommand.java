@@ -129,6 +129,7 @@ public class SkriptCommand implements TabExecutor {
 		// sub command requires args but none was given
 		if (args.length == 1 && subCommand.args() != null) {
 			sendHelp(sender, subCommand);
+			return true;
 		}
 
 		subCommand.execute(sender, args);
