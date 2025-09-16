@@ -5,6 +5,7 @@ import ch.njol.skript.command.CommandHelp;
 import ch.njol.skript.doc.Documentation;
 import ch.njol.skript.doc.HTMLGenerator;
 import ch.njol.skript.doc.JSONGenerator;
+import ch.njol.skript.lang.GlobalOptions;
 import ch.njol.skript.localization.ArgsMessage;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.localization.PluralizingArgsMessage;
@@ -53,6 +54,7 @@ public class SkriptCommand implements CommandExecutor {
 				.add("config")
 				.add("aliases")
 				.add("scripts")
+				.add("global-options")
 				.add("<script>")
 			).add(new CommandHelp("enable", SkriptColor.DARK_RED)
 				.add("all")
@@ -168,6 +170,10 @@ public class SkriptCommand implements CommandExecutor {
 					reloading(sender, "aliases", logHandler);
 					Aliases.clear();
 					Aliases.loadAsync().thenRun(() -> reloaded(sender, logHandler, timingLogHandler, "aliases"));
+				} else if (args[1].equalsIgnoreCase("global-options")) {
+					reloading(sender, "global options", logHandler);
+					GlobalOptions.load();
+					reloaded(sender, logHandler, timingLogHandler, "global options");
 				} else { // Reloading an individual Script or folder
 					File scriptFile = getScriptFromArgs(sender, args);
 					if (scriptFile == null)
