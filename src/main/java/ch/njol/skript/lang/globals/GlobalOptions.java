@@ -6,6 +6,7 @@ import ch.njol.skript.structures.StructOptions;
 import ch.njol.util.StringUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -42,10 +43,10 @@ public class GlobalOptions extends GlobalFile {
 	}
 
 	/**
-	 * @return A modifiable map of global options
+	 * @return An unmodifiable map of global options
 	 */
 	public static Map<String, String> getOptions() {
-		return options;
+		return Collections.unmodifiableMap(options);
 	}
 
 	/**
