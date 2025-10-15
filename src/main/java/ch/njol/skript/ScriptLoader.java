@@ -25,6 +25,7 @@ import ch.njol.util.StringUtils;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.script.ScriptWarning;
 import org.skriptlang.skript.lang.structure.Structure;
@@ -38,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -251,6 +253,12 @@ public class ScriptLoader {
 	private static int asyncLoaderSize;
 
 	/**
+	 * The executor used for async loading.
+	 * Gets applied in the {@link #setAsyncLoaderSize(int)} method.
+	 */
+	private static Executor executor;
+
+	/**
 	 * Checks if scripts are loaded in separate thread. If true,
 	 * following behavior should be expected:
 	 * <ul>
@@ -274,6 +282,21 @@ public class ScriptLoader {
 	 */
 	public static boolean isParallel() {
 		return asyncLoaderSize > 1;
+	}
+
+	/**
+	 * Returns the executor used for submitting tasks based on the user config.sk settings.
+	 * 
+	 * The thread count will be based on the value of {@link #asyncLoaderSize}.
+	 * <p>
+	 * You may also use class {@link ch.njol.skript.util.Task} and the appropriate constructor
+	 * to run tasks on the script loader executor.
+	 * 
+	 * @return the executor used for submitting tasks. Can be null if called before Skript loads config.sk
+	 */
+	@UnknownNullability
+	public static Executor getExecutor() {
+		return executor;
 	}
 
 	/**
@@ -308,6 +331,17 @@ public class ScriptLoader {
 
 		if (loaderThreads.size() != size)
 			throw new IllegalStateException();
+		
+		executor = Executors.newFixedThreadPool(asyncLoaderSize, new ThreadFactory() {
+			private final AtomicInteger threadId = new AtomicInteger(0);
+
+			@Override
+			public Thread newThread(Runnable runnable) {
+				Thread thread = new Thread(asyncLoaderThreadGroup, runnable, "Skript async loaders thread " + threadId.incrementAndGet());
+				thread.setDaemon(true);
+				return thread;
+			}
+		});
 	}
 
 	/**
