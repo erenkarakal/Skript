@@ -6,7 +6,6 @@ import ch.njol.skript.structures.StructOptions;
 import ch.njol.util.StringUtils;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -17,14 +16,6 @@ import java.util.regex.Matcher;
 public class GlobalOptions extends GlobalFile {
 
 	private static final Map<String, String> options = new HashMap<>();
-
-	static {
-		// for unit tests
-		if (Skript.testing()) {
-			options.put("GlobalOptionTest", "works!!!");
-			options.put("GlobalOptionOverrideTest", "shouldn't work!!!");
-		}
-	}
 
 	public GlobalOptions() {
 		super("options");
@@ -39,16 +30,22 @@ public class GlobalOptions extends GlobalFile {
 			Config config = new Config(file, true, false, ":");
 			config.getMainNode().convertToEntries(-1);
 			StructOptions.loadOptions(config.getMainNode(), "", options);
+
+			// for unit tests
+			if (Skript.testing()) {
+				options.put("GlobalOptionTest", "works!!!");
+				options.put("GlobalOptionOverrideTest", "shouldn't work!!!");
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	/**
-	 * @return An unmodifiable map of global options
+	 * @return A modifiable map of global options
 	 */
 	public static Map<String, String> getOptions() {
-		return Collections.unmodifiableMap(options);
+		return options;
 	}
 
 	/**
