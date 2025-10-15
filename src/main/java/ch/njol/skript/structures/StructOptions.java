@@ -8,14 +8,13 @@ import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
-import ch.njol.skript.lang.GlobalOptions;
+import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.util.StringUtils;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.entry.EntryContainer;
-import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.lang.script.ScriptData;
 import org.skriptlang.skript.lang.structure.Structure;
 
@@ -64,7 +63,7 @@ public class StructOptions extends Structure {
 		return true;
 	}
 
-	private void loadOptions(SectionNode sectionNode, String prefix, Map<String, String> options) {
+	public static void loadOptions(SectionNode sectionNode, String prefix, Map<String, String> options) {
 		for (Node node : sectionNode) {
 			if (node instanceof EntryNode) {
 				options.put(prefix + node.getKey(), ((EntryNode) node).getValue());

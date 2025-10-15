@@ -19,6 +19,7 @@ skript:
 	finished loading: Finished loading.
 	warning message: It appears that /reload or another plugin reloaded Skript. This is not supported behaviour and may cause issues.
 	restart message: Please consider restarting the server instead.
+	global options: You must also reload any scripts that use global options for the changes to take effect.
 
 # -- Skript command --
 skript command:

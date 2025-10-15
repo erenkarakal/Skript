@@ -5,7 +5,7 @@ import ch.njol.skript.command.CommandHelp;
 import ch.njol.skript.doc.Documentation;
 import ch.njol.skript.doc.HTMLGenerator;
 import ch.njol.skript.doc.JSONGenerator;
-import ch.njol.skript.lang.GlobalOptions;
+import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.localization.ArgsMessage;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.localization.PluralizingArgsMessage;
@@ -142,7 +142,7 @@ public class SkriptCommand implements CommandExecutor {
 				if (args[1].equalsIgnoreCase("all")) {
 					reloading(sender, "config, aliases, global options and scripts", logHandler);
 					SkriptConfig.load();
-					GlobalOptions.load();
+					new GlobalOptions().load();
 					Aliases.clear();
 					Aliases.loadAsync().thenRun(() -> {
 						ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
@@ -173,7 +173,7 @@ public class SkriptCommand implements CommandExecutor {
 					Aliases.loadAsync().thenRun(() -> reloaded(sender, logHandler, timingLogHandler, "aliases"));
 				} else if (args[1].equalsIgnoreCase("global-options")) {
 					reloading(sender, "global options", logHandler);
-					GlobalOptions.load();
+					new GlobalOptions().load();
 					reloaded(sender, logHandler, timingLogHandler, "global options");
 				} else { // Reloading an individual Script or folder
 					File scriptFile = getScriptFromArgs(sender, args);

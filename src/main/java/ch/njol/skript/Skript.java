@@ -17,6 +17,7 @@ import ch.njol.skript.events.EvtSkript;
 import ch.njol.skript.hooks.Hook;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.Condition.ConditionType;
+import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.localization.Message;
@@ -539,7 +540,12 @@ public final class Skript extends JavaPlugin implements Listener {
 		RuntimeErrorManager.refresh();
 		getRuntimeErrorManager().addConsumer(new BukkitRuntimeErrorConsumer());
 
-		GlobalOptions.load();
+		File globalsFolder = new File(Skript.getInstance().getDataFolder(), "/globals/");
+		if (!globalsFolder.exists()) {
+			globalsFolder.mkdir(); // TODO - handle case where folder fails to be created ?
+		}
+
+ 		new GlobalOptions().load();
 
 		// Now override the verbosity if test mode is enabled
 		if (TestMode.VERBOSITY != null)
