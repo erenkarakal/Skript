@@ -20,14 +20,14 @@ abstract class GlobalFile {
 		file = new File(Skript.getInstance().getDataFolder(), filePath);
 
 		if (!file.exists()) {
-			loadFile(filePath, file);
+			copyFile(filePath, file);
 		}
 	}
 
 	/**
-	 * Loads a file from the Skript jar into the target file
+	 * Copies a file from the Skript jar into the target file
 	 */
-	private static void loadFile(String sourcePath, File targetFile) {
+	private static void copyFile(String sourcePath, File targetFile) {
 		try (InputStream stream = Skript.getInstance().getResource(sourcePath)) {
 			if (stream == null) {
 				Skript.error("The " + sourcePath + " file doesn't exist and couldn't be read from the jar file.");
