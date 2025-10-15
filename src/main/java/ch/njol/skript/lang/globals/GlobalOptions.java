@@ -18,6 +18,14 @@ public class GlobalOptions extends GlobalFile {
 
 	private static final Map<String, String> options = new HashMap<>();
 
+	static {
+		// for unit tests
+		if (Skript.testing()) {
+			options.put("GlobalOptionTest", "works!!!");
+			options.put("GlobalOptionOverrideTest", "shouldn't work!!!");
+		}
+	}
+
 	public GlobalOptions() {
 		super("options");
 	}
