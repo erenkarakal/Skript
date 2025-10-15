@@ -542,7 +542,7 @@ public final class Skript extends JavaPlugin implements Listener {
 
 		File globalsFolder = new File(Skript.getInstance().getDataFolder(), "/globals/");
 		if (!globalsFolder.exists()) {
-			globalsFolder.mkdir(); // TODO - handle case where folder fails to be created ?
+			globalsFolder.mkdir();
 		}
 
  		new GlobalOptions().load();

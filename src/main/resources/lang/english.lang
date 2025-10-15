@@ -19,7 +19,6 @@ skript:
 	finished loading: Finished loading.
 	warning message: It appears that /reload or another plugin reloaded Skript. This is not supported behaviour and may cause issues.
 	restart message: Please consider restarting the server instead.
-	global options: You must also reload any scripts that use global options for the changes to take effect.
 
 # -- Skript command --
 skript command:
@@ -66,6 +65,7 @@ skript command:
 		error details: <light red>    %s<reset>\n
 		other details: <white>    %s<reset>\n
 		line details: <gold>    Line: <gray>%s<reset>\n <reset>
+		global options: You must also reload any scripts that use global options for the changes to take effect.
 
 		config, aliases, global options and scripts: the config, aliases, global options and all scripts
 		scripts: all scripts

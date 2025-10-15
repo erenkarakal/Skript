@@ -175,6 +175,7 @@ public class SkriptCommand implements CommandExecutor {
 					reloading(sender, "global options", logHandler);
 					new GlobalOptions().load();
 					reloaded(sender, logHandler, timingLogHandler, "global options");
+					info(sender, "reload.global options");
 				} else { // Reloading an individual Script or folder
 					File scriptFile = getScriptFromArgs(sender, args);
 					if (scriptFile == null)
