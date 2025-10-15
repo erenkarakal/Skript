@@ -58,7 +58,6 @@ public class GlobalOptions extends GlobalFile {
 		return StringUtils.replaceAll(string, "\\{@(.+?)\\}", m -> {
 			String option = GlobalOptions.getOptions().get(m.group(1));
 			if (option == null) {
-				Skript.error("undefined option " + m.group());
 				return m.group();
 			}
 			return Matcher.quoteReplacement(option);
