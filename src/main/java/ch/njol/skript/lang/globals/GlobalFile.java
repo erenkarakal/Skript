@@ -35,7 +35,7 @@ abstract class GlobalFile {
 			}
 			Files.copy(stream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			Skript.exception(e, "Error while loading a file from the jar file.");
+			Skript.exception(e, "Error while loading the " + sourcePath + " file from the jar file.");
 		}
 	}
 
