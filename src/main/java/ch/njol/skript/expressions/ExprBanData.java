@@ -7,6 +7,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.util.Date;
 import ch.njol.skript.util.Patterns;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
@@ -20,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Date;
 
 @Name("Ban Details")
 @Description("Returns data about a player or IP ban. " +
@@ -77,24 +77,16 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 		for (int i = 0; i < targets.length; i++) {
 			Object target = targets[i];
-			BanEntry<?> banEntry;
-
-			if (target instanceof String ipTarget) {
-				banEntry = getBanEntry(ipTarget);
-			} else if (target instanceof OfflinePlayer playerTarget) {
-				banEntry = getBanEntry(playerTarget);
-			} else {
-				return null;
-			}
+			BanEntry<?> banEntry = getBanEntry(target);
 
 			if (banEntry == null) {
-				return null;
+				continue;
 			}
 
 			results[i] = switch (entryType) {
-				case BAN_DATE -> banEntry.getCreated();
+				case BAN_DATE -> Date.fromJavaDate(banEntry.getCreated());
 				case SOURCE -> banEntry.getSource();
-				case EXPIRE_DATE -> banEntry.getExpiration();
+				case EXPIRE_DATE -> Date.fromJavaDate(banEntry.getExpiration());
 				case REASON -> banEntry.getReason();
 			};
 		}
@@ -123,17 +115,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 		Object[] targets = banTarget.getAll(event);
 
 		for (Object target : targets) {
-			BanEntry<?> banEntry;
+			BanEntry<?> banEntry = getBanEntry(target);
 
-			if (target instanceof String ipTarget) {
-				banEntry = getBanEntry(ipTarget);
-			} else if (target instanceof OfflinePlayer playerTarget) {
-				banEntry = getBanEntry(playerTarget);
-			} else {
-				return;
-			}
-
-			if (banEntry == null) { // target isn't banned
+			if (banEntry == null) {
 				continue;
 			}
 
@@ -163,7 +147,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 				}
 
 				if (entryType == BanEntryType.EXPIRE_DATE) {
-					ch.njol.skript.util.Date expiration = ch.njol.skript.util.Date.fromJavaDate(banEntry.getExpiration());
+					Date expiration = Date.fromJavaDate(banEntry.getExpiration());
 
 					if (mode == ChangeMode.ADD) {
 						expiration = expiration.plus(timespan);
@@ -203,6 +187,16 @@ public class ExprBanData extends SimpleExpression<Object> {
 			case EXPIRE_DATE -> "the date " + target + "'s ban expires";
 			case REASON -> "the reason " + target + " was banned";
 		};
+	}
+
+	private static BanEntry<?> getBanEntry(Object target) {
+		if (target instanceof String ipTarget) {
+			return getBanEntry(ipTarget);
+		} else if (target instanceof OfflinePlayer playerTarget) {
+			return getBanEntry(playerTarget);
+		}
+
+		return null;
 	}
 
 	private static BanEntry<InetAddress> getBanEntry(String ipTarget) {
