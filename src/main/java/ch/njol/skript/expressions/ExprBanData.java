@@ -34,27 +34,26 @@ import java.util.Date;
 	send "There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'" to player
 	""")
 @Since("INSERT VERSION")
-@RequiredPlugins("Spigot 1.20.1+")
 public class ExprBanData extends SimpleExpression<Object> {
 
 	private static final Patterns<BanEntryType> patterns;
 
 	static {
 		patterns = new Patterns<>(new Object[][]{
-			{ "[the] date %offlineplayer/string% was banned", BanEntryType.BAN_DATE },
-			{ "[the] date of %offlineplayer/string%'s ban",   BanEntryType.BAN_DATE },
-			{ "[the] ban date of %offlineplayer/string%",     BanEntryType.BAN_DATE },
+			{ "[the] date %offlineplayers/strings% (was|were) banned", BanEntryType.BAN_DATE },
+			{ "[the] date[s] of %offlineplayers/strings%'[s] ban",     BanEntryType.BAN_DATE },
+			{ "[the] ban date[s] of %offlineplayers/strings%",         BanEntryType.BAN_DATE },
 
-			{ "[the] source of %offlineplayer/string%'s ban",    BanEntryType.SOURCE },
-			{ "[the] ban source of %offlineplayer/string%",      BanEntryType.SOURCE },
-			{ "[the] date %offlineplayer/string%'s ban expires", BanEntryType.SOURCE },
+			{ "[the] source[s] of %offlineplayers/strings%'s ban", BanEntryType.SOURCE },
+			{ "[the] ban source of %offlineplayers/strings%",      BanEntryType.SOURCE },
+			{ "[the] date %offlineplayers/strings%'s ban expires", BanEntryType.SOURCE },
 
-			{ "[the] expiration date of %offlineplayer/string%'s ban", BanEntryType.EXPIRE_DATE },
-			{ "[the] ban expiration date of %offlineplayer/string%",   BanEntryType.EXPIRE_DATE },
+			{ "[the] expiration date[s] of %offlineplayers/strings%'s ban", BanEntryType.EXPIRE_DATE },
+			{ "[the] ban expiration date[s] of %offlineplayers/strings%",   BanEntryType.EXPIRE_DATE },
 
-			{ "[the] reason %offlineplayer/string% was banned", BanEntryType.REASON },
-			{ "[the] reason for %offlineplayer/string%'s ban",  BanEntryType.REASON },
-			{ "[the] ban reason of %offlineplayer/string%",     BanEntryType.REASON },
+			{ "[the] reason %offlineplayers/strings% (was|were) banned", BanEntryType.REASON },
+			{ "[the] reason[s] for %offlineplayers/strings%'s ban",      BanEntryType.REASON },
+			{ "[the] ban reason[s] of %offlineplayers/strings%",         BanEntryType.REASON },
 		});
 
 		Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.COMBINED, patterns.getPatterns());
@@ -73,36 +72,34 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	protected Object @Nullable [] get(Event event) {
-		Object target = banTarget.getSingle(event);
-		BanEntry<?> banEntry;
+		Object[] targets = banTarget.getAll(event);
+		Object[] results = new Object[targets.length];
 
-		if (target instanceof String ipTarget) {
-			banEntry = getBanEntry(ipTarget);
-		} else if (target instanceof OfflinePlayer playerTarget) {
-			banEntry = getBanEntry(playerTarget);
-		} else {
-			return null;
+		for (int i = 0; i < targets.length; i++) {
+			Object target = targets[i];
+			BanEntry<?> banEntry;
+
+			if (target instanceof String ipTarget) {
+				banEntry = getBanEntry(ipTarget);
+			} else if (target instanceof OfflinePlayer playerTarget) {
+				banEntry = getBanEntry(playerTarget);
+			} else {
+				return null;
+			}
+
+			if (banEntry == null) {
+				return null;
+			}
+
+			results[i] = switch (entryType) {
+				case BAN_DATE -> banEntry.getCreated();
+				case SOURCE -> banEntry.getSource();
+				case EXPIRE_DATE -> banEntry.getExpiration();
+				case REASON -> banEntry.getReason();
+			};
 		}
 
-		if (banEntry == null) {
-			return null;
-		}
-
-		return switch (entryType) {
-			case BAN_DATE -> {
-				Date creation = banEntry.getCreated();
-				yield new Date[]{ creation };
-			}
-			case SOURCE -> new String[]{ banEntry.getSource() };
-			case EXPIRE_DATE -> {
-				Date expiration = banEntry.getExpiration();
-				if (expiration == null) {
-					yield null;
-				}
-				yield new Date[]{ expiration };
-			}
-			case REASON -> new String[]{ banEntry.getReason() };
-		};
+		return results;
 	}
 
 	@Override
@@ -123,66 +120,70 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
-		Object target = banTarget.getSingle(event);
-		BanEntry<?> banEntry;
+		Object[] targets = banTarget.getAll(event);
 
-		if (target instanceof String ipTarget) {
-			banEntry = getBanEntry(ipTarget);
-		} else if (target instanceof OfflinePlayer playerTarget) {
-			banEntry = getBanEntry(playerTarget);
-		} else {
-			return;
-		}
+		for (Object target : targets) {
+			BanEntry<?> banEntry;
 
-		if (banEntry == null) { // target isn't banned
-			return;
-		}
-
-		assert delta != null;
-		if (mode == ChangeMode.SET) {
-			switch (entryType) {
-				case SOURCE -> {
-					String newSource = (String) delta[0];
-					banEntry.setSource(newSource);
-				}
-				case EXPIRE_DATE -> {
-					Date newDate = (Date) delta[0];
-					banEntry.setExpiration(newDate);
-				}
-				case REASON -> {
-					String newReason = (String) delta[0];
-					if (newReason == null) {
-						return;
-					}
-					banEntry.setReason(newReason);
-				}
-			}
-		} else {
-			Timespan timespan = (Timespan) delta[0];
-			if (timespan == null)
+			if (target instanceof String ipTarget) {
+				banEntry = getBanEntry(ipTarget);
+			} else if (target instanceof OfflinePlayer playerTarget) {
+				banEntry = getBanEntry(playerTarget);
+			} else {
 				return;
+			}
 
-			if (entryType == BanEntryType.EXPIRE_DATE) {
-				ch.njol.skript.util.Date expiration = ch.njol.skript.util.Date.fromJavaDate(banEntry.getExpiration());
+			if (banEntry == null) { // target isn't banned
+				continue;
+			}
 
-				if (mode == ChangeMode.ADD) {
-					expiration = expiration.plus(timespan);
-				} else if (mode == ChangeMode.REMOVE) {
-					expiration = expiration.minus(timespan);
-				} else {
-					return;
+			assert delta != null;
+			if (mode == ChangeMode.SET) {
+				switch (entryType) {
+					case SOURCE -> {
+						String newSource = (String) delta[0];
+						banEntry.setSource(newSource);
+					}
+					case EXPIRE_DATE -> {
+						Date newDate = (Date) delta[0];
+						banEntry.setExpiration(newDate);
+					}
+					case REASON -> {
+						String newReason = (String) delta[0];
+						if (newReason == null) {
+							continue;
+						}
+						banEntry.setReason(newReason);
+					}
+				}
+			} else {
+				Timespan timespan = (Timespan) delta[0];
+				if (timespan == null) {
+					continue;
 				}
 
-				banEntry.setExpiration(expiration);
+				if (entryType == BanEntryType.EXPIRE_DATE) {
+					ch.njol.skript.util.Date expiration = ch.njol.skript.util.Date.fromJavaDate(banEntry.getExpiration());
+
+					if (mode == ChangeMode.ADD) {
+						expiration = expiration.plus(timespan);
+					} else if (mode == ChangeMode.REMOVE) {
+						expiration = expiration.minus(timespan);
+					} else {
+						continue;
+					}
+
+					banEntry.setExpiration(expiration);
+				}
 			}
+			banEntry.save();
 		}
-		banEntry.save();
 	}
 
 
 	@Override
 	public boolean isSingle() {
-		return true;
+		return banTarget.isSingle();
 	}
 
 	@Override
