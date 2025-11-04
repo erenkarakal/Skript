@@ -31,7 +31,7 @@ import java.util.List;
 	if last caught runtime errors contains "Your location can't have a NaN value as one of its components":
 		set worldborder center of {_border} to location(0, 0, 0)
 	""")
-@Since("INSERT VERSION")
+@Since("2.12")
 public class SecCatchErrors extends Section implements ExperimentalSyntax {
 
 	static {
@@ -68,7 +68,6 @@ public class SecCatchErrors extends Section implements ExperimentalSyntax {
 		TriggerItem.walk(first, event);
         ExprCaughtErrors.lastErrors = catcher.getCachedErrors().stream().map(RuntimeError::error).toArray(String[]::new);
 		catcher.clearCachedErrors()
-			.clearCachedFrames()
 			.stop();
 		return walk(event, false);
 	}

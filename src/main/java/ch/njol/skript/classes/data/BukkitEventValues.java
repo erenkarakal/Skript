@@ -229,10 +229,6 @@ public final class BukkitEventValues {
 		// EntityTameEvent
 		EventValues.registerEventValue(EntityTameEvent.class, Entity.class, EntityTameEvent::getEntity);
 
-		// EntityTeleportEvent
-		EventValues.registerEventValue(EntityTeleportEvent.class, Location.class, EntityTeleportEvent::getFrom, TIME_PAST);
-		EventValues.registerEventValue(EntityTeleportEvent.class, Location.class, EntityTeleportEvent::getTo);
-
 		// EntityChangeBlockEvent
 		EventValues.registerEventValue(EntityChangeBlockEvent.class, Block.class, EntityChangeBlockEvent::getBlock, TIME_PAST);
 		EventValues.registerEventValue(EntityChangeBlockEvent.class, Block.class, EntityChangeBlockEvent::getBlock);
@@ -279,7 +275,6 @@ public final class BukkitEventValues {
 		EventValues.registerEventValue(PlayerBucketFillEvent.class, Block.class, event -> {
 			BlockState state = event.getBlockClicked().getState();
 			state.setType(Material.AIR);
-			state.setRawData((byte) 0);
 			return new BlockStateBlock(state, true);
 		}, TIME_FUTURE);
 		EventValues.registerEventValue(PlayerBucketEmptyEvent.class, Block.class,
@@ -287,7 +282,6 @@ public final class BukkitEventValues {
 		EventValues.registerEventValue(PlayerBucketEmptyEvent.class, Block.class, event -> {
 			BlockState state = event.getBlockClicked().getRelative(event.getBlockFace()).getState();
 			state.setType(event.getBucket() == Material.WATER_BUCKET ? Material.WATER : Material.LAVA);
-			state.setRawData((byte) 0);
 			return new BlockStateBlock(state, true);
 		});
 		// PlayerDropItemEvent
@@ -406,11 +400,7 @@ public final class BukkitEventValues {
 		EventValues.registerEventValue(InventoryClickEvent.class, Player.class,
 			event -> event.getWhoClicked() instanceof Player player ? player : null);
 		EventValues.registerEventValue(InventoryClickEvent.class, World.class, event -> event.getWhoClicked().getWorld());
-		EventValues.registerEventValue(InventoryClickEvent.class, ItemStack.class, event -> {
-			if (event instanceof CraftItemEvent craftItemEvent)
-				return craftItemEvent.getRecipe().getResult();
-			return event.getCurrentItem();
-		});
+		EventValues.registerEventValue(InventoryClickEvent.class, ItemStack.class, InventoryClickEvent::getCurrentItem);
 		EventValues.registerEventValue(InventoryClickEvent.class, Slot.class, event -> {
 			Inventory invi = event.getClickedInventory(); // getInventory is WRONG and dangerous
 			if (invi == null)
@@ -500,7 +490,12 @@ public final class BukkitEventValues {
 			return null;
 		});
 		// CraftItemEvent
-		EventValues.registerEventValue(CraftItemEvent.class, ItemStack.class, event -> event.getRecipe().getResult());
+		EventValues.registerEventValue(CraftItemEvent.class, ItemStack.class, event -> {
+			Recipe recipe = event.getRecipe();
+			if (recipe instanceof ComplexRecipe)
+				return event.getCurrentItem();
+			return recipe.getResult();
+		});
 		//InventoryEvent
 		EventValues.registerEventValue(InventoryEvent.class, Inventory.class, InventoryEvent::getInventory);
 		//InventoryOpenEvent
