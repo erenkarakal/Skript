@@ -7,7 +7,7 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.util.Date;
+import ch.njol.skript.util.Patterns;
 import ch.njol.skript.util.Timespan;
 import ch.njol.util.Kleenean;
 import com.destroystokyo.paper.profile.PlayerProfile;
@@ -20,41 +20,44 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Date;
 
 @Name("Ban Details")
 @Description("Returns data about a player or IP ban. " +
 	"The source can be any string, but it's usually the player's name. " +
 	"The expiration date won't return a value if the ban is permanent.")
-@Examples({
-	"set {_player} to offlineplayer(\"Notch\", false)",
-	"set {_expiration} to the date {_player}'s ban expires",
-	"set {_time.left} to difference between now and {_expiration}",
-	"set {_reason} to the reason {_player} was banned",
-	"send \"There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'\" to player"
-})
+@Example("""
+	set {_player} to offlineplayer("Notch", false)",
+	set {_expiration} to the date {_player}'s ban expires",
+	set {_time.left} to difference between now and {_expiration}",
+	set {_reason} to the reason {_player} was banned",
+	send "There is %{_time.left}% before %{_player}% gets unbanned! They were banned for '%{_reason}%'" to player
+	""")
 @Since("INSERT VERSION")
 @RequiredPlugins("Spigot 1.20.1+")
 public class ExprBanData extends SimpleExpression<Object> {
 
+	private static final Patterns<BanEntryType> patterns;
+
 	static {
-		// TODO - remove this check when 1.20.1 support is dropped
-		if (Skript.methodExists(BanEntry.class, "remove"))
-			Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.COMBINED,
-				"[the] date %offlineplayer/string% was banned",
-				"[the] date of %offlineplayer/string%'s ban",
-				"[the] ban date of %offlineplayer/string%",
+		patterns = new Patterns<>(new Object[][]{
+			{ "[the] date %offlineplayer/string% was banned", BanEntryType.BAN_DATE },
+			{ "[the] date of %offlineplayer/string%'s ban",   BanEntryType.BAN_DATE },
+			{ "[the] ban date of %offlineplayer/string%",     BanEntryType.BAN_DATE },
 
-				"[the] source of %offlineplayer/string%'s ban",
-				"[the] ban source of %offlineplayer/string%",
+			{ "[the] source of %offlineplayer/string%'s ban",    BanEntryType.SOURCE },
+			{ "[the] ban source of %offlineplayer/string%",      BanEntryType.SOURCE },
+			{ "[the] date %offlineplayer/string%'s ban expires", BanEntryType.SOURCE },
 
-				"[the] date %offlineplayer/string%'s ban expires",
-				"[the] expiration date of %offlineplayer/string%'s ban",
-				"[the] ban expiration date of %offlineplayer/string%",
+			{ "[the] expiration date of %offlineplayer/string%'s ban", BanEntryType.EXPIRE_DATE },
+			{ "[the] ban expiration date of %offlineplayer/string%",   BanEntryType.EXPIRE_DATE },
 
-				"[the] reason %offlineplayer/string% was banned",
-				"[the] reason for %offlineplayer/string%'s ban",
-				"[the] ban reason of %offlineplayer/string%"
-		);
+			{ "[the] reason %offlineplayer/string% was banned", BanEntryType.REASON },
+			{ "[the] reason for %offlineplayer/string%'s ban",  BanEntryType.REASON },
+			{ "[the] ban reason of %offlineplayer/string%",     BanEntryType.REASON },
+		});
+
+		Skript.registerExpression(ExprBanData.class, Object.class, ExpressionType.COMBINED, patterns.getPatterns());
 	}
 
 	private BanEntryType entryType;
@@ -62,13 +65,7 @@ public class ExprBanData extends SimpleExpression<Object> {
 
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		entryType = switch (matchedPattern) {
-			case 0, 1, 2 -> BanEntryType.BAN_DATE;
-			case 3, 4 -> BanEntryType.SOURCE;
-			case 5, 6, 7 -> BanEntryType.EXPIRE_DATE;
-			case 8, 9, 10 -> BanEntryType.REASON;
-			default -> null;
-		};
+		entryType = patterns.getInfo(matchedPattern);
 		// noinspection unchecked
 		banTarget = (Expression<Object>) expressions[0];
 		return true;
@@ -87,37 +84,24 @@ public class ExprBanData extends SimpleExpression<Object> {
 			return null;
 		}
 
-		if (banEntry == null)
+		if (banEntry == null) {
 			return null;
+		}
 
 		return switch (entryType) {
 			case BAN_DATE -> {
-				java.util.Date creation = banEntry.getCreated();
-				Date skriptCreation = Date.fromJavaDate(creation);
-				yield new Date[]{ skriptCreation };
+				Date creation = banEntry.getCreated();
+				yield new Date[]{ creation };
 			}
 			case SOURCE -> new String[]{ banEntry.getSource() };
 			case EXPIRE_DATE -> {
-				java.util.Date expiration = banEntry.getExpiration();
-				if (expiration == null)
+				Date expiration = banEntry.getExpiration();
+				if (expiration == null) {
 					yield null;
-				Date skriptExpiration = Date.fromJavaDate(expiration);
-				yield new Date[]{ skriptExpiration };
+				}
+				yield new Date[]{ expiration };
 			}
 			case REASON -> new String[]{ banEntry.getReason() };
-		};
-	}
-
-	@Override
-	public boolean isSingle() {
-		return true;
-	}
-
-	@Override
-	public Class<?> getReturnType() {
-		return switch (entryType) {
-			case BAN_DATE, EXPIRE_DATE -> Date.class;
-			case SOURCE, REASON -> String.class;
 		};
 	}
 
@@ -130,8 +114,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 				default -> null;
 			};
 		} else if (mode == ChangeMode.ADD || mode == ChangeMode.REMOVE) {
-			if (entryType == BanEntryType.EXPIRE_DATE)
+			if (entryType == BanEntryType.EXPIRE_DATE) {
 				return new Class<?>[]{ Timespan.class };
+			}
 		}
 		return null;
 	}
@@ -149,8 +134,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 			return;
 		}
 
-		if (banEntry == null) // target isn't banned
+		if (banEntry == null) { // target isn't banned
 			return;
+		}
 
 		assert delta != null;
 		if (mode == ChangeMode.SET) {
@@ -165,8 +151,9 @@ public class ExprBanData extends SimpleExpression<Object> {
 				}
 				case REASON -> {
 					String newReason = (String) delta[0];
-					if (newReason == null)
+					if (newReason == null) {
 						return;
+					}
 					banEntry.setReason(newReason);
 				}
 			}
@@ -176,19 +163,34 @@ public class ExprBanData extends SimpleExpression<Object> {
 				return;
 
 			if (entryType == BanEntryType.EXPIRE_DATE) {
-				Date expiration = Date.fromJavaDate(banEntry.getExpiration());
+				ch.njol.skript.util.Date expiration = ch.njol.skript.util.Date.fromJavaDate(banEntry.getExpiration());
 
-				if (mode == ChangeMode.ADD)
+				if (mode == ChangeMode.ADD) {
 					expiration = expiration.plus(timespan);
-				else if (mode == ChangeMode.REMOVE)
+				} else if (mode == ChangeMode.REMOVE) {
 					expiration = expiration.minus(timespan);
-				else
+				} else {
 					return;
+				}
 
 				banEntry.setExpiration(expiration);
 			}
 		}
 		banEntry.save();
+	}
+
+
+	@Override
+	public boolean isSingle() {
+		return true;
+	}
+
+	@Override
+	public Class<?> getReturnType() {
+		return switch (entryType) {
+			case BAN_DATE, EXPIRE_DATE -> Date.class;
+			case SOURCE, REASON -> String.class;
+		};
 	}
 
 	@Override
