@@ -1,7 +1,6 @@
 package ch.njol.skript.lang.function;
 
 import ch.njol.skript.ScriptLoader;
-import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionList;
 import ch.njol.skript.lang.util.common.AnyNamed;
@@ -60,10 +59,10 @@ public class DynamicFunctionReference<Result>
 			// will return the first function found that matches name.
 			// TODO: add a way to specify param types
 			//noinspection unchecked
-			function = (Function<? extends Result>) FunctionRegistry.getRegistry().getFunction(source.getConfig().getFileName(), name).retrieved();
+			function = (Function<? extends Result>) Functions.getFunction(name, source.getConfig().getFileName());
 		} else {
 			//noinspection unchecked
-			function = (Function<? extends Result>) FunctionRegistry.getRegistry().getFunction(null, name).retrieved();
+			function = (Function<? extends Result>) Functions.getFunction(name, null);
 		}
 
 		this.resolved = function != null;
@@ -177,7 +176,7 @@ public class DynamicFunctionReference<Result>
 		for (int i = 0; i < parameters.length; i++) {
 			Parameter<?> parameter = signature.parameters[varArgs ? 0 : i];
 			//noinspection unchecked
-			Expression<?> expression = parameters[i].getConvertedExpression(parameter.type.getC());
+			Expression<?> expression = parameters[i].getConvertedExpression(parameter.type());
 			if (expression == null) {
 				return null;
 			} else if (parameter.single && !expression.isSingle()) {
