@@ -59,9 +59,8 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 		Location clone = location.clone();
 
 		for (Vector vector : vectors.getArray(event)) {
-			if (usingLocalAxes) {
+			if (usingLocalAxes)
 				vector = getFacingRelativeOffset(clone, vector);
-			}
 			clone.add(vector);
 		}
 		return new Location[]{ clone };
