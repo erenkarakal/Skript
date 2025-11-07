@@ -60,10 +60,9 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 
 		for (Vector vector : vectors.getArray(event)) {
 			if (usingLocalAxes) {
-				clone = getFacingRelativeOffset(clone, vector);
-			} else {
-				clone.add(vector);
+				vector = getFacingRelativeOffset(clone, vector);
 			}
+			clone.add(vector);
 		}
 		return new Location[]{ clone };
 	}
@@ -103,9 +102,9 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 	 * @see <a href="https://minecraft.wiki/w/Coordinates#Local_coordinates">Local Coordinates</a>.
 	 * @param loc The location
 	 * @param offset The offset
-	 * @return The offset location
+	 * @return The offset Vector
 	 */
-	private static Location getFacingRelativeOffset(Location loc, Vector offset) {
+	private static Vector getFacingRelativeOffset(Location loc, Vector offset) {
 		float yawRad = (float) Math.toRadians(-loc.getYaw());
 		float pitchRad = (float) Math.toRadians(loc.getPitch());
 		float rollRad = 0f;
@@ -114,7 +113,7 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 		Vector3f localOffset = offset.toVector3f();
 		rotation.transform(localOffset);
 
-		return loc.add(localOffset.x, localOffset.y, localOffset.z);
+		return new Vector(localOffset.x, localOffset.y, localOffset.z);
 	}
 
 }
