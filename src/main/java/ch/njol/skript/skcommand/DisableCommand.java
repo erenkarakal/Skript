@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-public class DisableCommand extends SubCommand {
+/**
+ * Disables a script
+ */
+class DisableCommand extends SubCommand {
 
 	public DisableCommand() {
 		super("disable");

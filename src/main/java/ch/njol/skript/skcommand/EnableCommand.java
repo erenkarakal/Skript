@@ -14,7 +14,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-public class EnableCommand extends SubCommand {
+/**
+ * Enables a script
+ */
+class EnableCommand extends SubCommand {
 
 	public EnableCommand() {
 		super("enable");

@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 
-public class TestCommand extends SubCommand {
+class TestCommand extends SubCommand {
 
 	public TestCommand() {
 		super("test");

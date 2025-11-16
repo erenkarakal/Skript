@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 /**
  * Utilities for {@link ch.njol.skript.skcommand.SkriptCommand.SubCommand}s that involve scripts.
  */
-public class ScriptCommand {
+class ScriptCommand {
 
 	private static final ArgsMessage INVALID_SCRIPT_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid script");
 	private static final ArgsMessage INVALID_FOLDER_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid folder");
@@ -47,7 +47,7 @@ public class ScriptCommand {
 	/**
 	 * Gets tab completions for script commands such as /sk enable|reload|disable
 	 *
-	 * @param args Args of the SubCommand
+	 * @param args Args from tab complete event
 	 * @return A list of directories and Skript files.
 	 */
 	public static List<String> getScriptCommandTabCompletions(String[] args) {
@@ -136,6 +136,7 @@ public class ScriptCommand {
 	}
 
 	public static Set<File> toggleFiles(File folder, boolean enable) throws IOException {
+		assert folder.isDirectory();
 		FileFilter filter = enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter();
 
 		Set<File> changed = new HashSet<>();
@@ -146,9 +147,15 @@ public class ScriptCommand {
 			} else {
 				if (filter.accept(file)) {
 					String fileName = file.getName();
+					String prefix;
+					if (enable) {
+						prefix = fileName.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
+					} else {
+						prefix = ScriptLoader.DISABLED_SCRIPT_PREFIX;
+					}
 					changed.add(FileUtils.move(
 						file,
-						new File(file.getParentFile(), enable ? fileName.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH) : ScriptLoader.DISABLED_SCRIPT_PREFIX + fileName),
+						new File(file.getParentFile(), prefix + fileName),
 						false
 					));
 				}

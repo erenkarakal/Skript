@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 
-public class ReloadCommand extends SubCommand {
+class ReloadCommand extends SubCommand {
 
 	public ReloadCommand() {
 		super("reload");

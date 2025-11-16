@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class UpdateCommand extends SubCommand {
+class UpdateCommand extends SubCommand {
 
 	public UpdateCommand() {
 		super("update");

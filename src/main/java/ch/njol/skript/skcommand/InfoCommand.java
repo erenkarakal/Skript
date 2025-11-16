@@ -16,7 +16,10 @@ import java.util.List;
 
 import static ch.njol.skript.skcommand.SkriptCommand.info;
 
-public class InfoCommand extends SubCommand {
+/**
+ * Shows info about Skript, server, installed addons and dependencies
+ */
+class InfoCommand extends SubCommand {
 
 	static {
 		HAS_BUILD_INFO = Skript.classExists("io.papermc.paper.ServerBuildInfo");

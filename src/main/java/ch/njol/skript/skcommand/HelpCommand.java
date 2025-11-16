@@ -8,7 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class HelpCommand extends SubCommand {
+/**
+ * Lists all Skript commands
+ */
+class HelpCommand extends SubCommand {
 
 	public HelpCommand() {
 		super("help");

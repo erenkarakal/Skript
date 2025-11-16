@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
-public class GenDocsCommand extends SubCommand {
+class GenDocsCommand extends SubCommand {
 
 	public GenDocsCommand() {
 		super("gen-docs");

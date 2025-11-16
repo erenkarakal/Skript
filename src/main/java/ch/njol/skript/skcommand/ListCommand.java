@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ListCommand extends SubCommand {
+/**
+ * Lists all scripts
+ */
+class ListCommand extends SubCommand {
 
 	public ListCommand() {
 		super("list", "show");
