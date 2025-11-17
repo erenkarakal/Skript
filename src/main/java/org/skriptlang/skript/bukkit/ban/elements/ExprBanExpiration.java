@@ -20,7 +20,7 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 import org.skriptlang.skript.util.Priority;
 
 @Name("Ban Expiration Date")
-@Description("Returns the ban expiration date of an offline player or IP.")
+@Description("The ban expiration date of an offline player or IP.")
 @Example("send the ban expiration date of \"3.3.3.3\"")
 @Since("INSERT VERSION")
 public class ExprBanExpiration extends SimpleExpression<Date> {
@@ -51,7 +51,7 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 
 	@Override
 	protected Date @Nullable [] get(Event event) {
-		Object[] targets = this.targets.getAll(event);
+		Object[] targets = this.targets.getArray(event);
 		if (targets == null) {
 			return null;
 		}
@@ -92,7 +92,7 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 
 		for (Object target : targets) {
 			BanEntry<?> banEntry = BukkitUtils.getBanEntry(target);
-			if  (banEntry == null) {
+			if (banEntry == null) {
 				continue;
 			}
 

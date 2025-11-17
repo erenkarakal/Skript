@@ -107,7 +107,7 @@ public class EffBan extends Effect {
 				if (ipBan) {
 					InetSocketAddress addr = player.getAddress();
 					if (addr == null) {
-						return; // Can't ban unknown IP
+						continue; // Can't ban unknown IP
 					}
 					InetAddress ip = addr.getAddress();
 					BanList<InetAddress> banList = Bukkit.getBanList(BanListType.IP);
@@ -139,7 +139,7 @@ public class EffBan extends Effect {
 				try {
 					address = InetAddress.getByName(ip);
 				} catch (UnknownHostException e) {
-					return; // this only happens when you pass a url and it performs a lookup
+					continue; // this only happens when you pass a url and it performs a lookup
 				}
 				BanList<InetAddress> banList = Bukkit.getBanList(BanListType.IP);
 				if (ban) {
