@@ -1,8 +1,5 @@
 package org.skriptlang.skript.bukkit.ban;
 
-import ch.njol.skript.classes.ClassInfo;
-import ch.njol.skript.registrations.Classes;
-import org.bukkit.BanEntry;
 import org.skriptlang.skript.addon.AddonModule;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.bukkit.ban.elements.*;
@@ -18,16 +15,11 @@ public class BanModule implements AddonModule {
 		register(addon.syntaxRegistry(),
 			EffBan::register,
 			ExprBanDate::register,
+			ExprAllBannedEntries::register,
 			ExprBanExpiration::register,
 			ExprBanReason::register,
-			ExprBanSource::register
-		);
-
-		Classes.registerClass(new ClassInfo<>(BanEntry.class, "banentry")
-			.name("Ban Entry")
-			.description("Represents a ban entry.")
-			.since("INSERT VERSION")
-			.examples("send all ban entries")
+			ExprBanSource::register,
+			CondIsBanned::register
 		);
 	}
 

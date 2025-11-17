@@ -76,9 +76,13 @@ public class EffBan extends Effect {
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		targets = expressions[0];
-		reason = expressions.length > 1 ? (Expression<String>) expressions[1] : null;
-		duration = expressions.length > 2 ? (Expression<Timespan>) expressions[2] : null;
-		source = expressions.length > 3 ? (Expression<String>) expressions[3] : null;
+
+		if (expressions.length > 1) {
+			reason = (Expression<String>) expressions[1];
+			duration = (Expression<Timespan>) expressions[2];
+			source = (Expression<String>) expressions[3];
+		}
+
 		ban = matchedPattern % 2 == 0;
 		ipBan = matchedPattern >= 2;
 		kick = parseResult.hasTag("kick");
