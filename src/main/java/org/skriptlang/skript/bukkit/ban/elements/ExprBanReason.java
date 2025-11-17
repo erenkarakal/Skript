@@ -1,17 +1,18 @@
-package ch.njol.skript.expressions;
+package org.skriptlang.skript.bukkit.ban.elements;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.bukkitutil.BukkitUtils;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.*;
 import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.bukkit.BanEntry;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
+import org.skriptlang.skript.util.Priority;
 
 @Name("Ban Reason")
 @Description("Returns the ban reason of a player or IP.")
@@ -19,11 +20,18 @@ import org.jetbrains.annotations.Nullable;
 @Since("INSERT VERSION")
 public class ExprBanReason extends SimpleExpression<String> {
 
-	static {
-		Skript.registerExpression(ExprBanReason.class, String.class, ExpressionType.SIMPLE,
-			"[the] reason %offlineplayers/strings% (was|were) banned",
-			"[the] reason[s] for %offlineplayers/strings%'s ban",
-			"[the] ban reason[s] of %offlineplayers/strings%"
+	public static void register(SyntaxRegistry registry) {
+		registry.register(
+			SyntaxRegistry.EXPRESSION,
+			SyntaxInfo.Expression.builder(ExprBanReason.class, String.class)
+				.addPatterns(
+					"[the] reason %offlineplayers/strings% (was|were) banned",
+					"[the] reason[s] for %offlineplayers/strings%'[s] ban",
+					"[the] ban reason[s] of %offlineplayers/strings%"
+				)
+				.supplier(ExprBanReason::new)
+				.priority(Priority.base())
+				.build()
 		);
 	}
 

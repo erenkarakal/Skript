@@ -1,6 +1,5 @@
-package ch.njol.skript.expressions;
+package org.skriptlang.skript.bukkit.ban.elements;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.bukkitutil.BukkitUtils;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.doc.Description;
@@ -8,13 +7,15 @@ import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
 import org.bukkit.BanEntry;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
+import org.skriptlang.skript.util.Priority;
 
 @Name("Ban Source")
 @Description("Returns the ban source of a player or IP. This is usually the name of the player that banned them, but " +
@@ -23,11 +24,17 @@ import org.jetbrains.annotations.Nullable;
 @Since("INSERT VERSION")
 public class ExprBanSource extends SimpleExpression<String> {
 
-	static {
-		Skript.registerExpression(ExprBanSource.class, String.class, ExpressionType.SIMPLE,
-			"[the] source[s] of %offlineplayers/strings%'s ban",
-			"[the] ban source of %offlineplayers/strings%",
-			"[the] date %offlineplayers/strings%'s ban expires"
+	public static void register(SyntaxRegistry registry) {
+		registry.register(
+			SyntaxRegistry.EXPRESSION,
+			SyntaxInfo.Expression.builder(ExprBanReason.class, String.class)
+				.addPatterns(
+					"[the] source[s] of %offlineplayers/strings%'[s] ban",
+					"[the] ban source of %offlineplayers/strings%"
+				)
+				.supplier(ExprBanReason::new)
+				.priority(Priority.base())
+				.build()
 		);
 	}
 

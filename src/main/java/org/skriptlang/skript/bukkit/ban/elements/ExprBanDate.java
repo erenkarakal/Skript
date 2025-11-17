@@ -1,13 +1,11 @@
-package ch.njol.skript.expressions;
+package org.skriptlang.skript.bukkit.ban.elements;
 
-import ch.njol.skript.Skript;
 import ch.njol.skript.bukkitutil.BukkitUtils;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.skript.util.Date;
@@ -15,6 +13,8 @@ import ch.njol.util.Kleenean;
 import org.bukkit.BanEntry;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.registration.SyntaxInfo;
+import org.skriptlang.skript.registration.SyntaxRegistry;
 
 @Name("Ban Date")
 @Description("Returns the ban date of a player or IP.")
@@ -22,11 +22,17 @@ import org.jetbrains.annotations.Nullable;
 @Since("INSERT VERSION")
 public class ExprBanDate extends SimpleExpression<Date> {
 
-	static {
-		Skript.registerExpression(ExprBanDate.class, Date.class, ExpressionType.SIMPLE,
-			"[the] date %offlineplayers/strings% (was|were) banned",
-			"[the] date[s] of %offlineplayers/strings%'[s] ban",
-			"[the] ban date[s] of %offlineplayers/strings%"
+	public static void register(SyntaxRegistry registry) {
+		registry.register(
+			SyntaxRegistry.EXPRESSION,
+			SyntaxInfo.Expression.builder(ExprBanDate.class, Date.class)
+				.addPatterns(
+					"[the] date %offlineplayers/strings% (was|were) banned",
+					"[the] date[s] of %offlineplayers/strings%'[s] ban",
+					"[the] ban date[s] of %offlineplayers/strings%"
+				)
+				.supplier(ExprBanDate::new)
+				.build()
 		);
 	}
 
@@ -41,17 +47,11 @@ public class ExprBanDate extends SimpleExpression<Date> {
 
 	@Override
 	protected Date @Nullable [] get(Event event) {
-		Object[] targets = this.targets.getAll(event);
-		if (targets == null) {
-			return null;
-		}
-
+		Object[] targets = this.targets.getArray(event);
 		Date[] dates = new Date[targets.length];
 
 		for (int i = 0; i < targets.length; i++) {
-			Object target = targets[i];
-
-			BanEntry<?> banEntry = BukkitUtils.getBanEntry(target);
+			BanEntry<?> banEntry = BukkitUtils.getBanEntry(targets[i]);
 			if (banEntry == null) {
 				continue;
 			}
