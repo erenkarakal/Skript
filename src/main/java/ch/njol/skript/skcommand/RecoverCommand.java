@@ -6,7 +6,6 @@ import ch.njol.skript.config.Config;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
-import ch.njol.skript.util.Task;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,9 @@ class RecoverCommand extends SubCommand {
 		try {
 			Files.createDirectories(DUMP_FOLDER);
 		} catch (IOException e) {
+			// TODO
 			sender.sendMessage("error");
+			// noinspection ThrowableNotThrown
 			Skript.exception(e);
 		}
 

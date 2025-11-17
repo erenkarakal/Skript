@@ -21,13 +21,6 @@ import static ch.njol.skript.skcommand.SkriptCommand.info;
  */
 class InfoCommand extends SubCommand {
 
-	static {
-		HAS_BUILD_INFO = Skript.classExists("io.papermc.paper.ServerBuildInfo");
-	}
-
-	// TODO - remove this field when 1.20.5 & Spigot support is dropped
-	private static final boolean HAS_BUILD_INFO;
-
 	public InfoCommand() {
 		super("info");
 	}
@@ -62,22 +55,18 @@ class InfoCommand extends SubCommand {
 	}
 
 	private static String getServerVersion() {
-		if (HAS_BUILD_INFO) {
-			ServerBuildInfo buildInfo = ServerBuildInfo.buildInfo();
-			String version = buildInfo.brandName() + " " + buildInfo.minecraftVersionName();
+		ServerBuildInfo buildInfo = ServerBuildInfo.buildInfo();
+		String version = buildInfo.brandName() + " " + buildInfo.minecraftVersionName();
 
-			if (buildInfo.buildNumber().isPresent()) {
-				version += " #" + buildInfo.buildNumber().getAsInt();
-			}
-
-			if (buildInfo.gitCommit().isPresent()) {
-				version += " (" + buildInfo.gitCommit().get() + ")";
-			}
-
-			return version;
+		if (buildInfo.buildNumber().isPresent()) {
+			version += " #" + buildInfo.buildNumber().getAsInt();
 		}
 
-		return Bukkit.getVersion();
+		if (buildInfo.gitCommit().isPresent()) {
+			version += " (" + buildInfo.gitCommit().get() + ")";
+		}
+
+		return version;
 	}
 
 	private static String getSkriptVersion() {

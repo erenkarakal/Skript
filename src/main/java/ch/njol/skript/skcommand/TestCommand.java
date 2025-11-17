@@ -77,6 +77,7 @@ class TestCommand extends SubCommand {
 					try {
 						Files.writeString(TestMode.RESULTS_FILE, results);
 					} catch (IOException e) {
+						// noinspection ThrowableNotThrown
 						Skript.exception(e, "Failed to write test results.");
 					}
 				})

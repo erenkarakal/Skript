@@ -70,8 +70,13 @@ class ScriptCommand {
 		try (Stream<Path> files = Files.walk(scripts.toPath())) {
 			files.map(Path::toFile)
 				.forEach(file -> {
-					if (!(enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter()).accept(file))
+					FileFilter fileFilter = enable
+						? ScriptLoader.getDisabledScriptsFilter()
+						: ScriptLoader.getLoadedScriptsFilter();
+
+					if (!fileFilter.accept(file)) {
 						return;
+					}
 
 					// Ignore hidden files like .git/ for users that use git source control.
 					if (file.isHidden())
@@ -84,27 +89,32 @@ class ScriptCommand {
 					if (file.isDirectory()) {
 						fileString = fileString + fs; // Add file separator at the end of directories
 					} else if (file.getParentFile().toPath().toString().equals(scriptsPathString)) {
-						fileString = fileString.substring(1); // Remove file separator from the beginning of files or directories in root only
-						if (fileString.isEmpty())
+						// Remove file separator from the beginning of files or directories in root only
+						fileString = fileString.substring(1);
+						if (fileString.isEmpty()) {
 							return;
+						}
 					}
 
 					// Make sure the user's argument matches with the file's name or beginning of file path
-					if (!scriptArg.isEmpty() && !file.getName().startsWith(scriptArg) && !fileString.startsWith(scriptArg))
+					if (!scriptArg.isEmpty() && !file.getName().startsWith(scriptArg) && !fileString.startsWith(scriptArg)) {
 						return;
+					}
 
 					// Trim off previous arguments if needed
-					if (args.length > 2 && fileString.length() >= scriptArg.length())
+					if (args.length > 2 && fileString.length() >= scriptArg.length()) {
 						fileString = fileString.substring(scriptArg.lastIndexOf(" ") + 1);
+					}
 
 					// Just in case
-					if (fileString.isEmpty())
+					if (fileString.isEmpty()) {
 						return;
+					}
 
 					options.add(fileString);
 				});
 		} catch (Exception e) {
-			//noinspection ThrowableNotThrown
+			// noinspection ThrowableNotThrown
 			Skript.exception(e, "An error occurred while trying to update the list of disabled scripts!");
 		}
 
@@ -140,7 +150,7 @@ class ScriptCommand {
 		FileFilter filter = enable ? ScriptLoader.getDisabledScriptsFilter() : ScriptLoader.getLoadedScriptsFilter();
 
 		Set<File> changed = new HashSet<>();
-		//noinspection ConstantConditions
+		//noinspection ConstantConditions - we know 'folder' is a directory
 		for (File file : folder.listFiles()) {
 			if (file.isDirectory()) {
 				changed.addAll(toggleFiles(file, enable));

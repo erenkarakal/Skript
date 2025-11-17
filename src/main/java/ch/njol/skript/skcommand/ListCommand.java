@@ -45,16 +45,18 @@ class ListCommand extends SubCommand {
 		return List.of();
 	}
 
-	private static List<File> getSubFiles(File file) {
+	private static List<File> getSubFiles(File folder) {
 		List<File> files = new ArrayList<>();
-		if (file.isDirectory()) {
-			//noinspection ConstantConditions
-			for (File listFile : file.listFiles(f -> !f.isHidden())) {
-				if (listFile.isDirectory()) {
-					files.addAll(getSubFiles(listFile));
-				} else if (listFile.getName().endsWith(".sk")) {
-					files.add(listFile);
-				}
+		if (!folder.isDirectory()) {
+			return files;
+		}
+
+		//noinspection ConstantConditions - we know 'folder' is a folder
+		for (File listFile : folder.listFiles(f -> !f.isHidden())) {
+			if (listFile.isDirectory()) {
+				files.addAll(getSubFiles(listFile));
+			} else if (listFile.getName().endsWith(".sk")) {
+				files.add(listFile);
 			}
 		}
 		return files;

@@ -29,7 +29,8 @@ public class SkriptCommand implements TabExecutor {
 			new DisableCommand(),
 			new ListCommand(),
 			new InfoCommand(),
-			new UpdateCommand()
+			new UpdateCommand(),
+			new RecoverCommand()
 		));
 
 		// add a command to generate documentation

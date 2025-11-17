@@ -65,7 +65,8 @@ class EnableCommand extends SubCommand {
 	}
 
 	// sk enable script_name
-	private static void enableSpecificScript(CommandSender sender, RedirectingLogHandler redirectingLogHandler, File scriptFile, String[] args) {
+	private static void enableSpecificScript(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
+											 File scriptFile, String[] args) {
 		if (ScriptLoader.getLoadedScriptsFilter().accept(scriptFile)) {
 			SkriptCommand.info(sender, "enable.single.already enabled", scriptFile.getName(), StringUtils.join(args, " ", 1, args.length));
 			return;
