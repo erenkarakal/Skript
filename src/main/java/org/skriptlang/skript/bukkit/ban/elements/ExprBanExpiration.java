@@ -30,14 +30,14 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 	public static void register(SyntaxRegistry registry) {
 		registry.register(
 			SyntaxRegistry.EXPRESSION,
-			SyntaxInfo.Expression.builder(ExprBanDate.class, Date.class)
+			SyntaxInfo.Expression.builder(ExprBanExpiration.class, Date.class)
 				.addPatterns(
 					"[the] expiration date[s] of %offlineplayers/strings%'[s] ban",
 					"[the] ban expiration date[s] of %offlineplayers/strings%",
 					"[the] date %offlineplayers/strings%'[s] ban expires"
 				)
 				.priority(Priority.base())
-				.supplier(ExprBanDate::new)
+				.supplier(ExprBanExpiration::new)
 				.build()
 		);
 	}
