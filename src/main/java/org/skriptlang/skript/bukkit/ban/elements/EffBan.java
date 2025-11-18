@@ -24,13 +24,15 @@ import java.net.UnknownHostException;
 import java.time.Duration;
 
 @Name("Ban")
-@Description({"Bans or unbans a player or an IP address.",
-	"If a reason is given, it will be shown to the player when they try to join the server while banned.",
-	"A length of ban may also be given to apply a temporary ban. If it is absent for any reason, a permanent ban will be used instead.",
-	"We recommend that you test your scripts so that no accidental permanent bans are applied.",
-	"",
-	"Note that banning people does not kick them from the server.",
-	"You can optionally use 'and kick' or consider using the <a href='#EffKick'>kick effect</a> after applying a ban."})
+@Description("""
+	Bans or unbans a player or an IP address.
+	If a reason is given, it will be shown to the player when they try to join the server while banned.
+	A length of ban may also be given to apply a temporary ban. If it is absent for any reason, a permanent ban will be used instead.
+	We recommend that you test your scripts so that no accidental permanent bans are applied.
+	
+	Note that banning people does not kick them from the server.
+	You can optionally use 'and kick' or consider using the <a href='#EffKick'>kick effect</a> after applying a ban.
+	""")
 @Example("unban player")
 @Example("ban \"127.0.0.1\"")
 @Example("IP-ban the player because \"he is an idiot\"")
@@ -56,14 +58,10 @@ public class EffBan extends Effect {
 		);
 	}
 
-	@SuppressWarnings("null")
 	private Expression<?> targets;
-	@Nullable
-	private Expression<String> reason;
-	@Nullable
-	private Expression<Timespan> duration;
-	@Nullable
-	private Expression<String> source;
+	private @Nullable Expression<String> reason;
+	private @Nullable Expression<Timespan> duration;
+	private @Nullable Expression<String> source;
 
 	/** Whether to ban or unban */
 	private boolean ban;
@@ -72,8 +70,8 @@ public class EffBan extends Effect {
 	/** Kick after banning? */
 	private boolean kick;
 
-	@SuppressWarnings({"null", "unchecked"})
 	@Override
+	@SuppressWarnings("unchecked")
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		targets = expressions[0];
 
@@ -89,7 +87,6 @@ public class EffBan extends Effect {
 		return true;
 	}
 
-	@SuppressWarnings("null")
 	@Override
 	protected void execute(Event event) {
 		String reason = this.reason != null ? this.reason.getSingle(event) : null;
@@ -100,7 +97,11 @@ public class EffBan extends Effect {
 			duration = timespan.getDuration();
 		}
 
-		String source = this.source != null ? this.source.getSingle(event) : "Skript";
+		String source = "Skript";
+		if (this.source != null) {
+			String customSource = this.source.getSingle(event);
+			source = customSource != null ? customSource : source;
+		}
 
 		for (Object target : targets.getArray(event)) {
 			if (target instanceof Player player) {

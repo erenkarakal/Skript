@@ -22,6 +22,8 @@ import org.skriptlang.skript.util.Priority;
 @Name("Ban Expiration Date")
 @Description("The ban expiration date of an offline player or IP.")
 @Example("send the ban expiration date of \"3.3.3.3\"")
+@Example("add 5 days to the expiration date of {_p}'s ban")
+@Example("set the expiration date of {_p}'s ban to 10 years later")
 @Since("INSERT VERSION")
 public class ExprBanExpiration extends SimpleExpression<Date> {
 
@@ -30,9 +32,9 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 			SyntaxRegistry.EXPRESSION,
 			SyntaxInfo.Expression.builder(ExprBanDate.class, Date.class)
 				.addPatterns(
-					"[the] expiration date[s] of %offlineplayers/strings%'s ban",
+					"[the] expiration date[s] of %offlineplayers/strings%'[s] ban",
 					"[the] ban expiration date[s] of %offlineplayers/strings%",
-					"[the] date %offlineplayers/strings%'s ban expires"
+					"[the] date %offlineplayers/strings%'[s] ban expires"
 				)
 				.supplier(ExprBanDate::new)
 				.priority(Priority.base())
@@ -90,6 +92,13 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 			return;
 		}
 
+		Date date = null;
+		Timespan timespan = null;
+		switch (mode) {
+			case SET -> date = (Date) delta[0];
+			case ADD, REMOVE -> timespan = (Timespan) delta[0];
+		}
+
 		for (Object target : targets) {
 			BanEntry<?> banEntry = BukkitUtils.getBanEntry(target);
 			if (banEntry == null) {
@@ -100,15 +109,9 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 			Date newExpiration;
 
 			switch (mode) {
-				case SET -> newExpiration = (Date) delta[0];
-				case ADD -> {
-					Timespan timespan = (Timespan) delta[0];
-					newExpiration = expiration.plus(timespan);
-				}
-				case REMOVE -> {
-					Timespan timespan = (Timespan) delta[0];
-					newExpiration = expiration.minus(timespan);
-				}
+				case SET -> newExpiration = date;
+				case ADD -> newExpiration = expiration.plus(timespan);
+				case REMOVE -> newExpiration = expiration.minus(timespan);
 				default -> {
 					continue;
 				}

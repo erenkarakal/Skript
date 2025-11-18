@@ -18,9 +18,11 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 import org.skriptlang.skript.util.Priority;
 
 @Name("Ban Source")
-@Description("Returns the ban source of a player or IP. This is usually the name of the player that banned them, but " +
-	"it might not always be a player name.")
+@Description("The ban source of a player or IP. This is usually the name of the player that banned them, but " +
+	"it might not always be a player name. Plugins may use custom ban sources. For bans issued by Skript, the ban source " +
+	"is 'Skript'")
 @Example("send the ban source of \"3.3.3.3\"")
+@Example("set the ban source of {_p} to \"staff\"")
 @Since("INSERT VERSION")
 public class ExprBanSource extends SimpleExpression<String> {
 
@@ -49,7 +51,7 @@ public class ExprBanSource extends SimpleExpression<String> {
 
 	@Override
 	protected String @Nullable [] get(Event event) {
-		Object[] targets = this.targets.getAll(event);
+		Object[] targets = this.targets.getArray(event);
 		if (targets == null) {
 			return null;
 		}
@@ -80,7 +82,7 @@ public class ExprBanSource extends SimpleExpression<String> {
 
 	@Override
 	public void change(Event event, Object @Nullable [] delta, ChangeMode mode) {
-		Object[] targets = this.targets.getAll(event);
+		Object[] targets = this.targets.getArray(event);
 
 		assert delta != null;
 		String source = (String) delta[0];

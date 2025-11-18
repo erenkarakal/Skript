@@ -17,6 +17,7 @@ import org.skriptlang.skript.util.Priority;
 @Name("Ban Reason")
 @Description("The ban reason of a player or IP.")
 @Example("send the ban reason of \"3.3.3.3\"")
+@Example("set the reason {_p} was banned to \"hacking\"")
 @Since("INSERT VERSION")
 public class ExprBanReason extends SimpleExpression<String> {
 
