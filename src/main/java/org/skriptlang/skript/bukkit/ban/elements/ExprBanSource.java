@@ -29,13 +29,13 @@ public class ExprBanSource extends SimpleExpression<String> {
 	public static void register(SyntaxRegistry registry) {
 		registry.register(
 			SyntaxRegistry.EXPRESSION,
-			SyntaxInfo.Expression.builder(ExprBanReason.class, String.class)
+			SyntaxInfo.Expression.builder(ExprBanSource.class, String.class)
 				.addPatterns(
 					"[the] source[s] of %offlineplayers/strings%'[s] ban",
 					"[the] ban source of %offlineplayers/strings%"
 				)
 				.priority(Priority.base())
-				.supplier(ExprBanReason::new)
+				.supplier(ExprBanSource::new)
 				.build()
 		);
 	}
