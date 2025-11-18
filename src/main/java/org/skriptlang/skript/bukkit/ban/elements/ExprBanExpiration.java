@@ -36,8 +36,8 @@ public class ExprBanExpiration extends SimpleExpression<Date> {
 					"[the] ban expiration date[s] of %offlineplayers/strings%",
 					"[the] date %offlineplayers/strings%'[s] ban expires"
 				)
-				.supplier(ExprBanDate::new)
 				.priority(Priority.base())
+				.supplier(ExprBanDate::new)
 				.build()
 		);
 	}

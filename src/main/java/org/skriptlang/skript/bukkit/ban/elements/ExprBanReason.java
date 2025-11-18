@@ -30,8 +30,8 @@ public class ExprBanReason extends SimpleExpression<String> {
 					"[the] reason[s] for %offlineplayers/strings%'[s] ban",
 					"[the] ban reason[s] of %offlineplayers/strings%"
 				)
-				.supplier(ExprBanReason::new)
 				.priority(Priority.base())
+				.supplier(ExprBanReason::new)
 				.build()
 		);
 	}

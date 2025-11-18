@@ -34,8 +34,8 @@ public class ExprBanSource extends SimpleExpression<String> {
 					"[the] source[s] of %offlineplayers/strings%'[s] ban",
 					"[the] ban source of %offlineplayers/strings%"
 				)
-				.supplier(ExprBanReason::new)
 				.priority(Priority.base())
+				.supplier(ExprBanReason::new)
 				.build()
 		);
 	}

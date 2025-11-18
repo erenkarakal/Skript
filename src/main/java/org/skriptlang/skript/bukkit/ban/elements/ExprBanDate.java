@@ -15,6 +15,7 @@ import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
+import org.skriptlang.skript.util.Priority;
 
 @Name("Ban Date")
 @Description("Returns the ban date of a player or IP.")
@@ -31,6 +32,7 @@ public class ExprBanDate extends SimpleExpression<Date> {
 					"[the] date[s] of %offlineplayers/strings%'[s] ban",
 					"[the] ban date[s] of %offlineplayers/strings%"
 				)
+				.priority(Priority.base())
 				.supplier(ExprBanDate::new)
 				.build()
 		);
