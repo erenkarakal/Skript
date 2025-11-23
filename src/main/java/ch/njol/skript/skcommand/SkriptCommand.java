@@ -30,15 +30,14 @@ public class SkriptCommand implements TabExecutor {
 			new ListCommand(),
 			new InfoCommand(),
 			new UpdateCommand(),
-			new RecoverCommand()
+			new RecoverCommand(),
+			new ParseCommand()
 		));
 
-		// add a command to generate documentation
 		if (TestMode.GEN_DOCS || Documentation.isDocsTemplateFound()) {
 			SUB_COMMANDS.add(new GenDocsCommand());
 		}
 
-		// add a command to run individual tests
 		if (TestMode.DEV_MODE) {
 			SUB_COMMANDS.add(new TestCommand());
 		}

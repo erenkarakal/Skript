@@ -15,6 +15,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,10 +33,16 @@ class RecoverCommand extends SubCommand {
 
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
+		// Create a unique folder for each dump, don't want to overwrite old dumps in a recover command
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd-HH_mm_ss");
+		String targetFolderName = LocalDateTime.now().format(formatter);
+		Path targetFolder = DUMP_FOLDER.resolve(targetFolderName);
+
 		Bukkit.getScheduler().runTaskAsynchronously(Skript.getInstance(), () -> {
+			// TODO - lang entries
 			sender.sendMessage("recovering...");
-			recoverScripts(sender);
-			sender.sendMessage("recovered");
+			recoverScripts(sender, targetFolder);
+			sender.sendMessage("recovered " + targetFolder);
 		});
 	}
 
@@ -46,11 +54,11 @@ class RecoverCommand extends SubCommand {
 	/**
 	 * Dumps all loaded scripts to a folder. Even if the script files are deleted.
 	 */
-	public static void recoverScripts(CommandSender sender) {
+	public static void recoverScripts(CommandSender sender, Path targetFolder) {
 		try {
-			Files.createDirectories(DUMP_FOLDER);
+			Files.createDirectories(targetFolder);
 		} catch (IOException e) {
-			// TODO
+			// TODO - lang entries
 			sender.sendMessage("error");
 			// noinspection ThrowableNotThrown
 			Skript.exception(e);
@@ -65,7 +73,7 @@ class RecoverCommand extends SubCommand {
 				lines.addAll(loopNodes(node));
 				lines.add("");
 			}
-			Path filePath = DUMP_FOLDER.resolve(name);
+			Path filePath = targetFolder.resolve(name);
 			try {
 				Files.createDirectories(filePath.getParent());
 				Files.write(filePath, lines, StandardOpenOption.CREATE);
@@ -78,7 +86,7 @@ class RecoverCommand extends SubCommand {
 
 	private static List<String> loopNodes(Node mainNode) {
 		String indentation = mainNode.getIndentation();
-		String comment = mainNode.getComment();
+		String comment = (mainNode.getComment() != null ? " " + mainNode.getComment() : "");
 		String key = mainNode.getKey() == null ? "" : mainNode.getKey();
 
 		List<String> lines = new ArrayList<>();

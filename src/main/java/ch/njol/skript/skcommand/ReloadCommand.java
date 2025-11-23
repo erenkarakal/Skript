@@ -14,13 +14,19 @@ import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.OpenCloseable;
 import ch.njol.util.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.Script;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import static ch.njol.skript.skcommand.SkriptCommand.info;
 
 class ReloadCommand extends SubCommand {
 
@@ -31,20 +37,22 @@ class ReloadCommand extends SubCommand {
 
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
+		Set<CommandSender> recipients = Bukkit.getOnlinePlayers().stream()
+			.filter(player -> player.hasPermission("skript.reloadnotify"))
+			.collect(Collectors.toSet());
+		recipients.add(sender);
+
 		try (
-			RedirectingLogHandler redirectingLogHandler = new RedirectingLogHandler(sender, "").start();
+			RedirectingLogHandler redirectingLogHandler = new RedirectingLogHandler(recipients, "").start();
 			TimingLogHandler timingLogHandler = new TimingLogHandler().start()
 		) {
-			if (args[1].equalsIgnoreCase("all")) {
-				reloadEverything(sender, redirectingLogHandler, timingLogHandler);
-			} else if (args[1].equalsIgnoreCase("scripts")) {
-				reloadScripts(sender, redirectingLogHandler, timingLogHandler);
-			} else if (args[1].equalsIgnoreCase("config")) {
-				reloadConfig(sender, redirectingLogHandler, timingLogHandler);
-			} else if (args[1].equalsIgnoreCase("aliases")) {
-				reloadAliases(sender, redirectingLogHandler, timingLogHandler);
-			} else { // Reloading an individual script or folder
-				reloadSpecific(sender, args, redirectingLogHandler, timingLogHandler);
+			switch (args[1].toLowerCase(Locale.ENGLISH)) {
+				case "all" -> reloadEverything(sender, redirectingLogHandler, timingLogHandler);
+				case "scripts" -> reloadScripts(sender, redirectingLogHandler, timingLogHandler);
+				case "config" -> reloadConfig(sender, redirectingLogHandler, timingLogHandler);
+				case "aliases" -> reloadAliases(sender, redirectingLogHandler, timingLogHandler);
+				// Reloading an individual script or folder
+				default -> reloadSpecific(sender, args, redirectingLogHandler, timingLogHandler);
 			}
 		}
 	}
@@ -65,9 +73,10 @@ class ReloadCommand extends SubCommand {
 			File scriptsFolder = Skript.getInstance().getScriptsFolder();
 			ScriptLoader.loadScripts(scriptsFolder, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
 				.thenAccept(info -> {
-					if (info.files == 0)
+					if (info.files == 0) {
 						Skript.warning(Skript.m_no_scripts.toString());
-					reloaded(sender, redirectingLogHandler, timingLogHandler, "config, aliases and scripts");
+					}
+					reloaded(redirectingLogHandler, timingLogHandler, "config, aliases and scripts");
 				});
 		});
 	}
@@ -83,7 +92,7 @@ class ReloadCommand extends SubCommand {
 			.thenAccept(info -> {
 				if (info.files == 0)
 					Skript.warning(Skript.m_no_scripts.toString());
-				reloaded(sender, redirectingLogHandler, timingLogHandler, "scripts");
+				reloaded(redirectingLogHandler, timingLogHandler, "scripts");
 			});
 	}
 
@@ -92,7 +101,7 @@ class ReloadCommand extends SubCommand {
 									 TimingLogHandler timingLogHandler) {
 		reloading(sender, "main config", redirectingLogHandler);
 		SkriptConfig.load();
-		reloaded(sender, redirectingLogHandler, timingLogHandler, "main config");
+		reloaded(redirectingLogHandler, timingLogHandler, "main config");
 	}
 
 	// sk reload aliases
@@ -100,7 +109,7 @@ class ReloadCommand extends SubCommand {
 									  TimingLogHandler timingLogHandler) {
 		reloading(sender, "aliases", redirectingLogHandler);
 		Aliases.clear();
-		Aliases.loadAsync().thenRun(() -> reloaded(sender, redirectingLogHandler, timingLogHandler, "aliases"));
+		Aliases.loadAsync().thenRun(() -> reloaded(redirectingLogHandler, timingLogHandler, "aliases"));
 	}
 
 	// sk reload script_name
@@ -128,7 +137,7 @@ class ReloadCommand extends SubCommand {
 
 			ScriptLoader.loadScripts(scriptFile, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
 				.thenAccept(scriptInfo ->
-					reloaded(sender, redirectingLogHandler, timingLogHandler, "script", scriptFile.getName())
+					reloaded(redirectingLogHandler, timingLogHandler, "script", scriptFile.getName())
 				);
 		} else {
 			String fileName = scriptFile.getName();
@@ -145,12 +154,11 @@ class ReloadCommand extends SubCommand {
 						? "x scripts in folder success"
 						: "x scripts in folder error";
 
-					reloaded(sender, redirectingLogHandler, timingLogHandler, key, fileName, scriptInfo.files);
+					reloaded(redirectingLogHandler, timingLogHandler, key, fileName, scriptInfo.files);
 				});
 		}
 	}
 
-	// Messages
 	private static final ArgsMessage RELOADING_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".reload.reloading");
 	private static final ArgsMessage RELOADED_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".reload.reloaded");
 	private static final ArgsMessage RELOAD_ERROR_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".reload.error");
@@ -168,8 +176,8 @@ class ReloadCommand extends SubCommand {
 		logHandler.log(new LogEntry(Level.INFO, Utils.replaceEnglishChatStyles(text)), sender);
 	}
 
-	private static void reloaded(CommandSender sender, RedirectingLogHandler logHandler,
-								 TimingLogHandler timingLogHandler, String what, Object... args) {
+	private static void reloaded(RedirectingLogHandler logHandler, TimingLogHandler timingLogHandler,
+								 String what, Object... args) {
 		what = args.length == 0
 			? Language.get(SkriptCommand.CONFIG_NODE + ".reload." + what)
 			: PluralizingArgsMessage.format(Language.format(SkriptCommand.CONFIG_NODE + ".reload." + what, args));
@@ -178,21 +186,13 @@ class ReloadCommand extends SubCommand {
 		String message;
 
 		if (logHandler.numErrors() == 0) {
-			String reloadedMessage = RELOADED_MESSAGE.toString(what, timeTaken);
+			String reloadedMessage = Skript.getSkriptPrefix() + RELOADED_MESSAGE.toString(what, timeTaken);
 			message = StringUtils.fixCapitalization(PluralizingArgsMessage.format(reloadedMessage));
-			logHandler.log(new LogEntry(Level.INFO, Utils.replaceEnglishChatStyles(message)));
 		} else {
-			String errorMessage = RELOAD_ERROR_MESSAGE.toString(what, logHandler.numErrors(), timeTaken);
+			String errorMessage = Skript.getSkriptPrefix() + RELOAD_ERROR_MESSAGE.toString(what, logHandler.numErrors(), timeTaken);
 			message = StringUtils.fixCapitalization(PluralizingArgsMessage.format(errorMessage));
-			logHandler.log(new LogEntry(Level.SEVERE, Utils.replaceEnglishChatStyles(message)));
 		}
-	}
-
-	private static void info(CommandSender sender, String what, Object... args) {
-		what = args.length == 0
-			? Language.get(SkriptCommand.CONFIG_NODE + "." + what)
-			: PluralizingArgsMessage.format(Language.format(SkriptCommand.CONFIG_NODE + "." + what, args));
-		Skript.info(sender, StringUtils.fixCapitalization(what));
+		logHandler.log(new LogEntry(Level.INFO, Utils.replaceEnglishChatStyles(message)));
 	}
 
 }

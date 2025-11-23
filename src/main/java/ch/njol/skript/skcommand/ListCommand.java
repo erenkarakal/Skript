@@ -51,7 +51,7 @@ class ListCommand extends SubCommand {
 			return files;
 		}
 
-		//noinspection ConstantConditions - we know 'folder' is a folder
+		// noinspection ConstantConditions - we know 'folder' is a folder
 		for (File listFile : folder.listFiles(f -> !f.isHidden())) {
 			if (listFile.isDirectory()) {
 				files.addAll(getSubFiles(listFile));
