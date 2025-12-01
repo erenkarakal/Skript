@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ class ScriptCommand {
 		// Live update, this will get all old and new (even not loaded) scripts
 		// TODO Find a better way for caching, it isn't exactly ideal to be calling this method constantly
 		// TODO Make a cache based on last modified date of the 'scripts' folder?
-		try (Stream<Path> files = Files.walk(scripts.toPath())) {
+		try (Stream<Path> files = Files.walk(scripts.toPath(), FileVisitOption.FOLLOW_LINKS)) {
 			files.map(Path::toFile)
 				.forEach(file -> {
 					FileFilter fileFilter = enable

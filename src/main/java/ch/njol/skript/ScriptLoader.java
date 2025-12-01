@@ -1283,7 +1283,7 @@ public class ScriptLoader {
 			script = script.replace('/', File.separatorChar).replace('\\', File.separatorChar);
 		} else if (!StringUtils.endsWithIgnoreCase(script, ".sk")) {
 			int dot = script.lastIndexOf('.');
-			if (dot > 0 && !script.substring(dot + 1).equals(""))
+			if (dot > 0 && !script.substring(dot + 1).isEmpty())
 				return null;
 			script = script + ".sk";
 		}
@@ -1298,15 +1298,8 @@ public class ScriptLoader {
 				return null;
 			}
 		}
-		try {
-			// Unless it's a test, check if the user is asking for a script in the scripts folder
-			// and not something outside Skript's domain.
-			if (TestMode.ENABLED || scriptFile.getCanonicalPath().startsWith(directory.getCanonicalPath() + File.separator))
-				return scriptFile.getCanonicalFile();
-			return null;
-		} catch (IOException e) {
-			throw Skript.exception(e, "An exception occurred while trying to get the script file from the string '" + script + "'");
-		}
+
+		return scriptFile.getAbsoluteFile();
 	}
 
 }
