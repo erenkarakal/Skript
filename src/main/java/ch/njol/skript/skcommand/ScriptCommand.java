@@ -113,6 +113,10 @@ class ScriptCommand {
 					}
 
 					options.add(fileString);
+
+					if (fileString.startsWith(ScriptLoader.DISABLED_SCRIPT_PREFIX)) {
+						options.add(fileString.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH));
+					}
 				});
 		} catch (Exception e) {
 			// noinspection ThrowableNotThrown
