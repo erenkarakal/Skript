@@ -1299,7 +1299,19 @@ public class ScriptLoader {
 			}
 		}
 
-		return scriptFile.getAbsoluteFile();
+		if (Files.isSymbolicLink(scriptFile.toPath())) {
+			return scriptFile.getAbsoluteFile();
+		}
+
+		try {
+			// Unless it's a test, check if the user is asking for a script in the scripts folder
+			// and not something outside Skript's domain.
+			if (TestMode.ENABLED || scriptFile.getCanonicalPath().startsWith(directory.getCanonicalPath() + File.separator))
+				return scriptFile.getCanonicalFile();
+			return null;
+		} catch (IOException e) {
+			throw Skript.exception(e, "An exception occurred while trying to get the script file from the string '" + script + "'");
+		}
 	}
 
 }

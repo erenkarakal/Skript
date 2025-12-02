@@ -158,17 +158,12 @@ class ScriptCommand {
 			} else {
 				if (filter.accept(file)) {
 					String fileName = file.getName();
-					String prefix;
-					if (enable) {
-						prefix = fileName.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
-					} else {
-						prefix = ScriptLoader.DISABLED_SCRIPT_PREFIX;
-					}
-					changed.add(FileUtils.move(
-						file,
-						new File(file.getParentFile(), prefix + fileName),
-						false
-					));
+					String newName = enable
+						? fileName.substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH)
+						: ScriptLoader.DISABLED_SCRIPT_PREFIX + fileName;
+
+					File dest = new File(file.getParentFile(), newName);
+					changed.add(FileUtils.move(file, dest, false));
 				}
 			}
 		}
