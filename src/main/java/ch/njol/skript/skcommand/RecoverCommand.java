@@ -5,6 +5,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
+import ch.njol.skript.config.VoidNode;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -18,6 +19,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -68,38 +70,42 @@ class RecoverCommand extends SubCommand {
 			Config config = script.getConfig();
 			String name = config.getFileName();
 
-			List<String> lines = new ArrayList<>();
-			for (Node node : config.getMainNode()) {
-				lines.addAll(loopNodes(node));
-				lines.add("");
-			}
-			Path filePath = targetFolder.resolve(name);
+			List<String> lines = new ArrayList<>(dumpNodes(config.getMainNode()));
+			// FIXME - lazy fix for symbolic links, find a better way?
+			Path filePath = targetFolder.resolve(name.replace(".." + File.separator, ""));
+
 			try {
 				Files.createDirectories(filePath.getParent());
 				Files.write(filePath, lines, StandardOpenOption.CREATE);
 			} catch (IOException e) {
+				// TODO - lang entries
 				sender.sendMessage("error");
 				throw new RuntimeException("Error while recovering scripts.", e);
 			}
 		}
 	}
 
-	private static List<String> loopNodes(Node mainNode) {
+	private static List<String> dumpNodes(Node mainNode) {
 		String indentation = mainNode.getIndentation();
-		String comment = (mainNode.getComment() != null ? " " + mainNode.getComment() : "");
+		String comment = mainNode.getComment() == null ? "" : mainNode.getComment();
 		String key = mainNode.getKey() == null ? "" : mainNode.getKey();
 
 		List<String> lines = new ArrayList<>();
 
 		if (mainNode instanceof SectionNode sectionNode) {
 			if (!key.isEmpty()) {
-				lines.add(indentation + key + ": " + comment);
+				lines.add((indentation + key + ": " + comment).stripTrailing());
 			}
-			for (Node node : sectionNode) {
-				lines.addAll(loopNodes(node));
+			for (@NotNull Iterator<Node> it = sectionNode.fullIterator(); it.hasNext(); ) {
+				Node node = it.next();
+				lines.addAll(dumpNodes(node));
 			}
+		} else if (mainNode instanceof VoidNode voidNode) {
+			String line = voidNode.getIndentation() + voidNode.getComment();
+			lines.add(line.stripTrailing());
 		} else {
-			lines.add(indentation + key + comment);
+			String line = indentation + key + " " + comment;
+			lines.add(line.stripTrailing());
 		}
 
 		return lines;
