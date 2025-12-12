@@ -35,7 +35,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @return The global option, or the script specific option, or null
 	 */
 	public String getOption(@NotNull Script script, String option) {
-		return options.get(null).getOrDefault(option, options.get(script).get(option));
+		return options.get(script).getOrDefault(option, options.get(null).get(option));
 	}
 
 	/**
