@@ -12,9 +12,8 @@ import java.util.*;
  */
 public class GlobalOptions extends GlobalFile {
 
-	public GlobalOptions(org.skriptlang.skript.Skript skript) {
+	public GlobalOptions() {
 		super(Skript.getInstance(), "options");
-		skript.registry(GlobalFileRegistry.class).registerGlobal(this);
 	}
 
 	/**
