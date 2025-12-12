@@ -31,7 +31,7 @@ skript command:
 			all: Reloads the config, all aliases configs and all scripts
 			config: Reloads the main config
 			aliases: Reloads the aliases configs (aliases-english.zip or plugin jar)
-			global-options: Reloads the global options
+			globals: Reloads the global files
 			scripts: Reloads all scripts
 			<script>: Reloads a specific script or a folder of scripts
 		enable:
@@ -65,13 +65,12 @@ skript command:
 		error details: <light red>    %s<reset>\n
 		other details: <white>    %s<reset>\n
 		line details: <gold>    Line: <gray>%s<reset>\n <reset>
-		global options: You must also reload any scripts that use global options for the changes to take effect.
 
-		config, aliases, global options and scripts: the config, aliases, global options and all scripts
+		config, aliases, globals and scripts: the config, aliases, global files and all scripts
 		scripts: all scripts
 		main config: the main configuration
 		aliases: the aliases
-		global options: the global options
+		global files: the global files
 		script: <gold>%s<reset>
 		scripts in folder: all scripts in <gold>%s<reset>
 		x scripts in folder success: <gold>%2$s <lime>script¦¦s¦ in <gold>%1$s<reset>
