@@ -551,9 +551,8 @@ public final class Skript extends JavaPlugin implements Listener {
 		RuntimeErrorManager.refresh();
 		getRuntimeErrorManager().addConsumer(new BukkitRuntimeErrorConsumer());
 
-		GlobalFileRegistry globalFileRegistry = new GlobalFileRegistry();
-		skript.storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
- 		new GlobalOptions().load();
+		skript.storeRegistry(GlobalFileRegistry.class, new GlobalFileRegistry());
+ 		new GlobalOptions(skript).load();
 
 
 		// Now override the verbosity if test mode is enabled

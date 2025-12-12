@@ -27,7 +27,7 @@ public abstract class GlobalFile {
 			globalsFolder.mkdir();
 		}
 
-		String filePath = "/globals/" + name + ".sk";
+		String filePath = "globals/" + name + ".sk";
 		file = new File(plugin.getDataFolder(), filePath);
 
 		if (!file.exists()) {
