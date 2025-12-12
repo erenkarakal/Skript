@@ -966,10 +966,9 @@ public class ScriptLoader {
 		ParserInstance parser = getParser();
 		if (!parser.isActive()) // getCurrentScript() is not safe to use
 			return string;
-		OptionsData optionsData = parser.getCurrentScript().getData(OptionsData.class);
-		if (optionsData == null)
-			return GlobalOptions.replaceOptions(string);
-		return optionsData.replaceOptions(string);
+
+		OptionRegistry registry = Skript.instance().registry(OptionRegistry.class);
+		return registry.replaceOptions(getParser().getCurrentScript(), string);
 	}
 
 	/**

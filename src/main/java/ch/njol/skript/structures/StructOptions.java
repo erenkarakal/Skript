@@ -1,27 +1,22 @@
 package ch.njol.skript.structures;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.config.EntryNode;
-import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.doc.Description;
 import ch.njol.skript.doc.Examples;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
-import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.lang.Literal;
+import ch.njol.skript.lang.OptionRegistry;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
-import ch.njol.util.StringUtils;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.entry.EntryContainer;
 import org.skriptlang.skript.lang.script.ScriptData;
 import org.skriptlang.skript.lang.structure.Structure;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 @Name("Options")
 @Description({
@@ -59,20 +54,9 @@ public class StructOptions extends Structure {
 		// noinspection ConstantConditions - entry container cannot be null as this structure is not simple
 		SectionNode node = entryContainer.getSource();
 		node.convertToEntries(-1);
-		loadOptions(node, "", getParser().getCurrentScript().getData(OptionsData.class, OptionsData::new).options);
+		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
+		optionRegistry.loadLocalOptions(getParser().getCurrentScript(), node);
 		return true;
-	}
-
-	public static void loadOptions(SectionNode sectionNode, String prefix, Map<String, String> options) {
-		for (Node node : sectionNode) {
-			if (node instanceof EntryNode) {
-				options.put(prefix + node.getKey(), ((EntryNode) node).getValue());
-			} else if (node instanceof SectionNode) {
-				loadOptions((SectionNode) node, prefix + node.getKey() + ".", options);
-			} else {
-				Skript.error("Invalid line in options");
-			}
-		}
 	}
 
 	@Override
@@ -82,7 +66,8 @@ public class StructOptions extends Structure {
 
 	@Override
 	public void unload() {
-		getParser().getCurrentScript().removeData(OptionsData.class);
+		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
+		optionRegistry.deleteLocalOptions(getParser().getCurrentScript());
 	}
 
 	@Override
@@ -95,34 +80,33 @@ public class StructOptions extends Structure {
 		return "options";
 	}
 
+	/**
+	 * @deprecated Use <code>Skript.instance().registry(OptionRegistry.class)</code> instead.
+	 */
+	@Deprecated(since = "INSERT VERSION", forRemoval = true)
 	public static final class OptionsData implements ScriptData {
-
-		private final Map<String, String> options = new HashMap<>();
 
 		/**
 		 * Replaces all options in the provided String using the options of this data.
+		 *
 		 * @param string The String to replace options in.
 		 * @return A String with all options replaced, or the original String if the provided Script has no options.
 		 */
 		@SuppressWarnings("ConstantConditions") // no way to get null as callback does not return null anywhere
 		public String replaceOptions(String string) {
-			return StringUtils.replaceAll(string, "\\{@(.+?)\\}", m -> {
-				String option = options.getOrDefault(m.group(1), GlobalOptions.getOptions().get(m.group(1)));
-				if (option == null) {
-					Skript.error("undefined option " + m.group());
-					return m.group();
-				}
-				return Matcher.quoteReplacement(option);
-			});
+			/*
+			* TODO - couldn't find a way to get the Script from a ScriptData
+			* needed for getting option from registry
+			*/
+			return string;
 		}
 
 		/**
 		 * @return An unmodifiable version of this data's option mappings.
 		 */
 		public Map<String, String> getOptions() {
-			return Collections.unmodifiableMap(options);
+			return new HashMap<>();
 		}
 
 	}
-
 }
