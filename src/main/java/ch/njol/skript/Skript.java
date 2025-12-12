@@ -552,7 +552,7 @@ public final class Skript extends JavaPlugin implements Listener {
 		getRuntimeErrorManager().addConsumer(new BukkitRuntimeErrorConsumer());
 
 		GlobalFileRegistry globalFileRegistry = new GlobalFileRegistry();
-		getAddonInstance().storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
+		skript.storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
  		new GlobalOptions().load();
 
 
