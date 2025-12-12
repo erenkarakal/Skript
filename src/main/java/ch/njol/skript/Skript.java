@@ -553,7 +553,6 @@ public final class Skript extends JavaPlugin implements Listener {
 
 		GlobalFileRegistry globalFileRegistry = new GlobalFileRegistry();
 		getAddonInstance().storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
-		instance().storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
  		new GlobalOptions().load();
 
 
