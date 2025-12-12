@@ -17,10 +17,6 @@ import java.util.regex.Matcher;
  */
 public class OptionRegistry implements Registry<Map<Script, Map<String, String>>> {
 
-	public OptionRegistry() {
-		Skript.instance().storeRegistry(OptionRegistry.class, this);
-	}
-
 	public static OptionRegistry get() {
 		return Skript.instance().registry(OptionRegistry.class);
 	}
