@@ -166,7 +166,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 			String optionName = m.group(1);
 			String option = getOption(script, optionName);
 			if (option == null) {
-				Skript.error("Undefined option " + optionName + ". Options must be declared before they are used");
+				Skript.error("Undefined option '" + optionName + "'. Options must be declared before they are used.");
 				return m.group();
 			}
 			return Matcher.quoteReplacement(option);
