@@ -985,7 +985,7 @@ public class ScriptLoader {
 		if (!parser.isActive()) // getCurrentScript() is not safe to use
 			return string;
 
-		OptionRegistry registry = Skript.instance().registry(OptionRegistry.class);
+		OptionRegistry registry = OptionRegistry.get();
 		return registry.replaceOptions(getParser().getCurrentScript(), string);
 	}
 
