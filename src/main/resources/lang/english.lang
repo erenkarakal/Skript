@@ -31,7 +31,6 @@ skript command:
 			all: Reloads the config, all aliases configs and all scripts
 			config: Reloads the main config
 			aliases: Reloads the aliases configs (aliases-english.zip or plugin jar)
-			globals: Reloads the global files
 			scripts: Reloads all scripts
 			<script>: Reloads a specific script or a folder of scripts
 		enable:
