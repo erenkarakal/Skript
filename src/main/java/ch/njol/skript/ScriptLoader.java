@@ -986,7 +986,13 @@ public class ScriptLoader {
 			return string;
 
 		OptionRegistry registry = OptionRegistry.get();
-		return registry.replaceOptions(getParser().getCurrentScript(), string);
+		Script script = parser.getCurrentScript();
+
+		if (registry.getOptions().get(script) != null) {
+			return registry.replaceOptions(script, string);
+		}
+
+		return string;
 	}
 
 	/**

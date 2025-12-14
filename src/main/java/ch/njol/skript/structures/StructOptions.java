@@ -82,7 +82,7 @@ public class StructOptions extends Structure {
 	}
 
 	/**
-	 * @deprecated Use <code>OptionRegistry.get()</code> instead.
+	 * @deprecated Use {@link OptionRegistry#get()} instead.
 	 */
 	@Deprecated(since = "INSERT VERSION", forRemoval = true)
 	public static final class OptionsData implements ScriptData {

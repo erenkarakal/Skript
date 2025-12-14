@@ -44,7 +44,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 		}
 
 		Map<String, String> globalOptions = options.get(null);
-		return globalOptions.get(option);
+			return globalOptions.get(option);
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param sectionNode The initial node to load options from
 	 */
 	public void loadLocalOptions(Script script, SectionNode sectionNode) {
-		options.put(script, new HashMap<>());
+		options.computeIfAbsent(script, k -> new HashMap<>());
 		Map<String, String> localOptions = options.get(script);
 		loadOptions(sectionNode, "", localOptions);
 	}
@@ -166,7 +166,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 			String optionName = m.group(1);
 			String option = getOption(script, optionName);
 			if (option == null) {
-				Skript.error("Undefined option " + optionName);
+				Skript.error("Undefined option " + optionName + ". Options must be declared before they are used");
 				return m.group();
 			}
 			return Matcher.quoteReplacement(option);
