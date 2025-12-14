@@ -17,6 +17,9 @@ import java.util.regex.Matcher;
  */
 public class OptionRegistry implements Registry<Map<Script, Map<String, String>>> {
 
+	/**
+	 * @return The option registry
+	 */
 	public static OptionRegistry get() {
 		return Skript.instance().registry(OptionRegistry.class);
 	}
@@ -39,9 +42,9 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	}
 
 	/**
-	 * Get a map of all options
-	 * use '.get(null)' for a map of global options
-	 * use '.get(script)' for a map of script specific options
+	 * Get a map of all options<br>
+	 * use <code>.get(null)</code> for a map of global options<br>
+	 * use <code>.get(script)</code> for a map of script specific options
 	 */
 	public Map<Script, Map<String, String>> getOptions() {
 		return options;
@@ -159,7 +162,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 			} else if (node instanceof SectionNode section) {
 				loadOptions(section, prefix + node.getKey() + ".", options);
 			} else {
-				Skript.error("Invalid line in options");
+				Skript.error("Invalid line " + node.getKey() + " in options");
 			}
 		}
 	}
