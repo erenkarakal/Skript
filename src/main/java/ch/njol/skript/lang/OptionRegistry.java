@@ -44,7 +44,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 		}
 
 		Map<String, String> globalOptions = options.get(null);
-			return globalOptions.get(option);
+		return globalOptions.get(option);
 	}
 
 	/**
