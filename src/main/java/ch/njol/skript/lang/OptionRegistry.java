@@ -32,13 +32,16 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	private static final Map<Script, Map<String, String>> options = new HashMap<>();
 
 	/**
-	 * Gets a global option. If the global option doesn't exist, defaults to script specific option
+	 * Gets a script specific option. If the script specific option doesn't exist, defaults to global option
 	 * @param script The script
 	 * @param option The option's name
-	 * @return The global option, or the script specific option, or null
+	 * @return The script specific option, or global option, or null
 	 */
 	public String getOption(@NotNull Script script, String option) {
-		return options.get(script).getOrDefault(option, options.get(null).get(option));
+		if (options.containsKey(script)) {
+			return options.get(script).get(option);
+		}
+		return options.get(null).get(option);
 	}
 
 	/**
