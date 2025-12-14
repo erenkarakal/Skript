@@ -64,7 +64,10 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param option The option's name
 	 * @param value The option's new value, must not be null
 	 */
-	public void setGlobalOption(String option, @NotNull String value) {
+	public void setGlobalOption(String option, String value) {
+		if (value == null) {
+			return;
+		}
 		options.get(null).put(option, value);
 	}
 
@@ -90,7 +93,10 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param option The option's name
 	 * @return The option's value, or null if it doesn't exist
 	 */
-	public String getLocalOption(@NotNull Script script, String option) {
+	public String getLocalOption(Script script, String option) {
+		if (script == null) {
+			return null;
+		}
 		return options.get(script).get(option);
 	}
 
@@ -100,7 +106,10 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param option The option's name
 	 * @param value The option's new value, must not be null
 	 */
-	public void setLocalOption(@NotNull Script script, String option, @NotNull String value) {
+	public void setLocalOption(Script script, String option, String value) {
+		if (script == null || value == null) {
+			return;
+		}
 		options.get(script).put(option, value);
 	}
 
@@ -128,7 +137,10 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param script The script
 	 * @return A map of option names and their values
 	 */
-	public Map<String, String> getLocalOptions(@NotNull Script script) {
+	public Map<String, String> getLocalOptions(Script script) {
+		if (script == null) {
+			return null;
+		}
 		return options.get(script);
 	}
 
