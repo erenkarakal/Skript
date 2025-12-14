@@ -138,7 +138,7 @@ public class SkriptCommand implements CommandExecutor {
 			if (args[0].equalsIgnoreCase("reload")) {
 
 				if (args[1].equalsIgnoreCase("all")) {
-					reloading(sender, "config, aliases, and scripts", logHandler);
+					reloading(sender, "config, aliases and scripts", logHandler);
 					SkriptConfig.load();
 					Aliases.clear();
 					Aliases.loadAsync().thenRun(() -> {
@@ -147,7 +147,7 @@ public class SkriptCommand implements CommandExecutor {
 							.thenAccept(info -> {
 								if (info.files == 0)
 									Skript.warning(Skript.m_no_scripts.toString());
-								reloaded(sender, logHandler, timingLogHandler, "config, aliases, and scripts");
+								reloaded(sender, logHandler, timingLogHandler, "config, aliases and scripts");
 							});
 					});
 				} else if (args[1].equalsIgnoreCase("scripts")) {
