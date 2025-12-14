@@ -976,8 +976,8 @@ public class ScriptLoader {
 
 	/**
 	 * Replaces options in a string.
-	 * Options are obtained from a {@link Script}'s {@link OptionsData}.
-	 * Example: <code>script.getData(OptionsData.class)</code>
+	 * Options are obtained from a {@link OptionRegistry}.
+	 * Example: <code>OptionRegistry.get()</code>
 	 */
 	// TODO this system should eventually be replaced with a more generalized "node processing" system
 	public static String replaceOptions(String string) {
