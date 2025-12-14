@@ -66,11 +66,10 @@ skript command:
 		other details: <white>    %s<reset>\n
 		line details: <gold>    Line: <gray>%s<reset>\n <reset>
 
-		config, aliases, globals and scripts: the config, aliases, global files and all scripts
+		config, aliases and scripts: the config, aliases and all scripts
 		scripts: all scripts
 		main config: the main configuration
 		aliases: the aliases
-		global files: the global files
 		script: <gold>%s<reset>
 		scripts in folder: all scripts in <gold>%s<reset>
 		x scripts in folder success: <gold>%2$s <lime>script¦¦s¦ in <gold>%1$s<reset>
