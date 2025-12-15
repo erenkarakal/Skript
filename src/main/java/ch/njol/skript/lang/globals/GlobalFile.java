@@ -1,19 +1,29 @@
 package ch.njol.skript.lang.globals;
 
-import ch.njol.skript.Skript;
-import org.bukkit.plugin.java.JavaPlugin;
+import ch.njol.skript.SkriptAddon;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 /**
- * Represents a file in the globals folder
+ * Represents a file in the globals folder.
+ * <p>
+ * GlobalFiles allow addons to create config-like files that can be reloaded
+ * using {@code /sk reload globals}.
+ * <p>
+ * To create a GlobalFile, extend this class and implement {@link #load()}.
+ * The addon is responsible for calling {@code load()} initially to control
+ * when the file is loaded during server startup.
+ * <p>
+ * Each addon's global files are stored in their own data folder: {@code plugins/YourAddon/globals/filename.sk}
+ *
+ * @see GlobalFileRegistry#get()
+ * @see GlobalOptions
  */
+
 public abstract class GlobalFile {
 
+	private final SkriptAddon addon;
+	private final String name;
 	protected final File file;
 
 	/**
@@ -21,34 +31,26 @@ public abstract class GlobalFile {
 	 */
 	public abstract void load();
 
-	public GlobalFile(JavaPlugin plugin, String name) {
-		File globalsFolder = new File(plugin.getDataFolder(), "/globals/");
-		if (!globalsFolder.exists()) {
-			globalsFolder.mkdir();
-		}
+	public GlobalFile(SkriptAddon addon, String name) {
+		this.addon = addon;
+		this.name = name;
 
 		String filePath = "globals/" + name + ".sk";
-		file = new File(plugin.getDataFolder(), filePath);
-
-		if (!file.exists()) {
-			copyFile(plugin, filePath, file);
-		}
+		file = new File(addon.plugin.getDataFolder(), filePath);
 	}
 
 	/**
-	 * Copies a file from the plugin's jar into target file
-	 * Replaces existing files
+	 * @return The name of this GlobalFile
 	 */
-	private static void copyFile(JavaPlugin plugin, String sourcePath, File targetFile) {
-		try (InputStream stream = plugin.getResource(sourcePath)) {
-			if (stream == null) {
-				Skript.error("The " + sourcePath + " file doesn't exist and couldn't be read from the " + plugin.getName() + " jar file.");
-				return;
-			}
-			Files.copy(stream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			Skript.exception(e, "Error while loading the " + sourcePath + " file from the jar file.");
-		}
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return The owner of this GlobalFile
+	 */
+	public SkriptAddon getAddon() {
+		return addon;
 	}
 
 }

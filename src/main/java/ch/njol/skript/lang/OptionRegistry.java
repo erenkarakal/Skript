@@ -5,6 +5,7 @@ import ch.njol.skript.config.EntryNode;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.util.StringUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.util.Registry;
@@ -36,6 +37,8 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param script The script
 	 * @param option The option's name
 	 * @return The script specific option, or global option, or null
+	 * @see #getLocalOption(Script, String)
+	 * @see #getGlobalOption(String) 
 	 */
 	public String getOption(@NotNull Script script, String option) {
 		Map<String, String> scriptOptions = options.get(script);
@@ -51,6 +54,8 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * Get a map of all options<br>
 	 * use <code>.get(null)</code> for a map of global options<br>
 	 * use <code>.get(script)</code> for a map of script specific options
+	 * @see #getLocalOptions(Script)
+	 * @see #getGlobalOptions()
 	 */
 	public Map<Script, Map<String, String>> getOptions() {
 		return options;
@@ -60,18 +65,24 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * Gets a global option
 	 * @param option The option's name
 	 * @return The option's value, or null if it doesn't exist
+	 * @see #getOption(Script, String)
+	 * @see #getLocalOption(Script, String) 
 	 */
 	public String getGlobalOption(String option) {
-		return options.get(null).get(option);
+		if (options.containsKey(null)) {
+			return options.get(null).get(option);
+		}
+		return null;
 	}
 
 	/**
 	 * Sets a global option
 	 * @param option The option's name
 	 * @param value The option's new value, must not be null
+	 * @see #setLocalOption(Script, String, String)    
 	 */
 	public void setGlobalOption(String option, String value) {
-		if (value == null) {
+		if (value == null && !options.containsKey(null)) {
 			return;
 		}
 		options.get(null).put(option, value);
@@ -81,13 +92,16 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * Loads global options
 	 * @param sectionNode The initial node to load options from
 	 */
+	@ApiStatus.Internal
 	public void loadGlobalOptions(SectionNode sectionNode) {
 		loadLocalOptions(null, sectionNode);
 	}
 
 	/**
 	 * Get all global options
-	 * @return A map of option names and their values
+	 * @return A map of option names and their values, or null if global options weren't loaded yet
+	 * @see #getOptions()
+	 * @see #getLocalOptions(Script) 
 	 */
 	public Map<String, String> getGlobalOptions() {
 		return options.get(null);
@@ -98,9 +112,11 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param script The script, must not be null
 	 * @param option The option's name
 	 * @return The option's value, or null if it doesn't exist
+	 * @see #getOption(Script, String)
+	 * @see #getGlobalOption(String)
 	 */
 	public String getLocalOption(Script script, String option) {
-		if (script == null) {
+		if (script == null || !options.containsKey(script)) {
 			return null;
 		}
 		return options.get(script).get(option);
@@ -111,11 +127,13 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param script The script, must not be null
 	 * @param option The option's name
 	 * @param value The option's new value, must not be null
+	 * @see #setGlobalOption(String, String)
 	 */
 	public void setLocalOption(Script script, String option, String value) {
 		if (script == null || value == null) {
 			return;
 		}
+		options.computeIfAbsent(script, k -> new HashMap<>());
 		options.get(script).put(option, value);
 	}
 
@@ -124,6 +142,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * @param script The script
 	 * @param sectionNode The initial node to load options from
 	 */
+	@ApiStatus.Internal
 	public void loadLocalOptions(Script script, SectionNode sectionNode) {
 		options.computeIfAbsent(script, k -> new HashMap<>());
 		Map<String, String> localOptions = options.get(script);
@@ -142,6 +161,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	 * Get local options of a script
 	 * @param script The script
 	 * @return A map of option names and their values
+	 * @see #getGlobalOptions()
 	 */
 	public Map<String, String> getLocalOptions(Script script) {
 		if (script == null) {
@@ -156,7 +176,7 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	}
 
 	/**
-	 * Replaces all options in a string with their values, prioritizes global options
+	 * Replaces all options in a string with their values, prioritizes local options
 	 * @param script The script to get the options from
 	 * @param string The string to replace the options of
 	 * @return A string with all options replaced by their values

@@ -13,7 +13,7 @@ import java.util.*;
 public class GlobalOptions extends GlobalFile {
 
 	public GlobalOptions() {
-		super(Skript.getInstance(), "options");
+		super(Skript.getAddonInstance(), "options");
 	}
 
 	/**
@@ -33,7 +33,7 @@ public class GlobalOptions extends GlobalFile {
 				optionRegistry.setGlobalOption("GlobalOptionOverrideTest", "shouldn't work!!!");
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			Skript.exception(e, "Error while loading global options");
 		}
 	}
 
