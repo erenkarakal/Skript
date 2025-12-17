@@ -11,8 +11,8 @@ import java.io.File;
  * using {@code /sk reload globals}.
  * <p>
  * To create a GlobalFile, extend this class and implement {@link #load()}.
- * The addon is responsible for calling {@code load()} initially to control
- * when the file is loaded during server startup.
+ * Registering this GlobalFile via {@link GlobalFileRegistry#registerGlobal(GlobalFile)}
+ * will {@link #load()} the global file.
  * <p>
  * Each addon's global files are stored in their own data folder: {@code plugins/YourAddon/globals/filename.sk}
  *

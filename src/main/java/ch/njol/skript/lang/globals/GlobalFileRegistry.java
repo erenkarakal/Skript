@@ -45,6 +45,7 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 		}
 
 		globalFiles.add(globalFile);
+		globalFile.load();
 	}
 
 	/**
