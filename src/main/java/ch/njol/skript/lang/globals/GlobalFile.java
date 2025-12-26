@@ -1,6 +1,9 @@
 package ch.njol.skript.lang.globals;
 
-import ch.njol.skript.SkriptAddon;
+
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.skriptlang.skript.addon.SkriptAddon;
 
 import java.io.File;
 
@@ -36,7 +39,8 @@ public abstract class GlobalFile {
 		this.name = name;
 
 		String filePath = "globals/" + name + ".sk";
-		file = new File(addon.plugin.getDataFolder(), filePath);
+		Plugin plugin = JavaPlugin.getProvidingPlugin(addon.source());
+		file = new File(plugin.getDataFolder(), filePath);
 	}
 
 	/**

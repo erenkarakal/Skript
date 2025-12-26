@@ -19,18 +19,11 @@ import java.util.regex.Matcher;
 public class OptionRegistry implements Registry<Map<Script, Map<String, String>>> {
 
 	/**
-	 * @return The option registry
-	 */
-	public static OptionRegistry get() {
-		return Skript.instance().registry(OptionRegistry.class);
-	}
-
-	/**
 	 * Stores all options
 	 * If 'script' is null, it's stored as a global option
 	 * Otherwise, it is local to the script
 	 */
-	private static final Map<Script, Map<String, String>> options = new HashMap<>();
+	private final Map<Script, Map<String, String>> options = new HashMap<>();
 
 	/**
 	 * Gets a script specific option. If the script specific option doesn't exist, defaults to global option

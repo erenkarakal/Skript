@@ -1,8 +1,8 @@
 package ch.njol.skript.lang.globals;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.SkriptAddon;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.util.Registry;
 
 import java.io.File;
@@ -29,7 +29,11 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	 * Registers a new GlobalFile
 	 */
 	public void registerGlobal(GlobalFile globalFile) {
-		JavaPlugin plugin = globalFile.getAddon().plugin;
+		if (globalFiles.stream().anyMatch(g -> g.getClass().equals(globalFile.getClass()))) {
+			throw new IllegalArgumentException("Global file " + globalFile.getName() + " is already registered");
+		}
+
+		JavaPlugin plugin = JavaPlugin.getProvidingPlugin(globalFile.getAddon().source());
 		String name = globalFile.getName();
 
 		File globalsFolder = new File(plugin.getDataFolder(), "/globals/");

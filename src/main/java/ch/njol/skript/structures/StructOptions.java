@@ -54,7 +54,7 @@ public class StructOptions extends Structure {
 		// noinspection ConstantConditions - entry container cannot be null as this structure is not simple
 		SectionNode node = entryContainer.getSource();
 		node.convertToEntries(-1);
-		OptionRegistry optionRegistry = OptionRegistry.get();
+		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
 		optionRegistry.loadLocalOptions(getParser().getCurrentScript(), node);
 		getParser().getCurrentScript().getData(OptionsData.class, () -> new OptionsData(getParser().getCurrentScript()));
 		return true;
@@ -67,7 +67,7 @@ public class StructOptions extends Structure {
 
 	@Override
 	public void unload() {
-		OptionRegistry optionRegistry = OptionRegistry.get();
+		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
 		optionRegistry.deleteLocalOptions(getParser().getCurrentScript());
 		getParser().getCurrentScript().removeData(OptionsData.class);
 	}
@@ -83,7 +83,7 @@ public class StructOptions extends Structure {
 	}
 
 	/**
-	 * @deprecated Use {@link OptionRegistry#get()} instead.
+	 * @deprecated Use {@code Skript.instance().registry(OptionRegistry.class)} instead.
 	 */
 	@Deprecated(since = "INSERT VERSION", forRemoval = true)
 	public static final class OptionsData implements ScriptData {
@@ -103,7 +103,7 @@ public class StructOptions extends Structure {
 		 */
 		@Deprecated(since = "INSERT VERSION", forRemoval = true)
 		public String replaceOptions(String string) {
-			return OptionRegistry.get().replaceOptions(script, string);
+			return Skript.instance().registry(OptionRegistry.class).replaceOptions(script, string);
 		}
 
 		/**
@@ -112,7 +112,7 @@ public class StructOptions extends Structure {
 		 */
 		@Deprecated(since = "INSERT VERSION", forRemoval = true)
 		public Map<String, String> getOptions() {
-			return OptionRegistry.get().getLocalOptions(script);
+			return Skript.instance().registry(OptionRegistry.class).getLocalOptions(script);
 		}
 
 	}

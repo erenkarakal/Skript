@@ -24,7 +24,7 @@ public class GlobalOptions extends GlobalFile {
 		try {
 			Config config = new Config(file, true, false, ":");
 			config.getMainNode().convertToEntries(-1);
-			OptionRegistry optionRegistry = OptionRegistry.get();
+			OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
 			optionRegistry.loadGlobalOptions(config.getMainNode());
 
 			// for unit tests
