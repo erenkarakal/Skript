@@ -1,3 +1,7 @@
+global options:
+	GlobalOptionTest: works!!!
+	GlobalOptionOverrideTest: shouldn't work!!!
+
 options:
 	GlobalOptionOverrideTest: overridden!
 

@@ -26,12 +26,6 @@ public class GlobalOptions extends GlobalFile {
 			config.getMainNode().convertToEntries(-1);
 			OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
 			optionRegistry.loadGlobalOptions(config.getMainNode());
-
-			// for unit tests
-			if (Skript.testing()) {
-				optionRegistry.setGlobalOption("GlobalOptionTest", "works!!!");
-				optionRegistry.setGlobalOption("GlobalOptionOverrideTest", "shouldn't work!!!");
-			}
 		} catch (IOException e) {
 			Skript.exception(e, "Error while loading global options");
 		}
