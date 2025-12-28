@@ -99,7 +99,7 @@ public class StructOptions extends Structure {
 		 *
 		 * @param string The String to replace options in.
 		 * @return A String with all options replaced, or the original String if the provided Script has no options.
-		 * @deprecated Use <code>OptionRegistry.get().replaceOptions()</code> instead
+		 * @deprecated Use <code>Skript.instance().registry(OptionRegistry.class).replaceOptions()</code> instead
 		 */
 		@Deprecated(since = "INSERT VERSION", forRemoval = true)
 		public String replaceOptions(String string) {
@@ -108,7 +108,7 @@ public class StructOptions extends Structure {
 
 		/**
 		 * @return An unmodifiable version of this data's option mappings.
-		 * @deprecated Use <code>OptionRegistry.get().getLocalOptions()</code> instead
+		 * @deprecated Use <code>Skript.instance().registry(OptionRegistry.class).getLocalOptions()</code> instead
 		 */
 		@Deprecated(since = "INSERT VERSION", forRemoval = true)
 		public Map<String, String> getOptions() {

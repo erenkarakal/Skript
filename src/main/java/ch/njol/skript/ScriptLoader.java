@@ -6,13 +6,11 @@ import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.config.SimpleNode;
 import ch.njol.skript.events.bukkit.PreScriptLoadEvent;
 import ch.njol.skript.lang.*;
-import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.log.CountingLogHandler;
 import ch.njol.skript.log.LogEntry;
 import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
-import ch.njol.skript.structures.StructOptions.OptionsData;
 import ch.njol.skript.test.runner.TestMode;
 import ch.njol.skript.util.ExceptionUtils;
 import ch.njol.skript.util.SkriptColor;
@@ -977,7 +975,7 @@ public class ScriptLoader {
 	/**
 	 * Replaces options in a string.
 	 * Options are obtained from a {@link OptionRegistry}.
-	 * Example: <code>OptionRegistry.get()</code>
+	 * Example: <code>Skript.instance().registry(OptionRegistry.class)</code>
 	 */
 	// TODO this system should eventually be replaced with a more generalized "node processing" system
 	public static String replaceOptions(String string) {
