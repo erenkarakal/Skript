@@ -21,7 +21,6 @@ import java.io.File;
  * @see GlobalFileRegistry#get()
  * @see GlobalOptions
  */
-
 public abstract class GlobalFile {
 
 	private final SkriptAddon addon;
