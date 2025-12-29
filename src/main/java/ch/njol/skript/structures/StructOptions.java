@@ -51,12 +51,13 @@ public class StructOptions extends Structure {
 
 	@Override
 	public boolean init(Literal<?>[] args, int matchedPattern, ParseResult parseResult, @Nullable EntryContainer entryContainer) {
+		Script script = getParser().getCurrentScript();
 		// noinspection ConstantConditions - entry container cannot be null as this structure is not simple
 		SectionNode node = entryContainer.getSource();
 		node.convertToEntries(-1);
 		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
-		optionRegistry.loadLocalOptions(getParser().getCurrentScript(), node);
-		getParser().getCurrentScript().getData(OptionsData.class, () -> new OptionsData(getParser().getCurrentScript()));
+		optionRegistry.loadLocalOptions(script, node);
+		script.getData(OptionsData.class, () -> new OptionsData(script));
 		return true;
 	}
 
