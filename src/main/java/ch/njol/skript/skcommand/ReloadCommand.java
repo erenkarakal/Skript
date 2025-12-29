@@ -75,7 +75,9 @@ class ReloadCommand extends SubCommand {
 		return ScriptCommand.getScriptCommandTabCompletions(args);
 	}
 
-	// sk reload all
+	/**
+	 * For handling the {@code /sk reload all} command
+	 */
 	private static void reloadEverything(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 										 TimingLogHandler timingLogHandler) {
 		reloading(sender, "config, aliases and scripts", redirectingLogHandler);
@@ -94,7 +96,9 @@ class ReloadCommand extends SubCommand {
 		});
 	}
 
-	// sk reload scripts
+	/**
+	 * For handling the {@code /sk reload scripts} command
+	 */
 	private static void reloadScripts(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 									  TimingLogHandler timingLogHandler) {
 		reloading(sender, "scripts", redirectingLogHandler);
@@ -109,7 +113,9 @@ class ReloadCommand extends SubCommand {
 			});
 	}
 
-	// sk reload config
+	/**
+	 * For handling the {@code /sk reload config} command
+	 */
 	private static void reloadConfig(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 									 TimingLogHandler timingLogHandler) {
 		reloading(sender, "main config", redirectingLogHandler);
@@ -117,7 +123,9 @@ class ReloadCommand extends SubCommand {
 		reloaded(redirectingLogHandler, timingLogHandler, "main config");
 	}
 
-	// sk reload aliases
+	/**
+	 * For handling the {@code /sk reload aliases} command
+	 */
 	private static void reloadAliases(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 									  TimingLogHandler timingLogHandler) {
 		reloading(sender, "aliases", redirectingLogHandler);
@@ -125,7 +133,9 @@ class ReloadCommand extends SubCommand {
 		Aliases.loadAsync().thenRun(() -> reloaded(redirectingLogHandler, timingLogHandler, "aliases"));
 	}
 
-	// sk reload folder_name
+	/**
+	 * For handling the {@code /sk reload /folder/} command
+	 */
 	private void reloadFolder(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
 							  TimingLogHandler timingLogHandler, File scriptFolder) {
 		if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFolder)) {
@@ -148,7 +158,9 @@ class ReloadCommand extends SubCommand {
 			);
 	}
 
-	// sk reload script_name
+	/**
+	 * For handling the {@code /sk reload script.sk} command
+	 */
 	private void reloadSpecificScript(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
 									  TimingLogHandler timingLogHandler, File scriptFile) {
 		String fileName = scriptFile.getName();

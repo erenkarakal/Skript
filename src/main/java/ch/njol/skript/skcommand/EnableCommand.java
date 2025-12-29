@@ -75,6 +75,9 @@ class EnableCommand extends SubCommand {
 		}
 	}
 
+	/**
+	 * For handling the {@code /sk enable script.sk} command
+	 */
 	// sk enable script_name
 	private static void enableSpecificScript(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 											 File scriptFile, String[] args) {
@@ -103,7 +106,9 @@ class EnableCommand extends SubCommand {
 			});
 	}
 
-	// sk enable folder_name
+	/**
+	 * For handling the {@code /sk enable /folder/} command
+	 */
 	private static void enableFolder(CommandSender sender, RedirectingLogHandler redirectingLogHandler, File scriptFolder) {
 		Set<File> scriptFiles;
 		try {
