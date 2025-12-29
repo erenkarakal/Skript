@@ -41,7 +41,7 @@ class TestCommand extends SubCommand {
 			if (args[1].equalsIgnoreCase("all")) {
 				scriptFile = TestMode.TEST_DIR.toFile();
 			} else {
-				scriptFile = ScriptCommand.getScriptFromArgs(sender, args, TestMode.TEST_DIR.toFile());
+				scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args, TestMode.TEST_DIR.toFile());
 				TestMode.lastTestFile = scriptFile;
 			}
 		}
@@ -89,7 +89,7 @@ class TestCommand extends SubCommand {
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return ScriptCommand.getScriptCommandTabCompletions(args);
+		return ScriptCommandUtils.getScriptCommandTabCompletions(args);
 	}
 
 }

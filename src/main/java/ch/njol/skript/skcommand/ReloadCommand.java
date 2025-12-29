@@ -56,7 +56,7 @@ class ReloadCommand extends SubCommand {
 				case "aliases" -> reloadAliases(sender, redirectingLogHandler, timingLogHandler);
 				// Reloading an individual script or folder
 				default -> {
-					File scriptFile = ScriptCommand.getScriptFromArgs(sender, args);
+					File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
 					if (scriptFile == null)
 						return;
 
@@ -72,7 +72,7 @@ class ReloadCommand extends SubCommand {
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return ScriptCommand.getScriptCommandTabCompletions(args);
+		return ScriptCommandUtils.getScriptCommandTabCompletions(args);
 	}
 
 	/**

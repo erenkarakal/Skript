@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 /**
  * Utilities for {@link ch.njol.skript.skcommand.SkriptCommand.SubCommand}s that involve scripts.
  */
-class ScriptCommand {
+class ScriptCommandUtils {
 
 	private static final ArgsMessage INVALID_SCRIPT_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid script");
 	private static final ArgsMessage INVALID_FOLDER_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid folder");

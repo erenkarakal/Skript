@@ -37,7 +37,7 @@ class DisableCommand extends SubCommand {
 		if (args[1].equalsIgnoreCase("all")) {
 			disableEverything(sender);
 		} else {
-			File scriptFile = ScriptCommand.getScriptFromArgs(sender, args);
+			File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
 			if (scriptFile == null) // TODO allow disabling deleted/renamed scripts
 				return;
 
@@ -53,7 +53,7 @@ class DisableCommand extends SubCommand {
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return ScriptCommand.getScriptCommandTabCompletions(args);
+		return ScriptCommandUtils.getScriptCommandTabCompletions(args);
 	}
 
 	/**
@@ -62,7 +62,7 @@ class DisableCommand extends SubCommand {
 	private static void disableEverything(CommandSender sender) {
 		ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
 		try {
-			ScriptCommand.toggleFiles(Skript.getInstance().getScriptsFolder(), false);
+			ScriptCommandUtils.toggleFiles(Skript.getInstance().getScriptsFolder(), false);
 			SkriptCommand.info(sender, "disable.all.disabled");
 		} catch (IOException e) {
 			SkriptCommand.error(sender, "disable.all.io error", ExceptionUtils.toString(e));
@@ -87,7 +87,7 @@ class DisableCommand extends SubCommand {
 		String fileName = scriptFile.getName();
 
 		try {
-			ScriptCommand.toggleFile(scriptFile, false);
+			ScriptCommandUtils.toggleFile(scriptFile, false);
 		} catch (IOException e) {
 			SkriptCommand.error(sender, "disable.single.io error", scriptFile.getName(), ExceptionUtils.toString(e));
 			return;
@@ -103,7 +103,7 @@ class DisableCommand extends SubCommand {
 
 		Set<File> scripts;
 		try {
-			scripts = ScriptCommand.toggleFiles(scriptFolder, false);
+			scripts = ScriptCommandUtils.toggleFiles(scriptFolder, false);
 		} catch (IOException e) {
 			SkriptCommand.error(sender, "disable.folder.io error", scriptFolder.getName(), ExceptionUtils.toString(e));
 			return;

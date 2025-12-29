@@ -38,7 +38,7 @@ class EnableCommand extends SubCommand {
 			if (args[1].equalsIgnoreCase("all")) {
 				enableEverything(sender, redirectingLogHandler);
 			} else {
-				File scriptFile = ScriptCommand.getScriptFromArgs(sender, args);
+				File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
 				if (scriptFile == null)
 					return;
 
@@ -53,7 +53,7 @@ class EnableCommand extends SubCommand {
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return ScriptCommand.getScriptCommandTabCompletions(args);
+		return ScriptCommandUtils.getScriptCommandTabCompletions(args);
 	}
 
 	/**
@@ -62,7 +62,7 @@ class EnableCommand extends SubCommand {
 	private static void enableEverything(CommandSender sender, RedirectingLogHandler redirectingLogHandler) {
 		try {
 			SkriptCommand.info(sender, "enable.all.enabling");
-			ScriptLoader.loadScripts(ScriptCommand.toggleFiles(Skript.getInstance().getScriptsFolder(), true), redirectingLogHandler)
+			ScriptLoader.loadScripts(ScriptCommandUtils.toggleFiles(Skript.getInstance().getScriptsFolder(), true), redirectingLogHandler)
 				.thenAccept(scriptInfo -> {
 					if (redirectingLogHandler.numErrors() == 0) {
 						SkriptCommand.info(sender, "enable.all.enabled");
@@ -87,7 +87,7 @@ class EnableCommand extends SubCommand {
 		}
 
 		try {
-			scriptFile = ScriptCommand.toggleFile(scriptFile, true);
+			scriptFile = ScriptCommandUtils.toggleFile(scriptFile, true);
 		} catch (IOException e) {
 			String scriptName = scriptFile.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
 			SkriptCommand.error(sender, "enable.single.io error", scriptName, ExceptionUtils.toString(e));
@@ -112,7 +112,7 @@ class EnableCommand extends SubCommand {
 	private static void enableFolder(CommandSender sender, RedirectingLogHandler redirectingLogHandler, File scriptFolder) {
 		Set<File> scriptFiles;
 		try {
-			scriptFiles = ScriptCommand.toggleFiles(scriptFolder, true);
+			scriptFiles = ScriptCommandUtils.toggleFiles(scriptFolder, true);
 		} catch (IOException e) {
 			SkriptCommand.error(sender, "enable.folder.io error", scriptFolder.getName(), ExceptionUtils.toString(e));
 			return;
