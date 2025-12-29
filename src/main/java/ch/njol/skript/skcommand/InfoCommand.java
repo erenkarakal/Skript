@@ -17,7 +17,8 @@ import java.util.List;
 import static ch.njol.skript.skcommand.SkriptCommand.info;
 
 /**
- * Shows info about Skript, server, installed addons and dependencies
+ * Shows info about Skript, server, installed addons and dependencies<p>
+ * Usage: <code>/sk info</code>
  */
 class InfoCommand extends SubCommand {
 

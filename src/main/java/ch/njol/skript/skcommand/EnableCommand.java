@@ -15,7 +15,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Enables a script
+ * Enables a script, or a folder of scripts<p>
+ * Enabling a script will load it and remove the disabled file prefix from it<p>
+ * Enabling a folder enables each script inside the folder, the folder name remains the same<p>
+ * Usage:
+ * <pre>
+ * /sk enable file
+ * /sk enable file.sk
+ * /sk enable /folder/
+ * /sk enable all
+ * </pre>
  */
 class EnableCommand extends SubCommand {
 
@@ -47,7 +56,9 @@ class EnableCommand extends SubCommand {
 		return ScriptCommand.getScriptCommandTabCompletions(args);
 	}
 
-	// sk enable all
+	/**
+	 * For handling the {@code /sk enable all} command
+	 */
 	private static void enableEverything(CommandSender sender, RedirectingLogHandler redirectingLogHandler) {
 		try {
 			SkriptCommand.info(sender, "enable.all.enabling");

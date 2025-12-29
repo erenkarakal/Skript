@@ -30,8 +30,7 @@ public class SkriptCommand implements TabExecutor {
 			new ListCommand(),
 			new InfoCommand(),
 			new UpdateCommand(),
-			new RecoverCommand(),
-			new ParseCommand()
+			new RecoverCommand()
 		));
 
 		if (TestMode.GEN_DOCS || Documentation.isDocsTemplateFound()) {

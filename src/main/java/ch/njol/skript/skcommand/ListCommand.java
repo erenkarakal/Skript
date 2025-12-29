@@ -12,7 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Lists all scripts
+ * Lists all enabled and disabled scripts<p>
+ * Usage: <code>/sk list</code>
  */
 class ListCommand extends SubCommand {
 

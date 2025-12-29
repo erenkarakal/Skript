@@ -8,6 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Checks if the installed Skript version is up to date<p>
+ * Usage: {@code /sk update}
+ */
 class UpdateCommand extends SubCommand {
 
 	public UpdateCommand() {

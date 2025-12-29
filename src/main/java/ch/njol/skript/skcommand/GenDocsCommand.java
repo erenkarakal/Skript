@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Internal command for generating docs
+ */
 class GenDocsCommand extends SubCommand {
 
 	public GenDocsCommand() {

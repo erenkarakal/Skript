@@ -19,6 +19,9 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 
+/**
+ * Internal command for running tests
+ */
 class TestCommand extends SubCommand {
 
 	public TestCommand() {

@@ -28,7 +28,6 @@ import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.help.HelpMap;
 import org.bukkit.help.HelpTopic;
 import org.bukkit.plugin.SimplePluginManager;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.Script;
@@ -166,8 +165,7 @@ public abstract class Commands {
 		}
 	};
 
-	@ApiStatus.Internal
-	public static boolean handleEffectCommand(CommandSender sender, String command) {
+	static boolean handleEffectCommand(CommandSender sender, String command) {
 		if (!(Skript.testing() || sender instanceof ConsoleCommandSender || sender.hasPermission("skript.effectcommands") || SkriptConfig.allowOpsToUseEffectCommands.value() && sender.isOp()))
 			return false;
 		try {

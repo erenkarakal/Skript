@@ -14,7 +14,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Disables a script
+ * Disables a script, or a folder of scripts<p>
+ * Disabling a script unloads the script and prepends the disabled prefix to the file name ('-' by default)<p>
+ * Disabling a folder disables each script inside the folder, the folder name will remain the same<p>
+ * Usage:
+ * <pre>
+ * /sk disable (script/folder name)
+ * /sk disable file.sk
+ * /sk disable file
+ * /sk disable /folder/
+ * /sk disable all
+ * </pre>
  */
 class DisableCommand extends SubCommand {
 
@@ -46,7 +56,9 @@ class DisableCommand extends SubCommand {
 		return ScriptCommand.getScriptCommandTabCompletions(args);
 	}
 
-	// sk disable all
+	/**
+	 * Handling the {@code /sk disable all} command
+	 */
 	private static void disableEverything(CommandSender sender) {
 		ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
 		try {
@@ -57,7 +69,9 @@ class DisableCommand extends SubCommand {
 		}
 	}
 
-	// sk disable script_name
+	/**
+	 * Handling the {@code /sk disable script_name} command
+	 */
 	private static void disableSpecificScript(CommandSender sender, File scriptFile) {
 		if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFile)) {
 			String scriptName = scriptFile.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
@@ -81,7 +95,9 @@ class DisableCommand extends SubCommand {
 		SkriptCommand.info(sender, "disable.single.disabled", fileName);
 	}
 
-	// sk disable folder_name
+	/**
+	 * Handling the {@code /sk disable folder_name} command
+	 */
 	private static void disableFolder(CommandSender sender, File scriptFolder) {
 		ScriptLoader.unloadScripts(ScriptLoader.getScripts(scriptFolder));
 

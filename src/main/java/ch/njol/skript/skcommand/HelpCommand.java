@@ -10,6 +10,12 @@ import java.util.List;
 
 /**
  * Lists all Skript commands
+ * <p>
+ * Usage:
+ * <pre>
+ * /sk
+ * /sk help
+ * </pre>
  */
 class HelpCommand extends SubCommand {
 

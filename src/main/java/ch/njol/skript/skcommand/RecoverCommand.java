@@ -23,7 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Writes all scripts in the memory to files, useful when the user accidentally deletes a script
+ * Writes all scripts in the memory to files, useful when the user accidentally deletes a script<p>
+ * Symbolic links that point outside the scripts folder are saved in {@code dump/external/} instead<p>
+ * Usage: <code>/sk recover</code>
  */
 class RecoverCommand extends SubCommand {
 
@@ -71,8 +73,7 @@ class RecoverCommand extends SubCommand {
 			String name = config.getFileName();
 
 			List<String> lines = new ArrayList<>(dumpNodes(config.getMainNode()));
-			// FIXME - lazy fix for symbolic links, find a better way?
-			Path filePath = targetFolder.resolve(name.replace(".." + File.separator, ""));
+			Path filePath = targetFolder.resolve(name.replace(".." + File.separator, "external" + File.separator));
 
 			try {
 				Files.createDirectories(filePath.getParent());
