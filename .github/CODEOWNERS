@@ -70,3 +70,6 @@
 
 # EntityData
 /src/main/java/ch/njol/skript/entity @Absolutionism @skriptlang/core-developers
+
+# /sk Command
+/src/main/java/ch/njol/skript/skcommand @erenkarakal
