@@ -975,7 +975,7 @@ public class ScriptLoader {
 	/**
 	 * Replaces options in a string.
 	 * Options are obtained from a {@link OptionRegistry}.
-	 * Example: <code>Skript.instance().registry(OptionRegistry.class)</code>
+	 * Example: <code>addon.registry(OptionRegistry.class)</code>
 	 */
 	// TODO this system should eventually be replaced with a more generalized "node processing" system
 	public static String replaceOptions(String string) {

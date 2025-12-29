@@ -19,7 +19,7 @@ import java.io.File;
  * <p>
  * Each addon's global files are stored in their own data folder: {@code plugins/YourAddon/globals/filename.sk}
  *
- * @see GlobalFileRegistry#get()
+ * @see GlobalFileRegistry
  * @see GlobalOptions
  */
 

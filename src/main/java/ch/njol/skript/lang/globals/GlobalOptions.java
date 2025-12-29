@@ -3,6 +3,7 @@ package ch.njol.skript.lang.globals;
 import ch.njol.skript.Skript;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.lang.OptionRegistry;
+import org.skriptlang.skript.addon.SkriptAddon;
 
 import java.io.IOException;
 import java.util.*;
@@ -12,8 +13,8 @@ import java.util.*;
  */
 public class GlobalOptions extends GlobalFile {
 
-	public GlobalOptions() {
-		super(Skript.getAddonInstance(), "options");
+	public GlobalOptions(SkriptAddon addon) {
+		super(addon, "options");
 	}
 
 	/**
@@ -24,7 +25,7 @@ public class GlobalOptions extends GlobalFile {
 		try {
 			Config config = new Config(file, true, false, ":");
 			config.getMainNode().convertToEntries(-1);
-			OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
+			OptionRegistry optionRegistry = getAddon().registry(OptionRegistry.class);
 			optionRegistry.loadGlobalOptions(config.getMainNode());
 		} catch (IOException e) {
 			Skript.exception(e, "Error while loading global options");

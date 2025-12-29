@@ -561,7 +561,7 @@ public final class Skript extends JavaPlugin implements Listener {
 		GlobalFileRegistry globalFileRegistry = new GlobalFileRegistry();
 		skript.storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
 
-		globalFileRegistry.registerGlobal(new GlobalOptions());
+		globalFileRegistry.registerGlobal(new GlobalOptions(addon));
 
 		// Now override the verbosity if test mode is enabled
 		if (TestMode.VERBOSITY != null)

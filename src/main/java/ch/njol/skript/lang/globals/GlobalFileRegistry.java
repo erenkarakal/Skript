@@ -19,10 +19,6 @@ import java.util.Set;
  */
 public class GlobalFileRegistry implements Registry<GlobalFile> {
 
-	public static GlobalFileRegistry get() {
-		return Skript.instance().registry(GlobalFileRegistry.class);
-	}
-
 	private final Set<GlobalFile> globalFiles = new HashSet<>();
 
 	/**
