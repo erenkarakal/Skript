@@ -36,7 +36,7 @@ class HelpCommand extends SubCommand {
 
 	@Override
 	public List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
-		return SkriptCommand.getAllAliases();
+		return List.of();
 	}
 
 	private String getDescription(String command) {

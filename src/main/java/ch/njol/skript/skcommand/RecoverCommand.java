@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static ch.njol.skript.skcommand.SkriptCommand.CONFIG_NODE;
+import static ch.njol.skript.skcommand.SkriptCommand.info;
+
 /**
  * Writes all scripts in the memory to files, useful when the user accidentally deletes a script<p>
  * Symbolic links that point outside the scripts folder are saved in {@code dump/external/} instead<p>
@@ -43,10 +46,9 @@ class RecoverCommand extends SubCommand {
 		Path targetFolder = DUMP_FOLDER.resolve(targetFolderName);
 
 		Bukkit.getScheduler().runTaskAsynchronously(Skript.getInstance(), () -> {
-			// TODO - lang entries
-			sender.sendMessage("recovering...");
+			info(sender, "recover.recovering");
 			recoverScripts(sender, targetFolder);
-			sender.sendMessage("recovered " + targetFolder);
+			info(sender, "recover.recovered", targetFolder);
 		});
 	}
 
@@ -62,10 +64,9 @@ class RecoverCommand extends SubCommand {
 		try {
 			Files.createDirectories(targetFolder);
 		} catch (IOException e) {
-			// TODO - lang entries
-			sender.sendMessage("error");
+			info(sender, CONFIG_NODE + ".recover.io error", e.getMessage());
 			// noinspection ThrowableNotThrown
-			Skript.exception(e);
+			Skript.exception(e, "Error while recovering scripts.");
 		}
 
 		for (Script script : ScriptLoader.getLoadedScripts()) {
@@ -79,9 +80,8 @@ class RecoverCommand extends SubCommand {
 				Files.createDirectories(filePath.getParent());
 				Files.write(filePath, lines, StandardOpenOption.CREATE);
 			} catch (IOException e) {
-				// TODO - lang entries
-				sender.sendMessage("error");
-				throw new RuntimeException("Error while recovering scripts.", e);
+				info(sender, CONFIG_NODE + ".recover.io error", e.getMessage());
+				Skript.exception(e, "Error while recovering scripts.");
 			}
 		}
 	}

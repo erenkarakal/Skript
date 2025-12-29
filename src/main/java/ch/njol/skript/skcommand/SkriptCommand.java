@@ -50,11 +50,11 @@ public class SkriptCommand implements TabExecutor {
 	}
 
 	/**
-	 * Gets a SubCommand by its alias
+	 * Gets a SubCommand by its alias, or the help command if it's not found
 	 * @param alias The alias
 	 * @return The SubCommand or null if no such alias exists
 	 */
-	private SubCommand findSubCommand(String alias) {
+	private @NotNull SubCommand findSubCommand(String alias) {
 		for (SubCommand subCommand : SUB_COMMANDS) {
 			for (String subCommandAlias : subCommand.getAliases()) {
 				if (subCommandAlias.equalsIgnoreCase(alias)) {
@@ -62,7 +62,7 @@ public class SkriptCommand implements TabExecutor {
 				}
 			}
 		}
-		return null;
+		return findSubCommand("help");
 	}
 
 	/**
@@ -119,12 +119,6 @@ public class SkriptCommand implements TabExecutor {
 			subCommand = findSubCommand(args[0]);
 		}
 
-		if (subCommand == null) {
-			// TODO - send unknown command text
-			sender.sendMessage("unknown command");
-			return true;
-		}
-
 		// sub command requires args but none was given
 		if (args.length == 1 && subCommand.args() != null) {
 			sendHelp(sender, subCommand);
@@ -143,10 +137,6 @@ public class SkriptCommand implements TabExecutor {
 		}
 
 		SubCommand subCommand = findSubCommand(args[0]);
-		if (subCommand == null) {
-			return List.of();
-		}
-
 		return subCommand.getTabCompletions(sender, args);
 	}
 
