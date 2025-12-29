@@ -1,6 +1,5 @@
 package ch.njol.skript.lang.globals;
 
-
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skriptlang.skript.addon.SkriptAddon;
@@ -22,7 +21,6 @@ import java.io.File;
  * @see GlobalFileRegistry
  * @see GlobalOptions
  */
-
 public abstract class GlobalFile {
 
 	private final SkriptAddon addon;
