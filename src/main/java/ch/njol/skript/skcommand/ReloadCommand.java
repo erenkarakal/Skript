@@ -61,9 +61,9 @@ class ReloadCommand extends SubCommand {
 						return;
 
 					if (scriptFile.isDirectory()) {
-						reloadFolder(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
-					} else {
 						reloadSpecificScript(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
+					} else {
+						reloadFolder(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
 					}
 				}
 			}
@@ -138,35 +138,10 @@ class ReloadCommand extends SubCommand {
 	 */
 	private void reloadFolder(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
 							  TimingLogHandler timingLogHandler, File scriptFolder) {
-		if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFolder)) {
-			String scriptName = scriptFolder.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
-			String command = StringUtils.join(args, " ", 1, args.length);
-			info(sender, "reload.script disabled", scriptName, command);
-			return;
-		}
-
-		reloading(sender, "script", redirectingLogHandler, scriptFolder.getName());
-
-		Script script = ScriptLoader.getScript(scriptFolder);
-		if (script != null) {
-			ScriptLoader.unloadScript(script);
-		}
-
-		ScriptLoader.loadScripts(scriptFolder, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
-			.thenAccept(scriptInfo ->
-				reloaded(redirectingLogHandler, timingLogHandler, "script", scriptFolder.getName())
-			);
-	}
-
-	/**
-	 * For handling the {@code /sk reload script.sk} command
-	 */
-	private void reloadSpecificScript(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
-									  TimingLogHandler timingLogHandler, File scriptFile) {
-		String fileName = scriptFile.getName();
+		String fileName = scriptFolder.getName();
 		reloading(sender, "scripts in folder", redirectingLogHandler, fileName);
-		ScriptLoader.unloadScripts(ScriptLoader.getScripts(scriptFile));
-		ScriptLoader.loadScripts(scriptFile, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
+		ScriptLoader.unloadScripts(ScriptLoader.getScripts(scriptFolder));
+		ScriptLoader.loadScripts(scriptFolder, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
 			.thenAccept(scriptInfo -> {
 				if (scriptInfo.files == 0) {
 					info(sender, "reload.empty folder", fileName);
@@ -179,6 +154,31 @@ class ReloadCommand extends SubCommand {
 
 				reloaded(redirectingLogHandler, timingLogHandler, key, fileName, scriptInfo.files);
 			});
+	}
+
+	/**
+	 * For handling the {@code /sk reload script.sk} command
+	 */
+	private void reloadSpecificScript(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
+									  TimingLogHandler timingLogHandler, File scriptFile) {
+		if (ScriptLoader.getDisabledScriptsFilter().accept(scriptFile)) {
+			String scriptName = scriptFile.getName().substring(ScriptLoader.DISABLED_SCRIPT_PREFIX_LENGTH);
+			String command = StringUtils.join(args, " ", 1, args.length);
+			info(sender, "reload.script disabled", scriptName, command);
+			return;
+		}
+
+		reloading(sender, "script", redirectingLogHandler, scriptFile.getName());
+
+		Script script = ScriptLoader.getScript(scriptFile);
+		if (script != null) {
+			ScriptLoader.unloadScript(script);
+		}
+
+		ScriptLoader.loadScripts(scriptFile, OpenCloseable.combine(redirectingLogHandler, timingLogHandler))
+			.thenAccept(scriptInfo ->
+				reloaded(redirectingLogHandler, timingLogHandler, "script", scriptFile.getName())
+			);
 	}
 
 	private static final ArgsMessage RELOADING_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".reload.reloading");
