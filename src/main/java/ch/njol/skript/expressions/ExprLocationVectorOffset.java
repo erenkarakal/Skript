@@ -88,7 +88,7 @@ public class ExprLocationVectorOffset extends SimpleExpression<Location> {
 			.append(location)
 			.append("offset by")
 			.append(vectors)
-			.append(usingLocalAxes ? "using local axes" : "")
+			.appendIf(usingLocalAxes, "using local axes")
 			.toString();
 	}
 
