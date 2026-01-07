@@ -29,17 +29,16 @@ class ScriptCommandUtils {
 	private static final ArgsMessage INVALID_SCRIPT_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid script");
 	private static final ArgsMessage INVALID_FOLDER_MESSAGE = new ArgsMessage(SkriptCommand.CONFIG_NODE + ".invalid folder");
 
-	public static @Nullable File getScriptFromArgs(CommandSender sender, String[] args) {
-		return getScriptFromArgs(sender, args, Skript.getInstance().getScriptsFolder());
+	public static @Nullable File getScriptFromName(CommandSender sender, String name) {
+		return getScriptFromName(sender, name, Skript.getInstance().getScriptsFolder());
 	}
 
-	public static @Nullable File getScriptFromArgs(CommandSender sender, String[] args, File directoryFile) {
-		String script = StringUtils.join(args, " ", 1, args.length);
-		File f = ScriptLoader.getScriptFromName(script, directoryFile);
+	public static @Nullable File getScriptFromName(CommandSender sender, String name, File directoryFile) {
+		File f = ScriptLoader.getScriptFromName(name, directoryFile);
 		if (f == null) {
 			// Always allow '/' and '\' regardless of OS
-			boolean isDirectory = script.endsWith("/") || script.endsWith("\\") || script.endsWith(File.separator);
-			Skript.error(sender, (isDirectory ? INVALID_FOLDER_MESSAGE : INVALID_SCRIPT_MESSAGE).toString(script));
+			boolean isDirectory = name.endsWith("/") || name.endsWith("\\") || name.endsWith(File.separator);
+			Skript.error(sender, (isDirectory ? INVALID_FOLDER_MESSAGE : INVALID_SCRIPT_MESSAGE).toString(name));
 			return null;
 		}
 		return f;

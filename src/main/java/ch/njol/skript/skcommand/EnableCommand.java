@@ -38,7 +38,8 @@ class EnableCommand extends SubCommand {
 			if (args[1].equalsIgnoreCase("all")) {
 				enableEverything(sender, redirectingLogHandler);
 			} else {
-				File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
+				String scriptName = StringUtils.join(args, " ", 1, args.length);
+				File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
 				if (scriptFile == null)
 					return;
 

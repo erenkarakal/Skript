@@ -33,9 +33,11 @@ import static ch.njol.skript.skcommand.SkriptCommand.info;
  */
 class ReloadCommand extends SubCommand {
 
+	private static String lastReloadedScriptName = null;
+
 	public ReloadCommand() {
 		super("reload");
-		args("all", "scripts", "config", "aliases", "<script>");
+		args("all", "scripts", "config", "aliases", "last", "<script>");
 	}
 
 	@Override
@@ -56,14 +58,29 @@ class ReloadCommand extends SubCommand {
 				case "aliases" -> reloadAliases(sender, redirectingLogHandler, timingLogHandler);
 				// Reloading an individual script or folder
 				default -> {
-					File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
-					if (scriptFile == null)
+					String scriptName;
+
+					if (args[1].equalsIgnoreCase("last")) {
+						if (lastReloadedScriptName == null) {
+							info(sender, "reload.no last file");
+							return;
+						} else {
+							scriptName = lastReloadedScriptName;
+						}
+					} else {
+						scriptName = StringUtils.join(args, " ", 1, args.length);
+						lastReloadedScriptName = scriptName;
+					}
+
+					File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
+					if (scriptFile == null) {
 						return;
+					}
 
 					if (scriptFile.isDirectory()) {
-						reloadSpecificScript(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
-					} else {
 						reloadFolder(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
+					} else {
+						reloadSpecificScript(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
 					}
 				}
 			}

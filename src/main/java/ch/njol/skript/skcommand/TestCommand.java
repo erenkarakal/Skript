@@ -8,6 +8,7 @@ import ch.njol.skript.test.runner.SkriptTestEvent;
 import ch.njol.skript.test.runner.TestMode;
 import ch.njol.skript.test.runner.TestTracker;
 import ch.njol.skript.test.utils.TestResults;
+import ch.njol.util.StringUtils;
 import com.google.gson.GsonBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -41,7 +42,8 @@ class TestCommand extends SubCommand {
 			if (args[1].equalsIgnoreCase("all")) {
 				scriptFile = TestMode.TEST_DIR.toFile();
 			} else {
-				scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args, TestMode.TEST_DIR.toFile());
+				String scriptName = StringUtils.join(args, " ", 1, args.length);
+				scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName, TestMode.TEST_DIR.toFile());
 				TestMode.lastTestFile = scriptFile;
 			}
 		}

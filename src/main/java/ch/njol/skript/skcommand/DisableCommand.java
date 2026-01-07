@@ -4,6 +4,7 @@ import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import ch.njol.skript.util.ExceptionUtils;
+import ch.njol.util.StringUtils;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.Script;
@@ -37,7 +38,8 @@ class DisableCommand extends SubCommand {
 		if (args[1].equalsIgnoreCase("all")) {
 			disableEverything(sender);
 		} else {
-			File scriptFile = ScriptCommandUtils.getScriptFromArgs(sender, args);
+			String scriptName = StringUtils.join(args, " ", 1, args.length);
+			File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
 			if (scriptFile == null) // TODO allow disabling deleted/renamed scripts
 				return;
 

@@ -32,6 +32,7 @@ skript command:
 			config: Reloads the main config
 			aliases: Reloads the aliases configs (aliases-english.zip or plugin jar)
 			scripts: Reloads all scripts
+			last: Reloads the last script you reloaded
 			<script>: Reloads a specific script or a folder of scripts
 		enable:
 			description: Enables all scripts or a specific one
@@ -54,6 +55,7 @@ skript command:
 	invalid script: Can't find the script <grey>'<gold>%s<grey>'<red> in the scripts folder!
 	invalid folder: Can't find the folder <grey>'<gold>%s<grey>'<red> in the scripts folder!
 	reload:
+		no last file: <light red>There is no last script to reload. You must reload a script first.
 		warning line info: <gold><bold>Line %s:<gray> (%s)<reset>\n
 		error line info: <light red><bold>Line %s:<gray> (%s)<reset>\n
 		reloading: Reloading <gold>%s<reset>...
