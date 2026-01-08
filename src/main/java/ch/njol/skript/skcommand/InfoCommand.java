@@ -1,7 +1,6 @@
 package ch.njol.skript.skcommand;
 
 import ch.njol.skript.Skript;
-import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import ch.njol.skript.update.Updater;
 import io.papermc.paper.ServerBuildInfo;
@@ -9,7 +8,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.skriptlang.skript.addon.SkriptAddon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ class InfoCommand extends SubCommand {
 		info(sender, "info.server", getServerVersion());
 		info(sender, "info.version", getSkriptVersion());
 
-		if (Skript.getAddons().isEmpty()) {
+		if (Skript.instance().addons().isEmpty()) {
 			info(sender, "info.addons", "None");
 		} else {
 			info(sender, "info.addons", "");
@@ -80,9 +81,9 @@ class InfoCommand extends SubCommand {
 
 	private static List<String> getAddonList() {
 		List<String> list = new ArrayList<>();
-		for (SkriptAddon addon : Skript.getAddons()) {
-			// noinspection deprecation
-			PluginDescriptionFile desc = addon.plugin.getDescription();
+		for (SkriptAddon addon : Skript.instance().addons()) {
+			JavaPlugin plugin = JavaPlugin.getProvidingPlugin(addon.source());
+			PluginDescriptionFile desc = plugin.getDescription();
 			String web = desc.getWebsite();
 			list.add(" - " + desc.getFullName() + (web != null ? " (" + web + ")" : ""));
 		}

@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -24,14 +25,17 @@ class GenDocsCommand extends SubCommand {
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		File templateDir = Documentation.getDocsTemplateDirectory();
 		File outputDir = Documentation.getDocsOutputDirectory();
-		if (!outputDir.mkdirs()) {
-			Skript.warning("Could not create output directory: " + outputDir);
-			return;
-		}
+		outputDir.mkdirs();
 
 		Skript.info(sender, "Generating docs...");
-		JSONGenerator jsonGenerator = new JSONGenerator(templateDir, outputDir);
-		jsonGenerator.generate();
+
+		try {
+			JSONGenerator.of(Skript.instance())
+				.generate(outputDir.toPath().resolve("docs.json"));
+		} catch (IOException e) {
+			// noinspection ThrowableNotThrown
+			Skript.exception(e, "Error while generating docs.");
+		}
 
 		if (!templateDir.exists()) {
 			Skript.info(sender, "JSON-only documentation generated!");
