@@ -68,9 +68,10 @@ public class StructOptions extends Structure {
 
 	@Override
 	public void unload() {
+		Script script = getParser().getCurrentScript();
 		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
-		optionRegistry.deleteLocalOptions(getParser().getCurrentScript());
-		getParser().getCurrentScript().removeData(OptionsData.class);
+		optionRegistry.deleteLocalOptions(script);
+		script.removeData(OptionsData.class);
 	}
 
 	@Override
