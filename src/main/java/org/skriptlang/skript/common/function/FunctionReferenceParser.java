@@ -10,6 +10,7 @@ import ch.njol.skript.lang.function.FunctionRegistry;
 import ch.njol.skript.lang.function.Signature;
 import ch.njol.skript.lang.parser.ParserInstance;
 import ch.njol.skript.lang.util.SimpleLiteral;
+import ch.njol.skript.localization.ArgsMessage;
 import ch.njol.skript.localization.Language;
 import ch.njol.skript.log.ParseLogHandler;
 import ch.njol.skript.log.SkriptLogger;
@@ -39,6 +40,9 @@ public record FunctionReferenceParser(ParseContext context, int flags) {
 
 	private final static Pattern FUNCTION_CALL_PATTERN =
 			Pattern.compile("(?<name>[\\p{IsAlphabetic}_][\\p{IsAlphabetic}\\d_]*)\\((?<args>.*)\\)");
+
+	private static final ArgsMessage UNEXPECTED_ARGUMENT = new ArgsMessage("functions.unexpected argument");
+	private static final ArgsMessage INVALID_ARGUMENT = new ArgsMessage("functions.invalid argument");
 
 	/**
 	 * Attempts to parse {@code expr} as a function reference.
@@ -207,34 +211,42 @@ public record FunctionReferenceParser(ParseContext context, int flags) {
 			// all remaining arguments to parse
 			// if a passed argument is named it bypasses the regular argument order of unnamed arguments
 			SequencedMap<String, Parameter<?>> parameters = signature.parameters().sequencedMap();
-			LinkedHashSet<String> remaining = new LinkedHashSet<>(parameters.keySet());
 
 			// if a parameter is not passed, we need to create a dummy argument to allow parsing in parseFunctionArguments
 			//noinspection unchecked
-			FunctionReference.Argument<String>[] parseArguments = (FunctionReference.Argument<String>[]) new FunctionReference.Argument[parameters.size()];
+			Argument<String>[] parseArguments = (Argument<String>[]) new Argument[parameters.size()];
 			ArgumentParseTarget[] parseTargets = new ArgumentParseTarget[parameters.size()];
-			for (int i = 0; i < parameters.size(); i++) {
-				if (remaining.isEmpty()) {
-					break;
-				}
 
-				Parameter<?> parameter;
-				if (i < arguments.length && arguments[i].type() == ArgumentType.NAMED) {
-					parameter = parameters.get(arguments[i].name());
-				} else {
-					parameter = parameters.get(remaining.getFirst());
-				}
+			// fill in named arguments, placeholders for unnamed arguments
+			// essentially, we reorder the user provided arguments into the order defined by the parameters
+			int index = 0;
+			// whether the arguments array contains any NAMED type parameters
+			// if there are no named parameters, then we consider the user arguments to already be in order
+			boolean hasNames = Arrays.stream(arguments).anyMatch(argument -> argument.type() == ArgumentType.NAMED);
+			// whether, after this first pass completes, there are any placeholders to fill in
+			boolean hasPlaceholders = false;
+			for (var entry : parameters.entrySet()) {
+				Parameter<?> parameter = entry.getValue();
 
-				if (parameter == null) {
-					continue signatures;
+				// attempt to match an argument to this parameter
+				Argument<String> argument = null;
+				if (hasNames) {
+					for (var candidate : arguments) {
+						if (entry.getKey().equals(candidate.name())) { // exact match
+							argument = candidate;
+							break;
+						}
+					}
+				} else if (index < arguments.length) { // if there are no named arguments, simply take the next provided one
+					argument = arguments[index];
 				}
-
-				if (i < arguments.length) {
-					parseArguments[i] = arguments[i];
-				} else {
-					parseArguments[i] = new Argument<>(ArgumentType.UNNAMED, parameter.name(), null);
+				if (argument == null) { // could not resolve an argument, use a placeholder
+					argument = new Argument<>(ArgumentType.UNNAMED, entry.getKey(), null);
+					hasPlaceholders = true;
 				}
+				parseArguments[index] = argument;
 
+				// prepare type information for parsing
 				Class<?> targetType = Utils.getComponentType(parameter.type());
 				Expression<?> fallback;
 				if (parameter instanceof ScriptParameter<?> sp) {
@@ -244,26 +256,98 @@ public record FunctionReferenceParser(ParseContext context, int flags) {
 				} else {
 					fallback = null;
 				}
-				parseTargets[i] = new ArgumentParseTarget(targetType, fallback);
+				parseTargets[index] = new ArgumentParseTarget(targetType, fallback);
 
-				remaining.remove(parameter.name());
+				index++;
+			}
+			if (hasPlaceholders) { // fill in placeholder arguments as necessary
+				// some arguments may be erroneously interpreted as name, but their value just contains a colon
+				// for example, minecraft:stone
+				// convert these unexpected named arguments to unnamed arguments
+				boolean copied = false;
+				for (int i = 0; i < arguments.length; i++) {
+					Argument<String> argument = arguments[i];
+					if (argument.type() == ArgumentType.NAMED && !parameters.containsKey(argument.name())) {
+						if (!copied) {
+							arguments = Arrays.copyOf(arguments, arguments.length);
+							copied = true;
+						}
+						// we retain the name for later purposes, such as logging
+						arguments[i] = new Argument<>(ArgumentType.UNNAMED, argument.name(), argument.raw());
+					}
+				}
+
+				// we track named arguments as we encounter them
+				// we use this to avoid inserting the next unnamed argument too early
+				// for example, consider func(x, optional y, z, optional aa)
+				// for a call such as func(x: 1: z: 2, 3), '3' should map to 'aa' rather than 'y'
+				List<String> priorNames = new ArrayList<>();
+				// the index of the last verified argument index
+				// this is used to avoid reverifying the position of named arguments multiple times
+				int lastCheck = -1;
+				// the index of the last unnamed argument slot that was filled
+				int lastFilled = -1;
+				fill: for (int i = 0; i < arguments.length; i++) {
+					Argument<String> argument = arguments[i];
+					if (argument.type() == ArgumentType.NAMED) {
+						priorNames.add(argument.name());
+						if (i > 0 && arguments[i - 1].type() == ArgumentType.NAMED) {
+							// since the last argument was named, the position of this one has not been verified
+							// thus, search through the parse arguments again
+							lastCheck = -1;
+						}
+						continue;
+					}
+					// find the next named argument
+					String nextName = null;
+					for (int j = i + 1; j < arguments.length; j++) {
+						Argument<String> nextArgument = arguments[j];
+						if (nextArgument.type() == ArgumentType.NAMED) {
+							nextName = nextArgument.name();
+							break;
+						}
+					}
+					// fill in using this unnamed argument
+					for (int j = lastCheck + 1; j < parseArguments.length; j++) {
+						Argument<String> parseArgument = parseArguments[j];
+						if (parseArgument.type() == ArgumentType.NAMED) {
+							if (parseArgument.name().equals(nextName)) { // this argument is in an invalid position
+								break;
+							}
+							priorNames.remove(parseArgument.name());
+						} else if (j > lastFilled && priorNames.isEmpty()) { // can occupy this slot
+							parseArguments[j] = new Argument<>(ArgumentType.UNNAMED, parseArgument.name(), argument.value());
+							lastCheck = j;
+							lastFilled = j;
+							continue fill;
+						}
+					}
+					// unable to find a slot for this argument
+					if (argument.name() != null) { // this was originally a named argument, error as if it is
+						Skript.error(UNEXPECTED_ARGUMENT.toString(argument.name()));
+					} else {
+						Skript.error(Language.get("functions.mixing named and unnamed arguments"));
+					}
+					return null;
+				}
 			}
 
 			ArgumentParseResult result = parseFunctionArguments(parseArguments, parseTargets);
-
-			if (result.type() == ArgumentParseResultType.LIST_ERROR) {
-				return null;
-			}
-
-			if (result.type() == ArgumentParseResultType.OK) {
-				//noinspection unchecked
-				FunctionReference<T> reference = new FunctionReference<>(namespace, name, (Signature<T>) signature, result.parsed());
-
-				if (!reference.validate()) {
-					continue;
+			switch (result.type()) {
+				case LIST_ERROR -> {
+					return null;
 				}
-
-				exactReferences.add(reference);
+				case OK -> {
+					//noinspection unchecked
+					FunctionReference<T> reference = new FunctionReference<>(namespace, name, (Signature<T>) signature, result.parsed());
+					if (!reference.validate()) {
+						continue;
+					}
+					exactReferences.add(reference);
+				}
+				default -> {
+					// continue
+				}
 			}
 		}
 		return exactReferences;
@@ -489,20 +573,7 @@ public record FunctionReferenceParser(ParseContext context, int flags) {
 			FunctionReference.Argument<String> argument = arguments[i];
 			ArgumentParseTarget targetData = targets[i];
 
-			Expression<?> expression;
-			if (argument.value() != null) { // if passed, attempt to parse
-				SkriptParser parser = new SkriptParser(argument.value(), flags | SkriptParser.PARSE_LITERALS, context);
-
-				Expression<?> attempt = parser.parseExpression(targetData.type());
-				if (attempt != null) {
-					expression = attempt;
-				} else {
-					expression = targetData.fallback;
-				}
-			} else {
-				expression = targetData.fallback;
-			}
-
+			Expression<?> expression = parseExpression(argument, targetData);
 			if (expression == null) {
 				return new ArgumentParseResult(ArgumentParseResultType.PARSE_FAIL, null);
 			}
@@ -516,6 +587,33 @@ public record FunctionReferenceParser(ParseContext context, int flags) {
 		}
 
 		return new ArgumentParseResult(ArgumentParseResultType.OK, parsed);
+	}
+
+	/**
+	 * Attempts to parse an argument into an expression.
+	 * This method will log parsing errors.
+	 *
+	 * @param argument The argument.
+	 * @param targetData The target type to parse to, and the fallback value.
+	 * @return {@code targetData.fallback} if the argument does not have a value.
+	 * 	Otherwise, the parsed expression or null if parsing failed.
+	 */
+	private Expression<?> parseExpression(Argument<String> argument, ArgumentParseTarget targetData) {
+		if (argument.value() == null) {
+			return targetData.fallback;
+		}
+
+		SkriptParser parser = new SkriptParser(argument.value(), flags | SkriptParser.PARSE_LITERALS, context);
+
+		try (ParseLogHandler logHandler = new ParseLogHandler().start()) {
+			Expression<?> expression = parser.parseExpression(targetData.type());
+			if (expression == null) {
+				logHandler.printError(INVALID_ARGUMENT.toString(
+					Classes.getSuperClassInfo(targetData.type()).getName().getSingular(), argument.name(), argument.value()
+				));
+			}
+			return expression;
+		}
 	}
 
 	/**
