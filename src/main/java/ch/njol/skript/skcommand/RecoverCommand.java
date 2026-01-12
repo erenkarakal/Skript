@@ -81,6 +81,7 @@ class RecoverCommand extends SubCommand {
 				Files.write(filePath, lines, StandardOpenOption.CREATE);
 			} catch (IOException e) {
 				info(sender, CONFIG_NODE + ".recover.io error", e.getMessage());
+				// noinspection ThrowableNotThrown
 				Skript.exception(e, "Error while recovering scripts.");
 			}
 		}

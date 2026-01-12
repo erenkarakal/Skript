@@ -78,7 +78,7 @@ class ReloadCommand extends SubCommand {
 					}
 
 					if (scriptFile.isDirectory()) {
-						reloadFolder(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
+						reloadFolder(sender, redirectingLogHandler, timingLogHandler, scriptFile);
 					} else {
 						reloadSpecificScript(sender, args, redirectingLogHandler, timingLogHandler, scriptFile);
 					}
@@ -153,7 +153,7 @@ class ReloadCommand extends SubCommand {
 	/**
 	 * For handling the {@code /sk reload /folder/} command
 	 */
-	private void reloadFolder(CommandSender sender, String[] args, RedirectingLogHandler redirectingLogHandler,
+	private void reloadFolder(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
 							  TimingLogHandler timingLogHandler, File scriptFolder) {
 		String fileName = scriptFolder.getName();
 		reloading(sender, "scripts in folder", redirectingLogHandler, fileName);
