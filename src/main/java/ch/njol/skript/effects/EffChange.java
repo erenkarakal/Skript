@@ -1,70 +1,66 @@
 package ch.njol.skript.effects;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-
-import ch.njol.skript.expressions.ExprParse;
-import ch.njol.skript.lang.Effect;
-import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ExpressionList;
-import ch.njol.skript.lang.KeyProviderExpression;
-import ch.njol.skript.lang.KeyReceiverExpression;
-import ch.njol.skript.lang.SkriptParser;
-import ch.njol.skript.lang.SyntaxStringBuilder;
-import ch.njol.skript.lang.Variable;
-import ch.njol.skript.util.LiteralUtils;
-import ch.njol.skript.variables.HintManager;
-import org.skriptlang.skript.lang.script.ScriptWarning;
-import org.bukkit.event.Event;
-import org.jetbrains.annotations.Nullable;
-
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.Changer;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.doc.Description;
-import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
+import ch.njol.skript.expressions.ExprParse;
+import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.log.CountingLogHandler;
 import ch.njol.skript.log.ErrorQuality;
 import ch.njol.skript.log.ParseLogHandler;
 import ch.njol.skript.registrations.Classes;
+import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Patterns;
+import ch.njol.skript.variables.HintManager;
 import ch.njol.util.Kleenean;
+import org.bukkit.event.Event;
+import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.lang.script.ScriptWarning;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
 
 @Name("Change: Set/Add/Remove/Remove All/Delete/Reset")
 @Description({
 	"A general effect that can be used for changing many <a href='./expressions'>expressions</a>.",
 	"Some expressions can only be set and/or deleted, while others can also have things added to or removed from them."
 })
-@Examples({
-	"# Set",
-	"Set the player's display name to \"&lt;red&gt;%name of player%\"",
-	"set the block above the victim to lava",
-	"# Add",
-	"add 2 to the player's health # preferably use '<a href='#EffHealth'>heal</a>' for this",
-	"add argument to {blacklist::*}",
-	"give a diamond pickaxe of efficiency 5 to the player",
-	"increase the data value of the clicked block by 1",
-	"# Remove",
-	"remove 2 pickaxes from the victim",
-	"subtract 2.5 from {points::%uuid of player%}",
-	"# Remove All",
-	"remove every iron tool from the player",
-	"remove all minecarts from {entitylist::*}",
-	"# Delete",
-	"delete the block below the player",
-	"clear drops",
-	"delete {variable}",
-	"# Reset",
-	"reset walk speed of player",
-	"reset chunk at the targeted block"
-})
+@Example("""
+	set the player's display name to "<red>%name of player%"
+	set the block above the victim to lava
+	""")
+@Example("""
+	add 2 to the player's health # preferably use '<a href='#EffHealth'>heal</a>' for this
+	add argument to {blacklist::*}
+	give a diamond pickaxe of efficiency 5 to the player
+	increase the data value of the clicked block by 1
+	""")
+@Example("""
+	remove 2 pickaxes from the victim
+	subtract 2.5 from {points::%uuid of player%}
+	""")
+@Example("""
+	remove every iron tool from the player
+	remove all minecarts from {entitylist::*}
+	""")
+@Example("""
+	delete the block below the player
+	clear drops
+	delete {variable}
+	""")
+@Example("""
+	reset walk speed of player
+	reset chunk at the targeted block
+	""")
 @Since("1.0 (set, add, remove, delete), 2.0 (remove all)")
 public class EffChange extends Effect {
 
@@ -153,14 +149,14 @@ public class EffChange extends Effect {
 					}
 					yield what + " can't have anything removed from it";
 				}
-				case DELETE -> {
+				case RESET -> {
 					String error = what + " can't be reset";
 					if (changed.acceptChange(ChangeMode.DELETE) != null) {
 						error += ". However, it can be deleted which might result in the desired effect";
 					}
 					yield error;
 				}
-				case RESET -> {
+				case DELETE -> {
 					String error = what + " can't be deleted";
 					if (changed.acceptChange(ChangeMode.RESET) != null) {
 						error += ". However, it can be reset which might result in the desired effect";
@@ -288,7 +284,7 @@ public class EffChange extends Effect {
 						hintManager.add(variable, hints);
 					}
 				}
-				if (!variable.isLocal()) {
+				if (!variable.isLocal() && !variable.isEphemeral()) {
 					ClassInfo<?> changerInfo = Classes.getSuperClassInfo(changer.getReturnType());
 					if (changerInfo.getC() != Object.class && changerInfo.getSerializer() == null && changerInfo.getSerializeAs() == null
 						&& !SkriptConfig.disableObjectCannotBeSavedWarnings.value()

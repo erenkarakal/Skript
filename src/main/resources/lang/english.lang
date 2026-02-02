@@ -131,6 +131,14 @@ skript command:
 
 # -- Log Messages --
 log:
+	auto reload:
+		reloading: Automatically reloading <gold>%s<reset>...
+		file not found: Script '%s' was loaded without an existing file. It will not be automatically reloaded.
+		async required: 'script loader thread size' in the config.sk must be a value greater than 0 to use auto reload
+		error: <light red>Encountered <gold>%2$s <light red>error¦¦s¦ while automatically reloading <gold>%1$s<light red>! <gray>(<gold>%3$sms<gray>)
+		reloaded: <lime>Successfully automatically reloaded <gold>%s<lime>. <gray>(<gold>%2$sms<gray>)
+		script: <gold>%s<reset>
+
 	# runtime errors
 	runtime:
 		error: <light red>The script '<gray>%s<light red>' encountered an error while executing the '<gray>%s<light red>' %s<light red>:\n
@@ -218,3 +226,19 @@ time:
 io exceptions:
 	unknownhostexception: Cannot connect to %s
 	accessdeniedexception: Access denied for %s
+
+# -- Misc --
+misc:
+	namespacedutils:
+		format: A namespaced key can be formatted as 'namespace:id' or 'id'. It can only contain one ':' to separate the namespace and the id. Only alphanumeric characters, periods, underscores, and dashes can be used.
+
+# -- Functions --
+functions:
+	or in arguments: Function arguments cannot be seperated by an 'or'. Put the 'or' into a second set of parentheses if you want to make it a single parameter, e.g. 'give(player, (sword or axe))'
+	ambiguous function call: Cannot determine which function named '%s' to call: '%s'. Try clarifying the type of the arguments using the 'value within' expression.
+	already assigned value to parameter: A value has already been assigned to parameter '%s'.
+	mixing named and unnamed arguments: Mixing named and unnamed arguments is not allowed unless the order of the arguments matches the order of the parameters.
+	invalid argument: Can't understand the argument for the parameter '%s' with type '%s': %s.
+	unexpected argument: The argument named '%s' is unexpected.
+	unknown function: The function %s(%s) does not exist.
+	potential signature: Did you mean to use the function '%s'?

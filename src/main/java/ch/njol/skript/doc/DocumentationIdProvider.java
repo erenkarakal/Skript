@@ -6,12 +6,15 @@ import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.Section;
-import ch.njol.skript.lang.SkriptEventInfo;
 import ch.njol.skript.lang.SyntaxElementInfo;
 import ch.njol.skript.lang.function.Function;
 import ch.njol.skript.lang.function.Functions;
 import ch.njol.skript.registrations.Classes;
+import org.skriptlang.skript.bukkit.registration.BukkitSyntaxInfos;
+import org.skriptlang.skript.lang.properties.Property;
+import org.skriptlang.skript.lang.properties.PropertyRegistry;
 import org.skriptlang.skript.lang.structure.Structure;
+import org.skriptlang.skript.registration.SyntaxInfo;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -62,7 +65,16 @@ public class DocumentationIdProvider {
 	 * @return the ID of the syntax element
 	 */
 	public static <T> String getId(SyntaxElementInfo<? extends T> syntaxInfo) {
-		Class<?> syntaxClass = syntaxInfo.getElementClass();
+		return getId((SyntaxInfo<?>) syntaxInfo);
+	}
+
+	/**
+	 * Gets the documentation ID of a syntax element
+	 * @param syntaxInfo the SyntaxInfo to get the ID of
+	 * @return the ID of the syntax element
+	 */
+	public static <T> String getId(SyntaxInfo<? extends T> syntaxInfo) {
+		Class<?> syntaxClass = syntaxInfo.type();
 		Iterator<? extends SyntaxElementInfo<?>> syntaxElementIterator;
 		if (Effect.class.isAssignableFrom(syntaxClass)) {
 			syntaxElementIterator = Skript.getEffects().iterator();
@@ -79,7 +91,7 @@ public class DocumentationIdProvider {
 		}
 		int collisionCount = calculateCollisionCount(syntaxElementIterator,
 			elementInfo -> elementInfo.getElementClass() == syntaxClass,
-			elementInfo -> Arrays.equals(elementInfo.getPatterns(), syntaxInfo.getPatterns()));
+			elementInfo -> Arrays.equals(elementInfo.getPatterns(), syntaxInfo.patterns().toArray(new String[0])));
 		DocumentationId documentationIdAnnotation = syntaxClass.getAnnotation(DocumentationId.class);
 		if (documentationIdAnnotation == null) {
 			return addCollisionSuffix(syntaxClass.getSimpleName(), collisionCount);
@@ -93,7 +105,7 @@ public class DocumentationIdProvider {
 	 * @return the documentation ID of the function
 	 */
 	public static String getId(Function<?> function) {
-		int collisionCount = calculateCollisionCount(Functions.getJavaFunctions().iterator(),
+		int collisionCount = calculateCollisionCount(Functions.getFunctions().iterator(),
 			javaFunction -> function.getName().equals(javaFunction.getName()),
 			javaFunction -> javaFunction == function);
 		return addCollisionSuffix(function.getName(), collisionCount);
@@ -126,8 +138,8 @@ public class DocumentationIdProvider {
 	 * @param eventInfo the event to get the ID of
 	 * @return the ID of the event
 	 */
-	private static String getEventId(SkriptEventInfo<?> eventInfo) {
-		return Objects.requireNonNullElse(eventInfo.getDocumentationID(), eventInfo.getId());
+	private static String getEventId(BukkitSyntaxInfos.Event<?> eventInfo) {
+		return Objects.requireNonNullElse(eventInfo.documentationId(), eventInfo.id());
 	}
 
 	/**
@@ -135,12 +147,25 @@ public class DocumentationIdProvider {
 	 * @param eventInfo the event to get the ID of
 	 * @return the ID of the event
 	 */
-	public static String getId(SkriptEventInfo<?> eventInfo) {
+	public static String getId(BukkitSyntaxInfos.Event<?> eventInfo) {
 		String eventId = getEventId(eventInfo);
-		int collisionCount = calculateCollisionCount(Skript.getEvents().iterator(),
+		int collisionCount = calculateCollisionCount(Skript.instance().syntaxRegistry().syntaxes(BukkitSyntaxInfos.Event.KEY).iterator(),
 			otherEventInfo -> eventId.equals(getEventId(otherEventInfo)),
-			otherEventInfo -> Arrays.equals(otherEventInfo.getPatterns(), eventInfo.getPatterns()));
+			otherEventInfo -> Arrays.equals(otherEventInfo.patterns().toArray(), eventInfo.patterns().toArray()));
 		return addCollisionSuffix(eventId, collisionCount);
+	}
+
+	/**
+	 * Gets the documentation ID of a property
+	 * @param property the property to get the ID of
+	 * @return the ID of the property
+	 */
+	public static String getId(Property<?> property) {
+		String propertyId = property.getDocumentationID();
+		int collisionCount = calculateCollisionCount(Skript.instance().registry(PropertyRegistry.class).iterator(),
+			otherProperty -> propertyId.equals(otherProperty.getDocumentationID()),
+			otherProperty -> property == otherProperty);
+		return addCollisionSuffix(propertyId, collisionCount);
 	}
 
 }

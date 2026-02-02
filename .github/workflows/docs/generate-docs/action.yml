@@ -6,11 +6,11 @@ inputs:
     required: true
     type: string
   docs_repo_dir:
-    description: "The skript-docs repository directory"
+    description: "The documentation repository directory"
     required: true
     type: string
   skript_repo_dir:
-    description: "The skript repository directory"
+    description: "The Skript repository directory"
     required: true
     type: string
   is_release:
@@ -24,14 +24,14 @@ inputs:
     default: "*"
     type: string
   generate_javadocs:
-    description: "Designates whether to generate javadocs for this nightly documentation"
+    description: "Designates whether to generate Javadocs for this documentation"
     required: false
     default: false
     type: boolean
 
 outputs:
   DOCS_CHANGED:
-    description: "Whether or not the documentation has changed since the last push"
+    description: "Whether the documentation has changed since the last push"
     value: ${{ steps.generate.outputs.DOCS_CHANGED }}
 
 runs:
@@ -52,10 +52,8 @@ runs:
           find $1 -type f -exec sed -i -e "s/$2/$3/g" {} \;
         }
 
-        # this should be replaced with a more reliable jq command,
-        # but it can't be right now because docs.json is actually not valid json.
         get_skript_version_of_directory() {
-          grep skriptVersion "$1/docs.json" | cut -d\" -f 4
+          jq ".source.version" "$1/docs.json"
         }
 
         if [ -d "${DOCS_REPO_DIR}/docs/templates" ]

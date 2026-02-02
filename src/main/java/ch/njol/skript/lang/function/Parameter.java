@@ -3,10 +3,7 @@ package ch.njol.skript.lang.function;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.classes.ClassInfo;
-import ch.njol.skript.lang.Expression;
-import ch.njol.skript.lang.ParseContext;
-import ch.njol.skript.lang.SkriptParser;
-import ch.njol.skript.lang.Variable;
+import ch.njol.skript.lang.*;
 import ch.njol.skript.log.RetainingLogHandler;
 import ch.njol.skript.log.SkriptLogger;
 import ch.njol.skript.registrations.Classes;
@@ -14,15 +11,24 @@ import ch.njol.skript.util.LiteralUtils;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.NonNullPair;
 import ch.njol.util.StringUtils;
+import org.bukkit.event.Event;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+import org.skriptlang.skript.common.function.DefaultFunction;
+import org.skriptlang.skript.common.function.Parameter.Modifier.RangedModifier;
+import org.skriptlang.skript.common.function.ScriptParameter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class Parameter<T> {
+/**
+ * @deprecated Use {@link ScriptParameter}
+ * or {@link DefaultFunction.Builder#parameter(String, Class, Modifier...)} instead.
+ */
+@Deprecated(forRemoval = true, since = "2.14")
+public final class Parameter<T> implements org.skriptlang.skript.common.function.Parameter<T> {
 
 	public final static Pattern PARAM_PATTERN = Pattern.compile("^\\s*([^:(){}\",]+?)\\s*:\\s*([a-zA-Z ]+?)\\s*(?:\\s*=\\s*(.+))?\\s*$");
 
@@ -50,34 +56,104 @@ public final class Parameter<T> {
 	 */
 	final boolean single;
 
+	private final Set<Modifier> modifiers;
+
 	/**
-	 * Whether this parameter takes in key-value pairs.
-	 * <br>
-	 * If this is true, a {@link ch.njol.skript.lang.KeyedValue} array containing key-value pairs will be passed to
-	 * {@link Function#execute(FunctionEvent, Object[][])} rather than a value-only object array.
+	 * @deprecated Use {@link org.skriptlang.skript.common.function.Parameter}
+	 * or {@link DefaultFunction.Builder#parameter(String, Class, Modifier...)}
+	 * instead.
 	 */
 	final boolean keyed;
 
+	/**
+	 * @deprecated Use {@link DefaultFunction.Builder#parameter(String, Class, Modifier...)} instead.
+	 */
+	@Deprecated(since = "2.13", forRemoval = true)
 	public Parameter(String name, ClassInfo<T> type, boolean single, @Nullable Expression<? extends T> def) {
 		this(name, type, single, def, false);
 	}
 
+	/**
+	 * @deprecated Use {@link org.skriptlang.skript.common.function.Parameter}
+	 * or {@link DefaultFunction.Builder#parameter(String, Class, Modifier...)}
+	 * instead.
+	 */
+	@Deprecated(since = "2.13", forRemoval = true)
 	public Parameter(String name, ClassInfo<T> type, boolean single, @Nullable Expression<? extends T> def, boolean keyed) {
 		this.name = name;
 		this.type = type;
 		this.def = def;
 		this.single = single;
 		this.keyed = keyed;
+		this.modifiers = new HashSet<>();
+
+		if (def != null) {
+			modifiers.add(Modifier.OPTIONAL);
+		}
+		if (keyed) {
+			modifiers.add(Modifier.KEYED);
+		}
 	}
 
 	/**
-	 * Get the Type of this parameter.
-	 * @return Type of the parameter
+	 * @deprecated Use {@link org.skriptlang.skript.common.function.Parameter}
+	 * or {@link DefaultFunction.Builder#parameter(String, Class, Modifier...)}
+	 * instead.
 	 */
+	@Deprecated(since = "2.13", forRemoval = true)
+	public Parameter(String name, ClassInfo<T> type, boolean single, @Nullable Expression<? extends T> def, boolean keyed, boolean optional) {
+		this.name = name;
+		this.type = type;
+		this.def = def;
+		this.single = single;
+		this.keyed = keyed;
+		this.modifiers = new HashSet<>();
+
+		if (optional) {
+			modifiers.add(Modifier.OPTIONAL);
+		}
+		if (keyed) {
+			modifiers.add(Modifier.KEYED);
+		}
+	}
+
+	/**
+	 * Constructs a new parameter for script functions.
+	 *
+	 * @param name The name.
+	 * @param type The type of the parameter.
+	 * @param single Whether the parameter is single.
+	 * @param def The default value.
+	 */
+	Parameter(String name, ClassInfo<T> type, boolean single, @Nullable Expression<? extends T> def, Modifier... modifiers) {
+		this.name = name;
+		this.type = type;
+		this.def = def;
+		this.single = single;
+		this.modifiers = Set.of(modifiers);
+		this.keyed = this.modifiers.contains(Modifier.KEYED);
+	}
+
+	/**
+	 * Returns whether this parameter is optional or not.
+	 * @return Whether this parameter is optional or not.
+	 */
+	public boolean isOptional() {
+		return modifiers.contains(Modifier.OPTIONAL);
+	}
+
+	/**
+	 * @deprecated Use {@link #type()} instead.
+	 */
+	@Deprecated(forRemoval = true, since = "2.14")
 	public ClassInfo<T> getType() {
 		return type;
 	}
 
+	/**
+	 * @deprecated Use {@link ScriptParameter#parse(String, Class, String)}} instead.
+	 */
+	@Deprecated(forRemoval = true, since = "2.14")
 	public static <T> @Nullable Parameter<T> newInstance(String name, ClassInfo<T> type, boolean single, @Nullable String def) {
 		if (!Variable.isValidVariableName(name, true, false)) {
 			Skript.error("A parameter's name must be a valid variable name.");
@@ -101,15 +177,22 @@ public final class Parameter<T> {
 				log.stop();
 			}
 		}
-		return new Parameter<>(name, type, single, d, !single);
+
+		Set<Modifier> modifiers = new HashSet<>();
+		if (d != null) {
+			modifiers.add(Modifier.OPTIONAL);
+		}
+		if (!single) {
+			modifiers.add(Modifier.KEYED);
+		}
+
+		return new Parameter<>(name, type, single, d, modifiers.toArray(new Modifier[0]));
 	}
 
 	/**
-	 * Parses function parameters from a string. The string should look something like this:
-	 * <pre>"something: string, something else: number = 12"</pre>
-	 * @param args The string to parse.
-	 * @return The parsed parameters
+	 * @deprecated Use {@link ch.njol.skript.structures.StructFunction.FunctionParser#parse(String, String, String, String, boolean)} instead.
 	 */
+	@Deprecated(forRemoval = true, since = "2.14")
 	public static @Nullable List<Parameter<?>> parse(String args) {
 		List<Parameter<?>> params = new ArrayList<>();
 		boolean caseInsensitive = SkriptConfig.caseInsensitiveVariables.value();
@@ -167,10 +250,9 @@ public final class Parameter<T> {
 	}
 
 	/**
-	 * Get the name of this parameter.
-	 * <p>Will be used as name for the local variable that contains value of it inside function.</p>
-	 * @return Name of this parameter
+	 * @deprecated Use {@link #name()} instead.
 	 */
+	@Deprecated(forRemoval = true, since = "2.13")
 	public String getName() {
 		return name;
 	}
@@ -192,12 +274,57 @@ public final class Parameter<T> {
 	}
 
 	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Parameter<?> parameter)) {
+			return false;
+		}
+
+		return modifiers.equals(parameter.modifiers)
+			&& single == parameter.single
+			&& name.equals(parameter.name)
+			&& type.equals(parameter.type)
+			&& Objects.equals(def, parameter.def);
+	}
+
+	@Override
 	public String toString() {
 		return toString(Skript.debug());
 	}
 
+	// toString output format:
+	// name: type between min and max = default
+	//
+	// Example:
+	// ns: numbers between 0 and 100 = 3
 	public String toString(boolean debug) {
-		return name + ": " + Utils.toEnglishPlural(type.getCodeName(), !single) + (def != null ? " = " + def.toString(null, debug) : "");
+		String result = name + ": " + Utils.toEnglishPlural(type.getCodeName(), !single);
+		if (this.hasModifier(Modifier.RANGED)) {
+			RangedModifier<?> range = this.getModifier(RangedModifier.class);
+			result += " between " + Classes.toString(range.getMin()) + " and " + Classes.toString(range.getMax());
+		}
+		result += (def != null ? " = " + def.toString(null, debug) : "");
+		return result;
+	}
+
+	@Override
+	public @NotNull String name() {
+		return name;
+	}
+
+	@Override
+	public @NotNull Class<T> type() {
+		//noinspection unchecked
+		return (Class<T>) Signature.getReturns(single, type.getC());
+	}
+
+	@Override
+	public @Unmodifiable @NotNull Set<Modifier> modifiers() {
+		return Collections.unmodifiableSet(modifiers);
+	}
+
+	@Override
+	public boolean isSingle() {
+		return single;
 	}
 
 }

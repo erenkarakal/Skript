@@ -94,7 +94,7 @@ public class Direction implements YggdrasilRobustSerializable {
 		yawOrY = v.getY();
 		lengthOrZ = v.getZ();
 	}
-	
+
 	public Location getRelative(final Location l) {
 		return l.clone().add(getDirection(l));
 	}
@@ -264,6 +264,48 @@ public class Direction implements YggdrasilRobustSerializable {
 		}
 		return r;
 	}
+
+	/**
+	 * Calculates the nearest {@link BlockFace} to an arbitrary unit {@link Vector}.
+	 *
+	 * @param vector a normalized vector
+	 * @return the block face most closely aligned to the input vector
+	 */
+	public static BlockFace toNearestBlockFace(Vector vector) {
+		double maxDot = -1;
+		double dot;
+		BlockFace nearest = BlockFace.NORTH;
+		for (BlockFace face : BlockFace.values()){
+			dot = face.getDirection().dot(vector);
+			if (dot > maxDot) {
+				maxDot = dot;
+				nearest = face;
+			}
+		}
+		return nearest;
+	}
+
+	/**
+	 * Calculates the nearest cartesian {@link BlockFace} to an arbitrary unit {@link Vector}.
+	 *
+	 * @param vector a normalized vector
+	 * @return the block face most closely aligned to the input vector
+	 */
+	public static @Nullable BlockFace toNearestCartesianBlockFace(Vector vector) {
+		double maxDot = -1;
+		double dot;
+		BlockFace nearest = null;
+		for (BlockFace face : new BlockFace[] {
+				BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST,
+				BlockFace.UP, BlockFace.DOWN}) {
+			dot = face.getDirection().dot(vector);
+			if (dot > maxDot) {
+				maxDot = dot;
+				nearest = face;
+			}
+		}
+		return nearest;
+	}
 	
 	@Override
 	public String toString() {
@@ -357,8 +399,18 @@ public class Direction implements YggdrasilRobustSerializable {
 			}
 		}
 	}
-	
-	public static Expression<Location> combine(final Expression<? extends Direction> dirs, final Expression<? extends Location> locs) {
+
+	/*
+	 * Combines direction and location expressions.
+	 * Useful for syntaxes to allow Skripters to have more control over their locations.
+	 * @param dirs The direction expressions to combine.
+	 * @param locs The location expressions to combine.
+	 * @return A combined expression or null if any of the inputs are null.
+	 */
+	public static @Nullable Expression<Location> combine(@Nullable Expression<? extends Direction> dirs, @Nullable Expression<? extends Location> locs) {
+		if (dirs == null || locs == null)
+			return null;
+
 		return new SimpleExpression<Location>() {
 			@SuppressWarnings("null")
 			@Override

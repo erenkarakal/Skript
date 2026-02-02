@@ -150,7 +150,7 @@ maximum target block distance: 100
 
 case sensitive: false
 # Whether Skript's functions should be case sensitive or not.
-# This e.g. applies to the effect 'replace' and the conditions 'contains' and 'is/is not'.
+# This e.g. applies to the effect 'replace', expression 'indices of value' and the conditions 'contains' and 'is/is not'.
 # Variable names are case-insensitive irrespective of this setting.
 
 case-insensitive variables: true
@@ -164,13 +164,15 @@ case-insensitive commands: false
 
 disable variable will not be saved warnings: false
 # Disables the "... i.e contents cannot be saved ..." warning when reloading and something in your scripts sets a variable(non local) to a value that is not serializable.
-# By Mirre.
 
 disable variable missing and/or warnings: false
 # Disables the "List is missing 'and' or 'or', defaulting to 'and'" warning when reloading your script.
 
 disable starting a variable's name with an expression warnings: false
 # Disables the "Starting a variable's name with an expression is discouraged..." warnings
+
+disable single colon in variable name warnings: false
+# Disables the "... its name should contain '::'. Having a single ':' does nothing!" warnings for variable names.
 
 disable unreachable code warnings: false
 # Disables the "Unreachable code. The previous statement stops further execution." warnings.
@@ -213,6 +215,11 @@ script loader thread size: 0
 # You may also set this option to 'processor count' (without apostrophes) to use the number of available processors.
 # Do note that though, this option may cause issues with addons and possibly some scripts! Do NOT enable this option unless you have really long
 #   script load times AND you take the risk of lost data and full responsibility!
+
+use type properties: true
+# Enables type properties, which allows addons to hook into common syntaxes like `if x is empty` or `name of x`.
+# You should only disable this if you are encountering issues with Skript being unable to figure out the properties,
+# and you should make an issue on SkriptLang's GitHub.
 
 disable hooks:
 	vault: false
@@ -335,7 +342,7 @@ databases:
 
 		backup interval: 2 hours
 		# Creates a backup of the file every so often. This can be useful if you ever want to revert variables to an older state.
-		# Variables are saved constantly no matter what is set here, thus a server crash will never make you loose any variables.
+		# Variables are saved constantly no matter what is set here, thus a server crash will never make you lose any variables.
 		# Set this to 0 to disable this feature.
 
 		backups to keep: -1
@@ -385,7 +392,7 @@ databases:
 	default:
 		# The default "database" is a simple text file, with each variable on a separate line and the variable's name, type, and value separated by commas.
 		# This is the last database in this list to catch all variables that have not been saved anywhere else.
-		# You can modify this database freely, but make sure to know what you're doing if you don't want to loose any variables.
+		# You can modify this database freely, but make sure to know what you're doing if you don't want to lose any variables.
 
 		type: CSV
 

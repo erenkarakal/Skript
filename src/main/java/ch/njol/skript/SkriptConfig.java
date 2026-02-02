@@ -201,6 +201,8 @@ public class SkriptConfig {
 	public static final Option<Boolean> disableMissingAndOrWarnings = new Option<>("disable variable missing and/or warnings", false);
 	public static final Option<Boolean> disableVariableStartingWithExpressionWarnings =
 		new Option<>("disable starting a variable's name with an expression warnings", false);
+	public static final Option<Boolean> disableColonInVariableWarnings =
+		new Option<>("disable single colon in variable name warnings", false);
 	public static final Option<Boolean> disableUnreachableCodeWarnings = new Option<>("disable unreachable code warnings", false);
 
 	@Deprecated(since = "2.3.0", forRemoval = true)
@@ -293,6 +295,9 @@ public class SkriptConfig {
 				ScriptLoader.setAsyncLoaderSize(asyncLoaderSize);
 			})
 			.optional(true);
+
+	public static final Option<Boolean> useTypeProperties = new Option<>("use type properties", true)
+			.optional(false);
 
 	public static final Option<Boolean> allowUnsafePlatforms = new Option<>("allow unsafe platforms", false)
 			.optional(true);
