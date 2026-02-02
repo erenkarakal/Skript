@@ -1,26 +1,30 @@
 package org.skriptlang.skript.log.runtime;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.log.SkriptLogger;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 import org.skriptlang.skript.log.runtime.Frame.FrameOutput;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 
 /**
  * A {@link RuntimeErrorConsumer} to be used in {@link RuntimeErrorManager} to catch {@link RuntimeError}s.
  * This should always be used with {@link #start()} and {@link #stop()}.
  */
-public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
+public class RuntimeErrorCatcher implements RuntimeErrorConsumer, AutoCloseable {
 
 	private List<RuntimeErrorConsumer> storedConsumers = new ArrayList<>();
 
 	private final List<RuntimeError> cachedErrors = new ArrayList<>();
 
-	private final List<Entry<FrameOutput, Level>> cachedFrames = new ArrayList<>();
+	// hard limit on stored errors to prevent a runaway loop from filling up memory, for example.
+	private static final int ERROR_LIMIT = 1000;
+
+	private boolean stopped = false;
 
 	public RuntimeErrorCatcher() {}
 
@@ -28,7 +32,12 @@ public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
 	 * Gets the {@link RuntimeErrorManager}.
 	 */
 	private RuntimeErrorManager getManager() {
-		return RuntimeErrorManager.getInstance();
+		return Skript.getRuntimeErrorManager();
+	}
+
+	@Override
+	public @Nullable RuntimeErrorFilter getFilter() {
+		return RuntimeErrorFilter.NO_FILTER; // no filter means everything gets printed.
 	}
 
 	/**
@@ -39,6 +48,7 @@ public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
 	 * @return This {@link RuntimeErrorCatcher}
 	 */
 	public RuntimeErrorCatcher start() {
+		stopped = false;
 		storedConsumers = getManager().removeAllConsumers();
 		getManager().addConsumer(this);
 		return this;
@@ -46,19 +56,17 @@ public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
 
 	/**
 	 * Stops this {@link RuntimeErrorCatcher}, removing from {@link RuntimeErrorManager} and restoring the previous
-	 * {@link RuntimeErrorConsumer}s from {@link #storedConsumers}.
-	 * Prints all cached {@link RuntimeError}s, {@link #cachedErrors}, and cached {@link FrameOutput}s, {@link #cachedFrames}.
+	 * {@link RuntimeErrorConsumer}s from {@link #storedConsumers}. Does not clear cached errors. May be restarted.
 	 */
 	public void stop() {
+		if (stopped)
+			return;
+		stopped = true;
 		if (!getManager().removeConsumer(this)) {
 			SkriptLogger.LOGGER.severe("[Skript] A 'RuntimeErrorCatcher' was stopped incorrectly.");
 			return;
 		}
 		getManager().addConsumers(storedConsumers.toArray(RuntimeErrorConsumer[]::new));
-		for (RuntimeError runtimeError : cachedErrors)
-			storedConsumers.forEach(consumer -> consumer.printError(runtimeError));
-		for (Entry<FrameOutput, Level> entry : cachedFrames)
-			storedConsumers.forEach(consumer -> consumer.printFrameOutput(entry.getKey(), entry.getValue()));
 	}
 
 	/**
@@ -69,13 +77,6 @@ public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
 	}
 
 	/**
-	 * Gets all cached {@link FrameOutput}s stored with its corresponding {@link Level} in an {@link Entry}
-	 */
-	public @UnmodifiableView List<Entry<FrameOutput, Level>> getCachedFrames() {
-		return Collections.unmodifiableList(cachedFrames);
-	}
-
-	/**
 	 * Clear all cached {@link RuntimeError}s.
 	 */
 	public RuntimeErrorCatcher clearCachedErrors() {
@@ -83,37 +84,23 @@ public class RuntimeErrorCatcher implements RuntimeErrorConsumer {
 		return this;
 	}
 
-	/**
-	 * Clears all cached {@link FrameOutput}s.
-	 */
-	public RuntimeErrorCatcher clearCachedFrames() {
-		cachedFrames.clear();
-		return this;
-	}
-
 	@Override
 	public void printError(RuntimeError error) {
-		cachedErrors.add(error);
+		if (cachedErrors.size() < ERROR_LIMIT)
+			cachedErrors.add(error);
 	}
 
 	@Override
 	public void printFrameOutput(FrameOutput output, Level level) {
-		cachedFrames.add(new Entry<FrameOutput, Level>() {
-			@Override
-			public FrameOutput getKey() {
-				return output;
-			}
+		// do nothing, this won't be called since we have no filter.
+	}
 
-			@Override
-			public Level getValue() {
-				return level;
-			}
-
-			@Override
-			public Level setValue(Level value) {
-				return null;
-			}
-		});
+	/**
+	 * Stops the catcher and clears the cached errors.
+	 */
+	@Override
+	public void close() {
+		this.clearCachedErrors().stop();
 	}
 
 }

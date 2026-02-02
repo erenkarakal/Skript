@@ -6,10 +6,7 @@ import ch.njol.skript.conditions.CondCompare;
 import ch.njol.skript.lang.ExpressionInfo;
 import ch.njol.skript.lang.SkriptEventInfo;
 import ch.njol.skript.lang.SyntaxElementInfo;
-import org.skriptlang.skript.common.function.DefaultFunction;
 import ch.njol.skript.lang.function.Functions;
-import ch.njol.skript.lang.function.JavaFunction;
-import ch.njol.skript.lang.function.Parameter;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.skript.util.Utils;
 import ch.njol.util.NonNullPair;
@@ -18,6 +15,7 @@ import ch.njol.util.coll.CollectionUtils;
 import ch.njol.util.coll.iterator.IteratorIterable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.common.function.Parameter;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -153,7 +151,7 @@ public class Documentation {
 				"examples VARCHAR(2000) NOT NULL," +
 				"since VARCHAR(100) NOT NULL" +
 				");");
-		for (ch.njol.skript.lang.function.Function<?> func : Functions.getDefaultFunctions()) {
+		for (ch.njol.skript.lang.function.Function<?> func : Functions.getFunctions()) {
 			assert func != null;
 			insertFunction(pw, func);
 		}
@@ -305,7 +303,7 @@ public class Documentation {
 			Skript.warning("" + elementClass.getSimpleName() + "'s description or 'since' is invalid");
 			return;
 		}
-		final String patterns = cleanPatterns(StringUtils.join(info.patterns, "\n", 0, elementClass == CondCompare.class ? 8 : info.patterns.length));
+		String patterns = cleanPatterns(StringUtils.join(info.patterns, "\n", 0, elementClass == CondCompare.class ? 8 : info.getPatterns().length));
 		insertOnDuplicateKeyUpdate(pw, "syntax_elements",
 				"id, name, type, patterns, description, examples, since",
 				"patterns = TRIM(LEADING '\n' FROM CONCAT(patterns, '\n', '" + escapeSQL(patterns) + "'))",
@@ -337,7 +335,7 @@ public class Documentation {
 			Skript.warning("description or 'since' of " + info.getName() + " (" + info.getElementClass().getSimpleName() + ") is invalid");
 			return;
 		}
-		final String patterns = cleanPatterns(info.getName().startsWith("On ") ? "[on] " + StringUtils.join(info.patterns, "\n[on] ") : StringUtils.join(info.patterns, "\n"));
+		String patterns = cleanPatterns(info.getName().startsWith("On ") ? "[on] " + StringUtils.join(info.getPatterns(), "\n[on] ") : StringUtils.join(info.patterns, "\n"));
 		insertOnDuplicateKeyUpdate(pw, "syntax_elements",
 				"id, name, type, patterns, description, examples, since",
 				"patterns = '" + escapeSQL(patterns) + "'",
@@ -389,8 +387,8 @@ public class Documentation {
 		}
 
 		StringBuilder params = new StringBuilder();
-		for (Parameter<?> p : func.getParameters()) {
-			if (params.length() != 0)
+		for (Parameter<?> p : func.getSignature().parameters().all()) {
+			if (!params.isEmpty())
 				params.append(", ");
 			params.append(p.toString());
 		}

@@ -54,7 +54,7 @@ import java.util.logging.Level;
 		recipients: "SkriptDev",  "61699b2e-d327-4a01-9f1e-0ea8c3f06bc6" and "Njol"
 		permission: "skript.reloadnotify"
 	""") // UUID is Dinnerbone's.
-@Since("INSERT VERSION")
+@Since("2.13")
 public class StructAutoReload extends Structure {
 
 	public static final Priority PRIORITY = new Priority(10);
@@ -146,7 +146,8 @@ public class StructAutoReload extends Structure {
 
 	@Override
 	public void unload() {
-		task.cancel();
+		if (task != null)
+			task.cancel();
 	}
 
 	@Override
@@ -191,8 +192,12 @@ public class StructAutoReload extends Structure {
 
 		// private constructor to prevent instantiation.
 		private AutoReload(long lastReload, @Nullable String permission, @Nullable String... recipients) {
-			if (recipients != null)
-				this.recipients.addAll(Lists.newArrayList(recipients));
+			if (recipients != null) {
+				for (String recipient : recipients) {
+					if (recipient != null)
+						this.recipients.add(recipient.toLowerCase(Locale.ENGLISH));
+				}
+			}
 
 			this.permission = permission;
 			this.lastReload = lastReload;
@@ -208,7 +213,7 @@ public class StructAutoReload extends Structure {
 			List<CommandSender> senders = Lists.newArrayList(Bukkit.getConsoleSender());
 			if (!recipients.isEmpty()) {
 				Bukkit.getOnlinePlayers().stream()
-					.filter(p -> recipients.contains(p.getName()) || recipients.contains(p.getUniqueId().toString()))
+					.filter(p -> recipients.contains(p.getName().toLowerCase(Locale.ENGLISH)) || recipients.contains(p.getUniqueId().toString()))
 					.forEach(senders::add);
 				return Collections.unmodifiableList(senders);
 			}

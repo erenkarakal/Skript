@@ -4,7 +4,7 @@ import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptConfig;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.doc.Description;
-import ch.njol.skript.doc.Examples;
+import ch.njol.skript.doc.Example;
 import ch.njol.skript.doc.Name;
 import ch.njol.skript.doc.Since;
 import ch.njol.skript.lang.Condition;
@@ -22,6 +22,7 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.common.properties.conditions.PropCondContains;
 import org.skriptlang.skript.lang.comparator.Comparators;
 import org.skriptlang.skript.lang.comparator.Relation;
 import org.skriptlang.skript.lang.converter.Converters;
@@ -30,23 +31,28 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * @deprecated This is being removed in favor of {@link PropCondContains}
+ */
 @Name("Contains")
 @Description("Checks whether an inventory contains an item, a text contains another piece of text, "
 	+ "a container contains something, "
 	+ "or a list (e.g. {list variable::*} or 'drops') contains another object.")
-@Examples({"block contains 20 cobblestone",
-		"player has 4 flint and 2 iron ingots",
-		"{list::*} contains 5"})
+@Example("block contains 20 cobblestone")
+@Example("player has 4 flint and 2 iron ingots")
+@Example("{list::*} contains 5")
 @Since("1.0")
+@Deprecated(since="2.13", forRemoval = true)
 public class CondContains extends Condition implements VerboseAssert {
 
 	static {
-		Skript.registerCondition(CondContains.class,
-			"%inventories% (has|have) %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
-			"%inventories% (doesn't|does not|do not|don't) have %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
-			"%inventories/strings/objects% contain[(1¦s)] %itemtypes/strings/objects%",
-			"%inventories/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/strings/objects%"
-		);
+		if (!SkriptConfig.useTypeProperties.value())
+			Skript.registerCondition(CondContains.class,
+				"%inventories% (has|have) %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
+				"%inventories% (doesn't|does not|do not|don't) have %itemtypes% [in [(the[ir]|his|her|its)] inventory]",
+				"%inventories/strings/objects% contain[(1¦s)] %itemtypes/strings/objects%",
+				"%inventories/strings/objects% (doesn't|does not|do not|don't) contain %itemtypes/strings/objects%"
+			);
 	}
 
 	/**

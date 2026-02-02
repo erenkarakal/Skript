@@ -3,19 +3,18 @@ package ch.njol.skript.lang.function;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.SkriptAddon;
-import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.skript.lang.function.FunctionRegistry.Retrieval;
 import ch.njol.skript.lang.function.FunctionRegistry.RetrievalResult;
-import ch.njol.skript.registrations.Classes;
-import ch.njol.skript.util.Utils;
-import ch.njol.util.NonNullPair;
-import ch.njol.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.common.function.DefaultFunction;
+import org.skriptlang.skript.common.function.FunctionParser;
+import org.skriptlang.skript.common.function.FunctionReference;
+import org.skriptlang.skript.common.function.Parameter;
 import org.skriptlang.skript.lang.script.Script;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Static methods to work with functions.
@@ -52,7 +51,7 @@ public abstract class Functions {
 	 */
 	private static final Map<String, Namespace> globalFunctions = new HashMap<>();
 
-	static boolean callFunctionEvents = false;
+	public static boolean callFunctionEvents = false;
 
 	/**
 	 * Registers a {@link DefaultFunction}.
@@ -79,7 +78,7 @@ public abstract class Functions {
 	/**
 	 * @deprecated Use {@link #register(DefaultFunction)} instead.
 	 */
-	@Deprecated(forRemoval = true, since = "INSERT VERSION")
+	@Deprecated(forRemoval = true, since = "2.13")
 	public static JavaFunction<?> registerFunction(JavaFunction<?> function) {
 		Skript.checkAcceptRegistrations();
 		String name = function.getName();
@@ -94,7 +93,7 @@ public abstract class Functions {
 		return function;
 	}
 
-	public final static String functionNamePattern = "[\\p{IsAlphabetic}_][\\p{IsAlphabetic}\\p{IsDigit}_]*";
+	public final static String functionNamePattern = "[\\p{IsAlphabetic}_][\\p{IsAlphabetic}\\d_]*";
 
 	/**
 	 * Loads a script function from given node.
@@ -105,7 +104,7 @@ public abstract class Functions {
 	 * @return Script function, or null if something went wrong.
 	 */
 	public static @Nullable Function<?> loadFunction(Script script, SectionNode node, Signature<?> signature) {
-		String name = signature.name;
+		String name = signature.getName();
 		Namespace namespace = getScriptNamespace(script.getConfig().getFileName());
 		if (namespace == null) {
 			namespace = globalFunctions.get(name);
@@ -113,12 +112,9 @@ public abstract class Functions {
 				return null; // Probably duplicate signature; reported before
 		}
 
-		Parameter<?>[] params = signature.parameters;
-		ClassInfo<?> c = signature.returnType;
-
-		if (Skript.debug() || node.debug())
-			Skript.debug((signature.local ? "local " : "") + "function " + name + "(" + StringUtils.join(params, ", ") + ")"
-				+ (c != null ? " :: " + (signature.isSingle() ? c.getName().getSingular() : c.getName().getPlural()) : "") + ":");
+		if (Skript.debug() || node.debug()) {
+			Skript.debug(signature.toString());
+		}
 
 		Function<?> function;
 		try {
@@ -132,7 +128,7 @@ public abstract class Functions {
 			return null;
 		}
 
-		if (namespace.getFunction(signature.name) == null) {
+		if (namespace.getFunction(signature.getName()) == null) {
 			namespace.addFunction(function);
 		}
 
@@ -145,41 +141,12 @@ public abstract class Functions {
 		return function;
 	}
 
-
 	/**
-	 * Parses the signature from the given arguments.
-	 * @param script Script file name (<b>might</b> be used for some checks).
-	 * @param name The name of the function.
-	 * @param args The parameters of the function. See {@link Parameter#parse(String)}
-	 * @param returnType The return type of the function
-	 * @param local If the signature of function is local.
-	 * @return Parsed signature or null if something went wrong.
-	 * @see Functions#registerSignature(Signature)
+	 * @deprecated Use {@link FunctionParser#parse(String, String, String, String, boolean)} instead.
 	 */
+	@Deprecated(forRemoval = true, since = "2.14")
 	public static @Nullable Signature<?> parseSignature(String script, String name, String args, @Nullable String returnType, boolean local) {
-		List<Parameter<?>> parameters = Parameter.parse(args);
-		if (parameters == null)
-			return null;
-
-		// Parse return type if one exists
-		ClassInfo<?> returnClass;
-		boolean singleReturn;
-		if (returnType == null) {
-			returnClass = null;
-			singleReturn = false; // Ignored, nothing is returned
-		} else {
-			returnClass = Classes.getClassInfoFromUserInput(returnType);
-			NonNullPair<String, Boolean> p = Utils.getEnglishPlural(returnType);
-			singleReturn = !p.getSecond();
-			if (returnClass == null)
-				returnClass = Classes.getClassInfoFromUserInput(p.getFirst());
-			if (returnClass == null) {
-				Skript.error("Cannot recognise the type '" + returnType + "'");
-				return null;
-			}
-		}
-		//noinspection unchecked
-		return new Signature<>(script, name, parameters.toArray(new Parameter[0]), local, (ClassInfo<Object>) returnClass, singleReturn, null);
+		return FunctionParser.parse(script, name, args, returnType, local);
 	}
 
 	/**
@@ -190,21 +157,17 @@ public abstract class Functions {
 	 */
 	public static @Nullable Signature<?> registerSignature(Signature<?> signature) {
 		Retrieval<Signature<?>> existing;
-		Parameter<?>[] parameters = signature.parameters;
+		Parameter<?>[] parameters = signature.parameters().all();
 
-		if (parameters.length == 1 && !parameters[0].isSingleValue()) {
-			existing = FunctionRegistry.getRegistry().getExactSignature(signature.script, signature.getName(), parameters[0].type().arrayType());
+		if (parameters.length == 1 && !parameters[0].isSingle()) {
+			existing = FunctionRegistry.getRegistry().getExactSignature(signature.namespace(), signature.getName(), parameters[0].type().arrayType());
 		} else {
 			Class<?>[] types = new Class<?>[parameters.length];
 			for (int i = 0; i < parameters.length; i++) {
-				if (parameters[i].isSingleValue()) {
-					types[i] = parameters[i].type();
-				} else {
-					types[i] = parameters[i].type().arrayType();
-				}
+				types[i] = parameters[i].type();
 			}
 
-			existing = FunctionRegistry.getRegistry().getExactSignature(signature.script, signature.getName(), types);
+			existing = FunctionRegistry.getRegistry().getExactSignature(signature.namespace(), signature.getName(), types);
 		}
 
 		// if this function has already been registered, only allow it if one function is local and one is global.
@@ -218,8 +181,8 @@ public abstract class Functions {
 				error.append("Function ");
 			}
 			error.append("'%s' with the same argument types already exists".formatted(signature.getName()));
-			if (existing.retrieved().script != null) {
-				error.append(" in script '%s'.".formatted(existing.retrieved().script));
+			if (existing.retrieved().namespace() != null) {
+				error.append(" in script '%s'.".formatted(existing.retrieved().namespace()));
 			} else {
 				error.append(".");
 			}
@@ -229,21 +192,21 @@ public abstract class Functions {
 			return null;
 		}
 
-		Namespace.Key namespaceKey = new Namespace.Key(Namespace.Origin.SCRIPT, signature.script);
+		Namespace.Key namespaceKey = new Namespace.Key(Namespace.Origin.SCRIPT, signature.namespace());
 		Namespace namespace = namespaces.computeIfAbsent(namespaceKey, k -> new Namespace());
-		if (namespace.getSignature(signature.name) == null) {
+		if (namespace.getSignature(signature.getName()) == null) {
 			namespace.addSignature(signature);
 		}
-		if (!signature.local)
-			globalFunctions.put(signature.name, namespace);
+		if (!signature.isLocal())
+			globalFunctions.put(signature.getName(), namespace);
 
-		if (signature.local) {
-			FunctionRegistry.getRegistry().register(signature.script, signature);
+		if (signature.isLocal()) {
+			FunctionRegistry.getRegistry().register(signature.namespace(), signature);
 		} else {
 			FunctionRegistry.getRegistry().register(null, signature);
 		}
 
-		Skript.debug("Registered function signature: " + signature.name);
+		Skript.debug("Registered function signature: " + signature.getName());
 
 		return signature;
 	}
@@ -316,7 +279,7 @@ public abstract class Functions {
 
 	/**
 	 * Gets a signature of function with given name.
-	 * 
+	 *
 	 * @deprecated in favour of {@link #getGlobalSignature(String)} for proper name.
 	 * @param name Name of function.
 	 * @return Signature, or null if function does not exist.
@@ -328,7 +291,7 @@ public abstract class Functions {
 
 	/**
 	 * Gets a signature of function with given name.
-	 * 
+	 *
 	 * @param name Name of function.
 	 * @return Signature, or null if function does not exist.
 	 */
@@ -341,7 +304,7 @@ public abstract class Functions {
 
 	/**
 	 * Gets a signature of function with given name.
-	 * 
+	 *
 	 * @param name Name of function.
 	 * @param script The script where the function is declared in. Used to get local functions.
 	 * @return Signature, or null if function does not exist.
@@ -392,8 +355,8 @@ public abstract class Functions {
 		// Queue references to signatures we have for revalidation
 		// Can't validate here, because other scripts might be loaded soon
 		for (Signature<?> sign : namespace.getSignatures()) {
-			for (FunctionReference<?> ref : sign.calls) {
-				if (!script.equals(ref.script)) {
+			for (FunctionReference<?> ref : sign.calls()) {
+				if (!script.equals(ref.namespace())) {
 					toValidate.add(ref);
 				}
 			}
@@ -408,7 +371,7 @@ public abstract class Functions {
 		while (namespaceIterator.hasNext()) {
 			Namespace namespace = namespaceIterator.next();
 			if (namespace.removeSignature(signature)) {
-				if (!signature.local)
+				if (!signature.isLocal())
 					globalFunctions.remove(signature.getName());
 
 				// remove the namespace if it is empty
@@ -419,15 +382,15 @@ public abstract class Functions {
 			}
 		}
 
-		for (FunctionReference<?> ref : signature.calls) {
-			if (signature.script != null && !signature.script.equals(ref.script))
+		for (FunctionReference<?> ref : signature.calls()) {
+			if (signature.namespace() != null && !signature.namespace().equals(ref.namespace()))
 				toValidate.add(ref);
 		}
 	}
 
 	public static void validateFunctions() {
 		for (FunctionReference<?> c : toValidate)
-			c.validateFunction(false);
+			c.validate();
 		toValidate.clear();
 	}
 
@@ -445,13 +408,15 @@ public abstract class Functions {
 	}
 
 	/**
-	 * @deprecated Use {@link #getDefaultFunctions()} instead.
+	 * @deprecated Use {@link #getFunctions()} instead.
 	 */
-	@SuppressWarnings({"unchecked"})
-	@Deprecated(forRemoval = true, since = "INSERT VERSION")
+	@Deprecated(forRemoval = true, since = "2.13")
 	public static Collection<JavaFunction<?>> getJavaFunctions() {
 		// We know there are only Java functions in that namespace
-		return (Collection<JavaFunction<?>>) (Object) javaNamespace.getFunctions();
+		return javaNamespace.getFunctions().stream()
+				.filter(it -> it instanceof JavaFunction<?>)
+				.map(it -> (JavaFunction<?>) it)
+				.collect(Collectors.toSet());
 	}
 
 	/**
@@ -459,7 +424,7 @@ public abstract class Functions {
 	 *
 	 * @return All {@link JavaFunction} or {@link DefaultFunction} functions.
 	 */
-	public static Collection<Function<?>> getDefaultFunctions() {
+	public static Collection<Function<?>> getFunctions() {
 		return javaNamespace.getFunctions();
 	}
 

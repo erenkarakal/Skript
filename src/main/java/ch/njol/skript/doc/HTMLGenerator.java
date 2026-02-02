@@ -6,7 +6,6 @@ import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.function.Function;
 import ch.njol.skript.lang.function.Functions;
-import ch.njol.skript.lang.function.JavaFunction;
 import ch.njol.skript.registrations.Classes;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -16,9 +15,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.skriptlang.skript.bukkit.registration.BukkitSyntaxInfos;
 import org.skriptlang.skript.lang.entry.EntryData;
 import org.skriptlang.skript.lang.entry.EntryValidator;
-import org.skriptlang.skript.common.function.DefaultFunction;
 import org.skriptlang.skript.lang.structure.StructureInfo;
 
 import java.io.File;
@@ -99,24 +98,24 @@ public class HTMLGenerator extends DocumentationGenerator {
 	/**
 	 * Sorts events alphabetically.
 	 */
-	private static class EventComparator implements Comparator<SkriptEventInfo<?>> {
+	private static class EventComparator implements Comparator<BukkitSyntaxInfos.Event<?>> {
 
 		public EventComparator() {}
 
 		@Override
-		public int compare(@Nullable SkriptEventInfo<?> o1, @Nullable SkriptEventInfo<?> o2) {
+		public int compare(@Nullable BukkitSyntaxInfos.Event<?> o1, @Nullable BukkitSyntaxInfos.Event<?> o2) {
 			// Nullness check
 			if (o1 == null || o2 == null) {
 				assert false;
 				throw new NullPointerException();
 			}
 
-			if (o1.getElementClass().getAnnotation(NoDoc.class) != null)
+			if (o1.type().getAnnotation(NoDoc.class) != null)
 				return 1;
-			else if (o2.getElementClass().getAnnotation(NoDoc.class) != null)
+			else if (o2.type().getAnnotation(NoDoc.class) != null)
 				return -1;
 
-			return o1.name.compareTo(o2.name);
+			return o1.name().compareTo(o2.name());
 		}
 
 	}
@@ -313,11 +312,11 @@ public class HTMLGenerator extends DocumentationGenerator {
 					}
 				}
 				if (genType.equals("events") || isDocsPage) {
-					List<SkriptEventInfo<?>> events = new ArrayList<>(Skript.getEvents());
+					List<BukkitSyntaxInfos.Event<?>> events = new ArrayList<>(Skript.instance().syntaxRegistry().syntaxes(BukkitSyntaxInfos.Event.KEY));
 					events.sort(eventComparator);
-					for (SkriptEventInfo<?> info : events) {
+					for (BukkitSyntaxInfos.Event<?> info : events) {
 						assert info != null;
-						if (info.getElementClass().getAnnotation(NoDoc.class) != null)
+						if (info.type().getAnnotation(NoDoc.class) != null)
 							continue;
 						generated.append(generateEvent(descTemp, info, generated.toString()));
 					}
@@ -333,7 +332,7 @@ public class HTMLGenerator extends DocumentationGenerator {
 					}
 				}
 				if (genType.equals("functions") || isDocsPage) {
-					List<Function<?>> functions = new ArrayList<>(Functions.getDefaultFunctions());
+					List<Function<?>> functions = new ArrayList<>(Functions.getFunctions());
 					functions.sort(functionComparator);
 					for (Function<?> info : functions) {
 						assert info != null;
@@ -522,7 +521,7 @@ public class HTMLGenerator extends DocumentationGenerator {
 			String[] split = data.split(" ");
 			String pattern = readFile(new File(templateDir + "/templates/" + split[1]));
 			StringBuilder patterns = new StringBuilder();
-			for (String line : getDefaultIfNullOrEmpty(info.patterns, "Missing patterns.")) {
+			for (String line : getDefaultIfNullOrEmpty(info.getPatterns(), "Missing patterns.")) {
 				assert line != null;
 				line = cleanPatterns(line);
 				String parsed = pattern.replace("${element.pattern}", line);
@@ -586,7 +585,8 @@ public class HTMLGenerator extends DocumentationGenerator {
 		return desc;
 	}
 
-	private String generateEvent(String descTemp, SkriptEventInfo<?> info, @Nullable String page) {
+	private String generateEvent(String descTemp, BukkitSyntaxInfos.Event<?> modernInfo, @Nullable String page) {
+		SkriptEventInfo<?> info = (SkriptEventInfo<?>) SyntaxElementInfo.fromModern(modernInfo);
 		Class<?> c = info.getElementClass();
 		String desc;
 
@@ -633,7 +633,7 @@ public class HTMLGenerator extends DocumentationGenerator {
 		desc = desc.replace("${element.cancellable}", cancellable ? "Yes" : ""); // if not cancellable the section is hidden
 
 		// Documentation ID
-		desc = desc.replace("${element.id}", DocumentationIdProvider.getId(info));
+		desc = desc.replace("${element.id}", DocumentationIdProvider.getId(modernInfo));
 
 		// Events
 		Events events = c.getAnnotation(Events.class);
@@ -687,7 +687,7 @@ public class HTMLGenerator extends DocumentationGenerator {
 			String[] split = data.split(" ");
 			String pattern = readFile(new File(templateDir + "/templates/" + split[1]));
 			StringBuilder patterns = new StringBuilder();
-			for (String line : getDefaultIfNullOrEmpty(info.patterns, "Missing patterns.")) {
+			for (String line : getDefaultIfNullOrEmpty(info.getPatterns(), "Missing patterns.")) {
 				assert line != null;
 				line = "[on] " + cleanPatterns(line);
 				String parsed = pattern.replace("${element.pattern}", line);
