@@ -35,22 +35,13 @@ public class StructUsing extends Structure {
 
 	@Override
 	public boolean init(Literal<?> @NotNull [] arguments, int pattern, ParseResult result, @Nullable EntryContainer container) {
-		this.enableExperiment(result.regexes.get(0).group());
+		this.enableExperiment(result.regexes.getFirst().group());
 		return true;
 	}
 
 	private void enableExperiment(String name) {
 		this.experiment = Skript.experiments().find(name.trim());
-		switch (experiment.phase()) {
-			case MAINSTREAM:
-				Skript.warning("The experimental feature '" + name + "' is now included by default and is no longer required.");
-				break;
-			case DEPRECATED:
-				Skript.warning("The experimental feature '" + name + "' is deprecated and may be removed in future versions.");
-				break;
-			case UNKNOWN:
-				Skript.warning("The experimental feature '" + name + "' was not found.");
-		}
+		validateExperiment(experiment);
 		this.getParser().addExperiment(experiment);
 	}
 
@@ -67,6 +58,24 @@ public class StructUsing extends Structure {
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
 		return "using " + experiment.codeName();
+	}
+
+	/**
+	 * Validates the phase of an Experiment, throwing warnings for redundant Experiments.
+	 * @param experiment The Experiment to validate
+	 */
+	public static void validateExperiment(Experiment experiment) {
+		String name = experiment.codeName();
+		switch (experiment.phase()) {
+			case MAINSTREAM:
+				Skript.warning("The experimental feature '" + name + "' is now included by default and is no longer required.");
+				break;
+			case DEPRECATED:
+				Skript.warning("The experimental feature '" + name + "' is deprecated and may be removed in future versions.");
+				break;
+			case UNKNOWN:
+				Skript.warning("The experimental feature '" + name + "' was not found.");
+		}
 	}
 
 }

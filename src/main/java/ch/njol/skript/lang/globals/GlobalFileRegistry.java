@@ -25,7 +25,7 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	 * Registers a new GlobalFile
 	 */
 	public void registerGlobal(GlobalFile globalFile) {
-		if (globalFiles.stream().anyMatch(g -> g.getClass().equals(globalFile.getClass()))) {
+		if (exists(globalFile.getClass())) {
 			throw new IllegalArgumentException("Global file " + globalFile.getName() + " is already registered");
 		}
 
@@ -55,6 +55,35 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	public void unregisterGlobal(GlobalFile globalFile) {
 		globalFile.file.delete();
 		globalFiles.remove(globalFile);
+	}
+
+	/**
+	 * Gets a GlobalFile from its class, or null if it doesn't exist.
+	 * @param clazz The GlobalFile's class
+	 * @return The GlobalFile, or null
+	 */
+	public <T extends GlobalFile> T getGlobalFile(Class<T> clazz) {
+		for (GlobalFile globalFile : globalFiles) {
+			if (globalFile.getClass().equals(clazz)) {
+				// noinspection unchecked
+				return (T) globalFile;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Checks if a GlobalFile exists.
+	 * @param clazz The GlobalFile's class
+	 * @return Whether the GlobalFile is registered
+	 */
+	public boolean exists(Class<? extends GlobalFile> clazz) {
+		for (GlobalFile globalFile : globalFiles) {
+			if (globalFile.getClass().equals(clazz)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

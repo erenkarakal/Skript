@@ -11,6 +11,7 @@ import ch.njol.skript.expressions.arithmetic.ExprArithmetic;
 import ch.njol.skript.hooks.Hook;
 import ch.njol.skript.lang.*;
 import ch.njol.skript.lang.Condition.ConditionType;
+import ch.njol.skript.lang.globals.GlobalExperiments;
 import ch.njol.skript.lang.globals.GlobalFileRegistry;
 import ch.njol.skript.lang.globals.GlobalOptions;
 import ch.njol.skript.lang.Effect;
@@ -536,6 +537,7 @@ public final class Skript extends JavaPlugin implements Listener {
 		skript.storeRegistry(GlobalFileRegistry.class, globalFileRegistry);
 
 		globalFileRegistry.registerGlobal(new GlobalOptions(addon));
+		globalFileRegistry.registerGlobal(new GlobalExperiments(addon));
 
 		// Now override the verbosity if test mode is enabled
 		if (TestMode.VERBOSITY != null)

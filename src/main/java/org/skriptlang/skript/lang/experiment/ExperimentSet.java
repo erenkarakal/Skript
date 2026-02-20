@@ -1,5 +1,8 @@
 package org.skriptlang.skript.lang.experiment;
 
+import ch.njol.skript.Skript;
+import ch.njol.skript.lang.globals.GlobalExperiments;
+import ch.njol.skript.lang.globals.GlobalFileRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.skriptlang.skript.lang.script.ScriptData;
 
@@ -21,7 +24,9 @@ public class ExperimentSet extends LinkedHashSet<Experiment> implements ScriptDa
 
 	@Override
 	public boolean hasExperiment(Experiment experiment) {
-		return this.contains(experiment);
+		GlobalExperiments globalExperiments = Skript.instance().registry(GlobalFileRegistry.class)
+			.getGlobalFile(GlobalExperiments.class);
+		return this.contains(experiment) || globalExperiments.getExperiments().contains(experiment);
 	}
 
 	@Override
