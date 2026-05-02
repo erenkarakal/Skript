@@ -986,7 +986,7 @@ public class ScriptLoader {
 		OptionRegistry registry = Skript.instance().registry(OptionRegistry.class);
 		Script script = parser.getCurrentScript();
 
-		if (registry.getOptions().get(script) != null) {
+		if (registry.getLocalOptions(script) != null) {
 			return registry.replaceOptions(script, string);
 		}
 

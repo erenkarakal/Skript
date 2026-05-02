@@ -1,12 +1,14 @@
 package ch.njol.skript.lang;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.config.EntryNode;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.util.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.util.Registry;
 
@@ -16,69 +18,132 @@ import java.util.regex.Matcher;
 /**
  * Stores script specific and global options
  */
-public class OptionRegistry implements Registry<Map<Script, Map<String, String>>> {
+public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 
 	/**
 	 * Stores all options
 	 * If 'script' is null, it's stored as a global option
 	 * Otherwise, it is local to the script
 	 */
-	private final Map<Script, Map<String, String>> options = new HashMap<>();
+	private final Map<Script, ScriptOptions> scriptOptions = new HashMap<>();
+
+	public static class ScriptOptions {
+
+		private final @Nullable Script script;
+		private final Map<String, String> options = new HashMap<>();
+
+		private ScriptOptions(@Nullable Script script) {
+			this.script = script;
+		}
+
+		public @Nullable Script script() {
+			return script;
+		}
+
+		/**
+		 * Gets an option
+		 * @param option The option's name, must not be null.
+		 * @return The option's value
+		 */
+		public @Nullable String get(String option) {
+			if (option == null) {
+				throw new SkriptAPIException("option cannot be null");
+			}
+
+			return options.get(option);
+		}
+
+		/**
+		 * Sets an option
+		 * @param option The option's name, must not be null
+		 * @param value The option's value, must not be null
+		 */
+		public void set(String option, String value) {
+			if (option == null) {
+				throw new SkriptAPIException("option cannot be null");
+			}
+
+			if (value == null) {
+				throw new SkriptAPIException("value cannot be null");
+			}
+
+			options.put(option, value);
+		}
+
+		/**
+		 * Deletes an option.
+		 * @param option The option's name, must not be null.
+		 * @return Whether the option was deleted
+		 */
+		public boolean delete(String option) {
+			if (option == null) {
+				throw new SkriptAPIException("option cannot be null");
+			}
+
+			return options.remove(option) != null;
+		}
+
+		/**
+		 * Checks if an option with this name exists.
+		 * @param option The option's name, must not be null.
+		 * @return Whether the option exists.
+		 */
+		public boolean exists(String option) {
+			if (option == null) {
+				throw new SkriptAPIException("option cannot be null");
+			}
+
+			return options.containsKey(option);
+		}
+
+		/**
+		 * Deletes all options
+		 */
+		public void clear() {
+			options.clear();
+		}
+
+		private Map<String, String> optionsMap() {
+			return options;
+		}
+
+	}
 
 	/**
 	 * Gets a script specific option. If the script specific option doesn't exist, defaults to global option
 	 * @param script The script
 	 * @param option The option's name
 	 * @return The script specific option, or global option, or null
-	 * @see #getLocalOption(Script, String)
-	 * @see #getGlobalOption(String) 
 	 */
 	public String getOption(@NotNull Script script, String option) {
-		Map<String, String> scriptOptions = options.get(script);
-		if (scriptOptions != null && scriptOptions.containsKey(option)) {
+		ScriptOptions scriptOptions = this.scriptOptions.get(script);
+		if (scriptOptions != null && scriptOptions.exists(option)) {
 			return scriptOptions.get(option);
 		}
 
-		Map<String, String> globalOptions = options.get(null);
+		ScriptOptions globalOptions = this.scriptOptions.get(null);
 		return globalOptions.get(option);
 	}
 
 	/**
-	 * Get a map of all options<br>
-	 * use <code>.get(null)</code> for a map of global options<br>
-	 * use <code>.get(script)</code> for a map of script specific options
-	 * @see #getLocalOptions(Script)
-	 * @see #getGlobalOptions()
+	 * Gets all global options
 	 */
-	public Map<Script, Map<String, String>> getOptions() {
-		return options;
+	public ScriptOptions getGlobalOptions() {
+		return scriptOptions.get(null);
 	}
 
-	/**
-	 * Gets a global option
-	 * @param option The option's name
-	 * @return The option's value, or null if it doesn't exist
-	 * @see #getOption(Script, String)
-	 * @see #getLocalOption(Script, String) 
-	 */
-	public String getGlobalOption(String option) {
-		if (options.containsKey(null)) {
-			return options.get(null).get(option);
-		}
-		return null;
-	}
 
 	/**
-	 * Sets a global option
-	 * @param option The option's name
-	 * @param value The option's new value, must not be null
-	 * @see #setLocalOption(Script, String, String)    
+	 * Returns all local options of a script
+	 * @param script The script, must not be null
+	 * @return The script's options, or null if this script doesn't have local options.
 	 */
-	public void setGlobalOption(String option, String value) {
-		if (value == null && !options.containsKey(null)) {
-			return;
+	public @Nullable ScriptOptions getLocalOptions(Script script) {
+		if (script == null) {
+			throw new SkriptAPIException("script cannot be null");
 		}
-		options.get(null).put(option, value);
+
+		return scriptOptions.get(script);
 	}
 
 	/**
@@ -91,81 +156,19 @@ public class OptionRegistry implements Registry<Map<Script, Map<String, String>>
 	}
 
 	/**
-	 * Get all global options
-	 * @return A map of option names and their values, or null if global options weren't loaded yet
-	 * @see #getOptions()
-	 * @see #getLocalOptions(Script) 
-	 */
-	public Map<String, String> getGlobalOptions() {
-		return options.get(null);
-	}
-
-	/**
-	 * Gets a script specific option
-	 * @param script The script, must not be null
-	 * @param option The option's name
-	 * @return The option's value, or null if it doesn't exist
-	 * @see #getOption(Script, String)
-	 * @see #getGlobalOption(String)
-	 */
-	public String getLocalOption(Script script, String option) {
-		if (script == null || !options.containsKey(script)) {
-			return null;
-		}
-		return options.get(script).get(option);
-	}
-
-	/**
-	 * Sets a script specific option
-	 * @param script The script, must not be null
-	 * @param option The option's name
-	 * @param value The option's new value, must not be null
-	 * @see #setGlobalOption(String, String)
-	 */
-	public void setLocalOption(Script script, String option, String value) {
-		if (script == null || value == null) {
-			return;
-		}
-		options.computeIfAbsent(script, k -> new HashMap<>());
-		options.get(script).put(option, value);
-	}
-
-	/**
 	 * Loads script specific options
 	 * @param script The script
 	 * @param sectionNode The initial node to load options from
 	 */
 	@ApiStatus.Internal
 	public void loadLocalOptions(Script script, SectionNode sectionNode) {
-		options.computeIfAbsent(script, k -> new HashMap<>());
-		Map<String, String> localOptions = options.get(script);
-		loadOptions(sectionNode, "", localOptions);
-	}
-
-	/**
-	 * Deletes all script specific options of a script
-	 * @param script The script
-	 */
-	public void deleteLocalOptions(Script script) {
-		options.remove(script);
-	}
-
-	/**
-	 * Get local options of a script
-	 * @param script The script
-	 * @return A map of option names and their values
-	 * @see #getGlobalOptions()
-	 */
-	public Map<String, String> getLocalOptions(Script script) {
-		if (script == null) {
-			return null;
-		}
-		return options.get(script);
+		ScriptOptions scriptOptions = this.scriptOptions.get(script);
+		loadOptions(sectionNode, "", scriptOptions.optionsMap());
 	}
 
 	@Override
-	public Collection<Map<Script, Map<String, String>>> elements() {
-		return Collections.singleton(options);
+	public Collection<ScriptOptions> elements() {
+		return scriptOptions.values();
 	}
 
 	/**
