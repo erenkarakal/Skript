@@ -14,14 +14,14 @@ import java.nio.file.StandardCopyOption;
 /**
  * Represents a file in the globals folder.
  * <p>
- * GlobalFiles allow addons to create config-like files that can be reloaded
+ * Global files allow Skript and addons to create config-like files that can be reloaded
  * using {@code /sk reload globals}.
  * <p>
- * To create a GlobalFile, extend this class and implement the methods.
- * Registering this GlobalFile via {@link GlobalFileRegistry#registerGlobal(GlobalFile)}
- * will {@link #load()} the global file.
+ * To create a global file, extend this class and implement the methods.
+ * Registering this global file via {@link GlobalFileRegistry#registerGlobal(GlobalFile)}
+ * will initialize the global file.
  * <p>
- * Each addon's global files are stored in their own data folder: {@code plugins/YourAddon/globals/filename.sk}
+ * Each addon's global files are stored in their own data folder: {@code /plugins/YourAddon/globals/filename.sk}
  *
  * @see GlobalFileRegistry
  * @see GlobalOptions
@@ -31,25 +31,61 @@ public abstract class GlobalFile {
 	private final SkriptAddon addon;
 	private final String name;
 	protected final File file;
+	private boolean isLoaded = false;
 
 	/**
-	 * Initializes this global file. This method is only called when the GlobalFile is registered, not on reload.
+	 * Loads this global file.
+	 */
+	public void load() {
+		onLoad();
+		isLoaded = true;
+	}
+
+	/**
+	 * Unloads this global file.
+	 */
+	public void unload() {
+		onUnload();
+		isLoaded = false;
+	}
+
+	/**
+	 * Reloads this global file. If the global file is not loaded, the method won't do anything.
+	 */
+	public void reload() {
+		if (!isLoaded) {
+			return;
+		}
+		onLoad();
+		onUnload();
+	}
+
+	/**
+	 * @return Whether this global file is loaded.
+	 */
+	public boolean isLoaded() {
+		return isLoaded;
+	}
+
+	/**
+	 * Called when the global file is initialized. This method is only called when the global file is registered,
+	 * not on reload.
 	 * You should call {@link #load()} if you want to load the file after initialization.
 	 * <p>
 	 * This method can be used to create non-existing global files. Either manually or
 	 * using the {@link #copyFile(String)} method to easily copy a default file from the JAR.
 	 */
-	public abstract void init();
+	protected abstract void onInit();
 
 	/**
-	 * Loads this global file. Can be called multiple times when the global files are reloaded.
+	 * Called when the global file is loaded. This method can be called when global files are reloaded.
 	 */
-	public abstract void load();
+	protected abstract void onLoad();
 
 	/**
-	 * Unloads this global file. Can be called multiple times when the global files are reloaded.
+	 * Called when the global file is unloaded. This method can be called when global files are reloaded.
 	 */
-	public abstract void unload();
+	protected abstract void onUnload();
 
 	public GlobalFile(SkriptAddon addon, String name) {
 		this.addon = addon;
@@ -80,7 +116,7 @@ public abstract class GlobalFile {
 	 * <p>
 	 * Example usage to load the <code>/resources/globals/options.sk</code> file from the JAR:
 	 * <pre>
-	 *  public void init() {
+	 *  protected void onInit() {
 	 *    if (!file.exists())
 	 *      copyFile("options.sk");
 	 *    load();

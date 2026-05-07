@@ -8,7 +8,7 @@ import org.skriptlang.skript.addon.SkriptAddon;
 import java.io.IOException;
 
 /**
- * Represents the 'globals/options.sk' file
+ * Represents the 'Skript/globals/options.sk' file
  */
 public class GlobalOptions extends GlobalFile {
 
@@ -17,15 +17,15 @@ public class GlobalOptions extends GlobalFile {
 	}
 
 	@Override
-	public void init() {
+	protected void onInit() {
 		if (!file.exists()) {
 			copyFile("options.sk");
 		}
-		load();
+		onLoad();
 	}
 
 	@Override
-	public void load() {
+	protected void onLoad() {
 		try {
 			Config config = new Config(file, true, false, ":");
 			config.getMainNode().convertToEntries(-1);
@@ -36,7 +36,7 @@ public class GlobalOptions extends GlobalFile {
 	}
 
 	@Override
-	public void unload() {
+	protected void onUnload() {
 		addon().registry(OptionRegistry.class).getGlobalOptions().clear();
 	}
 

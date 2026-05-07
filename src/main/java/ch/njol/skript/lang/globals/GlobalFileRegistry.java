@@ -39,11 +39,11 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 		}
 
 		globalFiles.add(globalFile);
-		globalFile.init();
+		globalFile.onInit();
 	}
 
 	/**
-	 * Unregisters a GlobalFile
+	 * Unregisters a global file
 	 * This will also delete the file itself
 	 */
 	public void unregisterGlobal(GlobalFile globalFile) {
@@ -53,27 +53,26 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 			Skript.error("Couldn't unregister global file " + globalFile.name() + " for " + globalFile.addon().name());
 		}
 
-		globalFile.file.delete();
 		globalFiles.remove(globalFile);
 	}
 
 	/**
-	 * Reloads all GlobalFiles
+	 * Reloads all global files
 	 * @see #reloadAll(SkriptAddon)
 	 */
 	public void reloadAll() {
-		globalFiles.forEach(GlobalFile::load);
+		globalFiles.forEach(GlobalFile::reload);
 	}
 
 	/**
-	 * Reloads all GlobalFiles of a SkriptAddon
-	 * @param addon The SkriptAddon
+	 * Reloads all global files of a {@link SkriptAddon}
+	 * @param addon The {@link SkriptAddon}
 	 * @see #reloadAll()
 	 */
 	public void reloadAll(SkriptAddon addon) {
 		globalFiles.forEach(globalFile -> {
 			if (globalFile.addon().equals(addon)) {
-				globalFile.load();
+				globalFile.reload();
 			}
 		});
 	}
