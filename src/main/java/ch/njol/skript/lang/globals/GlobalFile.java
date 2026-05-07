@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
  * GlobalFiles allow addons to create config-like files that can be reloaded
  * using {@code /sk reload globals}.
  * <p>
- * To create a GlobalFile, extend this class and implement {@link #load()}.
+ * To create a GlobalFile, extend this class and implement the methods.
  * Registering this GlobalFile via {@link GlobalFileRegistry#registerGlobal(GlobalFile)}
  * will {@link #load()} the global file.
  * <p>
@@ -63,14 +63,14 @@ public abstract class GlobalFile {
 	/**
 	 * @return The name of this GlobalFile
 	 */
-	public String getName() {
+	public String name() {
 		return name;
 	}
 
 	/**
 	 * @return The owner of this GlobalFile
 	 */
-	public SkriptAddon getAddon() {
+	public SkriptAddon addon() {
 		return addon;
 	}
 
@@ -88,6 +88,7 @@ public abstract class GlobalFile {
 	 * </pre>
 	 */
 	protected void copyFile(String sourcePath) {
+		sourcePath = "globals/" + sourcePath;
 		Plugin plugin = JavaPlugin.getProvidingPlugin(addon.source());
 
 		try (InputStream stream = plugin.getResource(sourcePath)) {

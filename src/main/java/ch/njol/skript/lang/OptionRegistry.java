@@ -29,8 +29,8 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 
 	public static class ScriptOptions {
 
-		private final @Nullable Script script;
 		private final Map<String, String> options = new HashMap<>();
+		private final @Nullable Script script;
 
 		private ScriptOptions(@Nullable Script script) {
 			this.script = script;
@@ -103,7 +103,9 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 			options.clear();
 		}
 
-		private Map<String, String> optionsMap() {
+		@ApiStatus.Internal
+		@Deprecated(forRemoval = true) // this method will go private when OptionsData is completely removed
+		public Map<String, String> optionsMap() {
 			return options;
 		}
 
@@ -152,6 +154,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 */
 	@ApiStatus.Internal
 	public void loadGlobalOptions(SectionNode sectionNode) {
+		scriptOptions.computeIfAbsent(null, ScriptOptions::new);
 		loadLocalOptions(null, sectionNode);
 	}
 
@@ -162,6 +165,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 */
 	@ApiStatus.Internal
 	public void loadLocalOptions(Script script, SectionNode sectionNode) {
+		scriptOptions.computeIfAbsent(script, ScriptOptions::new);
 		ScriptOptions scriptOptions = this.scriptOptions.get(script);
 		loadOptions(sectionNode, "", scriptOptions.optionsMap());
 	}

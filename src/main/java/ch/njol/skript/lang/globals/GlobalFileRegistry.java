@@ -7,9 +7,7 @@ import org.skriptlang.skript.util.Registry;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,30 +20,26 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	private final Set<GlobalFile> globalFiles = new HashSet<>();
 
 	/**
-	 * Registers a new GlobalFile
+	 * Registers and initializes a new {@link GlobalFile}
 	 */
 	public void registerGlobal(GlobalFile globalFile) {
 		if (globalFiles.stream().anyMatch(g -> g.getClass().equals(globalFile.getClass()))) {
-			throw new IllegalArgumentException("Global file " + globalFile.getName() + " is already registered");
+			throw new IllegalArgumentException("Global file " + globalFile.name() + " is already registered");
 		}
 
-		JavaPlugin plugin = JavaPlugin.getProvidingPlugin(globalFile.getAddon().source());
-		String name = globalFile.getName();
+		JavaPlugin plugin = JavaPlugin.getProvidingPlugin(globalFile.addon().source());
 
 		File globalsFolder = new File(plugin.getDataFolder(), "/globals/");
 		if (!globalsFolder.exists()) {
-			globalsFolder.mkdir();
-		}
-
-		String filePath = "globals/" + name + ".sk";
-		File file = new File(plugin.getDataFolder(), filePath);
-
-		if (!file.exists()) {
-			copyFile(plugin, filePath, file);
+			try {
+				Files.createDirectory(globalsFolder.toPath());
+			} catch (IOException e) {
+				Skript.exception(e, "Couldn't create globals folder for " + globalFile.addon().name());
+			}
 		}
 
 		globalFiles.add(globalFile);
-		globalFile.load();
+		globalFile.init();
 	}
 
 	/**
@@ -53,6 +47,12 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	 * This will also delete the file itself
 	 */
 	public void unregisterGlobal(GlobalFile globalFile) {
+		try {
+			Files.deleteIfExists(globalFile.file.toPath());
+		} catch (IOException e) {
+			Skript.error("Couldn't unregister global file " + globalFile.name() + " for " + globalFile.addon().name());
+		}
+
 		globalFile.file.delete();
 		globalFiles.remove(globalFile);
 	}
@@ -72,7 +72,7 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	 */
 	public void reloadAll(SkriptAddon addon) {
 		globalFiles.forEach(globalFile -> {
-			if (globalFile.getAddon().equals(addon)) {
+			if (globalFile.addon().equals(addon)) {
 				globalFile.load();
 			}
 		});
@@ -84,22 +84,6 @@ public class GlobalFileRegistry implements Registry<GlobalFile> {
 	@Override
 	public Collection<GlobalFile> elements() {
 		return globalFiles;
-	}
-
-	/**
-	 * Copies a file from the plugin's jar into target file
-	 * Replaces existing files
-	 */
-	private static void copyFile(JavaPlugin plugin, String sourcePath, File targetFile) {
-		try (InputStream stream = plugin.getResource(sourcePath)) {
-			if (stream == null) {
-				Skript.error("The " + sourcePath + " file doesn't exist and couldn't be read from the " + plugin.getName() + " jar file.");
-				return;
-			}
-			Files.copy(stream, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			Skript.exception(e, "Error while loading the " + sourcePath + " file from the jar file.");
-		}
 	}
 
 }

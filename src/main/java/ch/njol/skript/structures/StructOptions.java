@@ -70,7 +70,7 @@ public class StructOptions extends Structure {
 	public void unload() {
 		Script script = getParser().getCurrentScript();
 		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
-		optionRegistry.deleteLocalOptions(script);
+		optionRegistry.getLocalOptions(script).clear();
 		script.removeData(OptionsData.class);
 	}
 
@@ -114,7 +114,7 @@ public class StructOptions extends Structure {
 		 */
 		@Deprecated(since = "INSERT VERSION", forRemoval = true)
 		public Map<String, String> getOptions() {
-			return Skript.instance().registry(OptionRegistry.class).getLocalOptions(script);
+			return Skript.instance().registry(OptionRegistry.class).getLocalOptions(script).optionsMap();
 		}
 
 	}
