@@ -21,7 +21,7 @@ public class GlobalOptions extends GlobalFile {
 		if (!file.exists()) {
 			copyFile("options.sk");
 		}
-		onLoad();
+		load();
 	}
 
 	@Override
