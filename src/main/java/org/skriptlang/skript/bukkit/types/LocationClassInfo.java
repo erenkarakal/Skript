@@ -132,7 +132,8 @@ public class LocationClassInfo extends ClassInfo<Location> {
 
 		@Override
 		public String toVariableNameString(Location loc) {
-			return loc.getWorld().getName() + ":" + loc.getX() + "," + loc.getY() + "," + loc.getZ();
+			String worldName = loc.getWorld() == null ? "" : loc.getWorld().getName();
+			return worldName + ":" + loc.getX() + "," + loc.getY() + "," + loc.getZ();
 		}
 
 		@Override
