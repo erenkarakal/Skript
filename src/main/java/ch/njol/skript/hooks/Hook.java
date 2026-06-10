@@ -50,23 +50,7 @@ public abstract class Hook<P extends Plugin> {
 	}
 	
 	protected void loadClasses() throws IOException {
-		SyntaxRegistry registry = Skript.instance().syntaxRegistry();
-		ClassLoader.builder()
-			.basePackage(getClass().getPackage().getName())
-			.deep(true)
-			.initialize(true)
-			.forEachClass(clazz -> {
-				if (SyntaxElement.class.isAssignableFrom(clazz)) {
-					try {
-						clazz.getMethod("register", SyntaxRegistry.class).invoke(null, registry);
-					} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-						// noinspection ThrowableNotThrown
-						Skript.exception(e, "Error while loading a hook at " + clazz.getName());
-					}
-				}
-			})
-			.build()
-			.loadClasses(Skript.class);
+		Skript.getAddonInstance().loadClasses(getClass().getPackage().getName());
 	}
 	
 	/**
