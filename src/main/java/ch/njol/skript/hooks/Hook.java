@@ -61,7 +61,7 @@ public abstract class Hook<P extends Plugin> {
 						clazz.getMethod("register", SyntaxRegistry.class).invoke(null, registry);
 					} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
 						// noinspection ThrowableNotThrown
-						Skript.exception(e, "Error while loading a hook");
+						Skript.exception(e, "Error while loading a hook at " + clazz.getName());
 					}
 				}
 			})
