@@ -115,11 +115,8 @@ public class SkriptCommand implements TabExecutor {
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
 							 @NotNull String @NotNull [] args) {
-		SubCommand subCommand = null;
-
-		if (args.length > 0) {
-			subCommand = findSubCommand(args[0]);
-		}
+		String firstArg = args.length > 0 ? args[0] : "help";
+		SubCommand subCommand = findSubCommand(firstArg);
 
 		// sub command requires args but none was given
 		if (args.length == 1 && subCommand.args() != null) {

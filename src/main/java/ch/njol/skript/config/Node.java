@@ -247,7 +247,6 @@ public abstract class Node implements AnyNamed, Validated, NodeNavigator {
 	}
 
 	@Nullable
-	@ApiStatus.Internal
 	public String getComment() {
 		return comment;
 	}
