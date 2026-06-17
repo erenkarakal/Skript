@@ -70,7 +70,7 @@ public class SkriptCommand implements TabExecutor {
 	/**
 	 * @return All aliases of all subcommands.
 	 */
-	public static List<String> getAllAliases() {
+	protected static List<String> getAllAliases() {
 		return ALIASES;
 	}
 
@@ -78,18 +78,18 @@ public class SkriptCommand implements TabExecutor {
 	 * @see SubCommand
 	 * @return All SubCommands
 	 */
-	public static Set<SubCommand> getSubCommands() {
+	protected static Set<SubCommand> getSubCommands() {
 		return SUB_COMMANDS;
 	}
 
-	public static void info(CommandSender sender, String what, Object... args) {
+	protected static void info(CommandSender sender, String what, Object... args) {
 		what = args.length == 0
 			? Language.get(CONFIG_NODE + "." + what)
 			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
 		Skript.info(sender, StringUtils.fixCapitalization(what));
 	}
 
-	public static void error(CommandSender sender, String what, Object... args) {
+	protected static void error(CommandSender sender, String what, Object... args) {
 		what = args.length == 0
 			? Language.get(CONFIG_NODE + "." + what)
 			: PluralizingArgsMessage.format(Language.format(CONFIG_NODE + "." + what, args));
@@ -101,7 +101,7 @@ public class SkriptCommand implements TabExecutor {
 	 * @param sender Who to send it to
 	 * @param subCommand The command to show the arguments of
 	 */
-	public static void sendHelp(CommandSender sender, SubCommand subCommand) {
+	private static void sendHelp(CommandSender sender, SubCommand subCommand) {
 		String command = subCommand.getAliases()[0];
 		String usage = Language.get(CONFIG_NODE + ".usage");
 		Skript.message(sender, usage + " <gold>/skript <yellow>" + command + " <red>...");
@@ -114,7 +114,7 @@ public class SkriptCommand implements TabExecutor {
 
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
-							 @NotNull String @NotNull [] args) {
+	                         @NotNull String @NotNull [] args) {
 		String firstArg = args.length > 0 ? args[0] : "help";
 		SubCommand subCommand = findSubCommand(firstArg);
 
