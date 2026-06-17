@@ -1,17 +1,13 @@
 package ch.njol.skript.hooks;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
 import ch.njol.skript.doc.Documentation;
-import ch.njol.skript.lang.SyntaxElement;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.localization.ArgsMessage;
-import org.skriptlang.skript.registration.SyntaxRegistry;
-import org.skriptlang.skript.util.ClassLoader;
 
 public abstract class Hook<P extends Plugin> {
 
