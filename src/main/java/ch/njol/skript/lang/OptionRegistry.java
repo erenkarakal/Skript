@@ -7,13 +7,13 @@ import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
 import ch.njol.util.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
 import org.skriptlang.skript.util.Registry;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Stores script specific and global options
@@ -27,7 +27,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 */
 	private final Map<Script, ScriptOptions> scriptOptions = new HashMap<>();
 
-	public static class ScriptOptions {
+	public class ScriptOptions {
 
 		private final Map<String, String> options = new HashMap<>();
 		private final @Nullable Script script;
@@ -42,7 +42,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 
 		/**
 		 * Gets an option
-		 * @param option The option's name, must not be null.
+		 * @param option The option's name, must not be null
 		 * @return The option's value
 		 */
 		public @Nullable String get(String option) {
@@ -71,8 +71,8 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 		}
 
 		/**
-		 * Deletes an option.
-		 * @param option The option's name, must not be null.
+		 * Deletes an option
+		 * @param option The option's name, must not be null
 		 * @return Whether the option was deleted
 		 */
 		public boolean delete(String option) {
@@ -80,7 +80,13 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 				throw new SkriptAPIException("option cannot be null");
 			}
 
-			return options.remove(option) != null;
+			boolean deleted = options.remove(option) != null;
+
+			if (deleted && options.isEmpty()) {
+				clear();
+			}
+
+			return deleted;
 		}
 
 		/**
@@ -100,7 +106,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 		 * Deletes all options
 		 */
 		public void clear() {
-			options.clear();
+			OptionRegistry.this.scriptOptions.remove(script);
 		}
 
 		@ApiStatus.Internal
@@ -117,7 +123,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * @param option The option's name
 	 * @return The script specific option, or global option, or null
 	 */
-	public String getOption(@NotNull Script script, String option) {
+	public String getOption(Script script, String option) {
 		ScriptOptions scriptOptions = this.scriptOptions.get(script);
 		if (scriptOptions != null && scriptOptions.exists(option)) {
 			return scriptOptions.get(option);
@@ -138,7 +144,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	/**
 	 * Returns all local options of a script
 	 * @param script The script, must not be null
-	 * @return The script's options, or null if this script doesn't have local options.
+	 * @return The script's options, or null if this script doesn't have local options
 	 */
 	public @Nullable ScriptOptions getLocalOptions(Script script) {
 		if (script == null) {
@@ -176,13 +182,19 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	}
 
 	/**
+	 * Matches options in strings
+	 */
+	private static final Pattern OPTION_PATTERN = Pattern.compile("\\{@(.+?)}");
+
+	/**
 	 * Replaces all options in a string with their values, prioritizes local options
 	 * @param script The script to get the options from
 	 * @param string The string to replace the options of
 	 * @return A string with all options replaced by their values
 	 */
 	public String replaceOptions(Script script, String string) {
-		return StringUtils.replaceAll(string, "\\{@(.+?)\\}", m -> {
+		Matcher matcher = OPTION_PATTERN.matcher(string);
+		return matcher.replaceAll(m -> {
 			String optionName = m.group(1);
 			String option = getOption(script, optionName);
 			if (option == null) {

@@ -3,6 +3,7 @@ package ch.njol.skript.lang.globals;
 import ch.njol.skript.Skript;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.lang.OptionRegistry;
+import org.jetbrains.annotations.ApiStatus;
 import org.skriptlang.skript.addon.SkriptAddon;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.io.IOException;
 /**
  * Represents the 'Skript/globals/options.sk' file
  */
+@ApiStatus.Internal
 public class GlobalOptions extends GlobalFile {
 
 	public GlobalOptions(SkriptAddon addon) {
