@@ -260,7 +260,6 @@ public abstract class Node implements AnyNamed, Validated, NodeNavigator {
 		return Math.max(0, l - 1);
 	}
 
-	@ApiStatus.Internal
 	public String getIndentation() {
 		return StringUtils.multiply(config.getIndentation(), getLevel());
 	}
