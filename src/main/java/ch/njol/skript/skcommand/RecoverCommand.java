@@ -3,9 +3,6 @@ package ch.njol.skript.skcommand;
 import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.config.Config;
-import ch.njol.skript.config.Node;
-import ch.njol.skript.config.SectionNode;
-import ch.njol.skript.config.VoidNode;
 import ch.njol.skript.skcommand.SkriptCommand.SubCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -15,14 +12,12 @@ import org.skriptlang.skript.lang.script.Script;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static ch.njol.skript.skcommand.SkriptCommand.CONFIG_NODE;
 import static ch.njol.skript.skcommand.SkriptCommand.info;
 
 /**
@@ -60,11 +55,11 @@ class RecoverCommand extends SubCommand {
 	/**
 	 * Dumps all loaded scripts to a folder. Even if the script files are deleted.
 	 */
-	public static void recoverScripts(CommandSender sender, Path targetFolder) {
+	private static void recoverScripts(CommandSender sender, Path targetFolder) {
 		try {
 			Files.createDirectories(targetFolder);
 		} catch (IOException e) {
-			info(sender, CONFIG_NODE + ".recover.io error", e.getMessage());
+			info(sender, "recover.io error", e.getMessage());
 			// noinspection ThrowableNotThrown
 			Skript.exception(e, "Error while recovering scripts.");
 		}
@@ -72,45 +67,24 @@ class RecoverCommand extends SubCommand {
 		for (Script script : ScriptLoader.getLoadedScripts()) {
 			Config config = script.getConfig();
 			String name = config.getFileName();
-
-			List<String> lines = new ArrayList<>(dumpNodes(config.getMainNode()));
-			Path filePath = targetFolder.resolve(name.replace(".." + File.separator, "external" + File.separator));
+			Path filePath = targetFolder.resolve(
+				// Replaces all instances of ../../ with a single external/
+				name.replaceAll(
+					"(?:\\.\\." + Pattern.quote(File.separator) + ")+",
+					Matcher.quoteReplacement("external" + File.separator)
+				)
+			);
 
 			try {
 				Files.createDirectories(filePath.getParent());
-				Files.write(filePath, lines, StandardOpenOption.CREATE);
+				Files.createFile(filePath);
+				config.save(filePath.toFile());
 			} catch (IOException e) {
-				info(sender, CONFIG_NODE + ".recover.io error", e.getMessage());
+				info(sender, "recover.io error", e.getMessage());
 				// noinspection ThrowableNotThrown
 				Skript.exception(e, "Error while recovering scripts.");
 			}
 		}
-	}
-
-	private static List<String> dumpNodes(Node mainNode) {
-		String indentation = mainNode.getIndentation();
-		String comment = mainNode.getComment() == null ? "" : mainNode.getComment();
-		String key = mainNode.getKey() == null ? "" : mainNode.getKey();
-
-		List<String> lines = new ArrayList<>();
-
-		if (mainNode instanceof SectionNode sectionNode) {
-			if (!key.isEmpty()) {
-				lines.add((indentation + key + ": " + comment).stripTrailing());
-			}
-			for (@NotNull Iterator<Node> it = sectionNode.fullIterator(); it.hasNext(); ) {
-				Node node = it.next();
-				lines.addAll(dumpNodes(node));
-			}
-		} else if (mainNode instanceof VoidNode voidNode) {
-			String line = voidNode.getIndentation() + voidNode.getComment();
-			lines.add(line.stripTrailing());
-		} else {
-			String line = indentation + key + " " + comment;
-			lines.add(line.stripTrailing());
-		}
-
-		return lines;
 	}
 
 }
