@@ -142,7 +142,7 @@ public class SkriptCommand implements TabExecutor {
 	/**
 	 * Represents a subcommand of the /sk command, like /sk reload
 	 */
-	public static abstract class SubCommand {
+	protected static abstract class SubCommand {
 
 		private final String[] aliases;
 		private String[] args;
