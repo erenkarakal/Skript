@@ -36,7 +36,7 @@ class DisableCommand extends SubCommand {
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		if (args[1].equalsIgnoreCase("all")) {
-			disableEverything(sender);
+			disableAll(sender);
 		} else {
 			String scriptName = StringUtils.join(args, " ", 1, args.length);
 			File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
@@ -61,7 +61,7 @@ class DisableCommand extends SubCommand {
 	/**
 	 * Handling the {@code /sk disable all} command
 	 */
-	private static void disableEverything(CommandSender sender) {
+	private static void disableAll(CommandSender sender) {
 		ScriptLoader.unloadScripts(ScriptLoader.getLoadedScripts());
 		try {
 			ScriptCommandUtils.toggleFiles(Skript.getInstance().getScriptsFolder(), false);

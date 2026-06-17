@@ -36,7 +36,7 @@ class EnableCommand extends SubCommand {
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		try (RedirectingLogHandler redirectingLogHandler = new RedirectingLogHandler(sender, "").start()) {
 			if (args[1].equalsIgnoreCase("all")) {
-				enableEverything(sender, redirectingLogHandler);
+				enableAll(sender, redirectingLogHandler);
 			} else {
 				String scriptName = StringUtils.join(args, " ", 1, args.length);
 				File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
@@ -60,7 +60,7 @@ class EnableCommand extends SubCommand {
 	/**
 	 * For handling the {@code /sk enable all} command
 	 */
-	private static void enableEverything(CommandSender sender, RedirectingLogHandler redirectingLogHandler) {
+	private static void enableAll(CommandSender sender, RedirectingLogHandler redirectingLogHandler) {
 		try {
 			SkriptCommand.info(sender, "enable.all.enabling");
 			ScriptLoader.loadScripts(ScriptCommandUtils.toggleFiles(Skript.getInstance().getScriptsFolder(), true), redirectingLogHandler)

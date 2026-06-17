@@ -52,7 +52,7 @@ class ReloadCommand extends SubCommand {
 			TimingLogHandler timingLogHandler = new TimingLogHandler().start()
 		) {
 			switch (args[1].toLowerCase(Locale.ENGLISH)) {
-				case "all" -> reloadEverything(sender, redirectingLogHandler, timingLogHandler);
+				case "all" -> reloadAll(sender, redirectingLogHandler, timingLogHandler);
 				case "scripts" -> reloadScripts(sender, redirectingLogHandler, timingLogHandler);
 				case "config" -> reloadConfig(sender, redirectingLogHandler, timingLogHandler);
 				case "aliases" -> reloadAliases(sender, redirectingLogHandler, timingLogHandler);
@@ -95,8 +95,8 @@ class ReloadCommand extends SubCommand {
 	/**
 	 * For handling the {@code /sk reload all} command
 	 */
-	private static void reloadEverything(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
-										 TimingLogHandler timingLogHandler) {
+	private static void reloadAll(CommandSender sender, RedirectingLogHandler redirectingLogHandler,
+	                              TimingLogHandler timingLogHandler) {
 		reloading(sender, "config, aliases and scripts", redirectingLogHandler);
 		SkriptConfig.load();
 		Aliases.clear();
