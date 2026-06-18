@@ -36,7 +36,8 @@ class RecoverCommand extends SubCommand {
 	@Override
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		// Create a unique folder for each dump, don't want to overwrite old dumps in a recover command
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd-HH_mm_ss");
+		// The format looks like '18 July 2026 20-34-20'
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy HH-mm-ss");
 		String targetFolderName = LocalDateTime.now().format(formatter);
 		Path targetFolder = DUMP_FOLDER.resolve(targetFolderName);
 
