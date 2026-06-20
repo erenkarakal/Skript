@@ -135,6 +135,12 @@ public class SkriptCommand implements TabExecutor {
 			return getAllAliases();
 		}
 
+		if (args.length == 1) {
+			return getAllAliases().stream()
+				.filter(alias -> alias.startsWith(args[0]))
+				.toList();
+		}
+
 		SubCommand subCommand = findSubCommand(args[0]);
 		return subCommand.getTabCompletions(sender, args);
 	}
