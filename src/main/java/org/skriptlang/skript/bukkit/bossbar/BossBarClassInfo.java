@@ -192,43 +192,51 @@ public class BossBarClassInfo extends ClassInfo<BossBar> {
 		//</editor-fold>
 	}
 
-	private static class BossBarViewersHandler implements ExpressionPropertyHandler<BossBar, Player[]> {
+	private static class BossBarViewersHandler implements ExpressionPropertyHandler<BossBar, Object> {
 		//<editor-fold desc="boss bar viewers handler" defaultstate="collapsed">
 		@Override
-		public Player @Nullable [] convert(BossBar bar) {
+		public Player[] convert(BossBar bar) {
 			return bar.getPlayers().toArray(Player[]::new);
 		}
 
 		@Override
 		public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
 			return switch (mode) {
-				case SET, ADD, REMOVE, RESET -> CollectionUtils.array(Player[].class);
+				case SET, ADD, REMOVE, DELETE, RESET -> CollectionUtils.array(Player[].class);
 				default -> null;
 			};
 		}
 
 		@Override
 		public void change(BossBar bar, Object @Nullable [] delta, ChangeMode mode) {
-			if (delta == null && mode != ChangeMode.RESET)
-				return;
-
-			for (Object value : delta) {
-				Player player = (Player) value;
-				switch (mode) {
-					case SET -> bar.addPlayer(player);
-					case ADD -> {
-						bar.removeAll();
-						bar.addPlayer(player);
+			switch (mode) {
+				case SET -> {
+					bar.removeAll();
+					assert delta != null;
+					for (Object player : delta) {
+						bar.addPlayer((Player) player);
 					}
-					case REMOVE -> bar.removePlayer(player);
-					case RESET -> bar.removeAll();
 				}
+				case ADD -> {
+					assert delta != null;
+					for (Object player : delta) {
+						bar.addPlayer((Player) player);
+					}
+				}
+				case REMOVE -> {
+					assert delta != null;
+					for (Object player : delta) {
+						bar.removePlayer((Player) player);
+					}
+				}
+				case DELETE, RESET -> bar.removeAll();
 			}
 		}
 
 		@Override
-		public @NotNull Class<Player[]> returnType() {
-			return Player[].class;
+		public @NotNull Class<Object> returnType() {
+			//noinspection rawtypes, unchecked
+			return (Class<Object>) (Class) Player.class;
 		}
 		//</editor-fold>
 	}
