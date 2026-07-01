@@ -6,6 +6,7 @@ import org.skriptlang.skript.addon.AddonModule;
 import org.skriptlang.skript.addon.HierarchicalAddonModule;
 import org.skriptlang.skript.addon.SkriptAddon;
 import org.skriptlang.skript.bukkit.block.BlockModule;
+import org.skriptlang.skript.bukkit.bossbar.BossBarModule;
 import org.skriptlang.skript.bukkit.breeding.BreedingModule;
 import org.skriptlang.skript.bukkit.brewing.BrewingModule;
 import org.skriptlang.skript.bukkit.damagesource.DamageSourceModule;
@@ -37,6 +38,7 @@ public class BukkitModule extends HierarchicalAddonModule {
 	public Iterable<AddonModule> children() {
 		return List.of(
 			new BlockModule(this),
+			new BossBarModule(this),
 			new BreedingModule(this),
 			new BrewingModule(this),
 			new DamageSourceModule(this),
