@@ -62,8 +62,8 @@ public class AliasesParser {
 			}
 			
 			// Section nodes are for variations
-			if (node instanceof SectionNode) {
-				VariationGroup vars = loadVariations((SectionNode) node);
+			if (node instanceof SectionNode sectionNode) {
+				VariationGroup vars = loadVariations(sectionNode);
 				if (vars != null) {
 					String groupName = node.getKey();
 					assert groupName != null;
@@ -75,14 +75,14 @@ public class AliasesParser {
 			}
 			
 			// Sanity check
-			if (!(node instanceof EntryNode)) {
+			if (!(node instanceof EntryNode entryNode)) {
 				Skript.error(m_unexpected_section.toString());
 				continue;
 			}
 			
 			// Check for conditions
 			if (conditions.containsKey(key)) {
-				boolean success = conditions.get(key).apply(((EntryNode) node).getValue());
+				boolean success = conditions.get(key).apply(entryNode.getValue());
 				if (!success) { // Failure causes ignoring rest in this section node
 					Skript.debug("Condition " + key + " was NOT met; not loading more");
 					return;
@@ -91,7 +91,7 @@ public class AliasesParser {
 			}
 			
 			// Get value (it always exists)
-			String value = ((EntryNode) node).getValue();
+			String value = entryNode.getValue();
 			
 			loadAlias(key, value);
 		}
@@ -178,12 +178,10 @@ public class AliasesParser {
 	 * @return Variation instance.
 	 */
 	protected Variation parseVariation(String item) {
-		String trimmed = item.trim();
-		assert trimmed != null;
-		item = trimmed; // These could mess up following check among other things
+		item = item.trim(); // These could mess up following check among other things
 		int firstBracket = item.indexOf('{');
 		
-		String id; // Id or alias
+		String id; // ID or alias
 		Map<String, Object> tags;
 		if (firstBracket == -1) {
 			id = item;
@@ -214,9 +212,8 @@ public class AliasesParser {
 			if (stateIndex == 0) {
 				throw new AssertionError("missing id or - in " + id);
 			}
-			typeName = id.substring(0, stateIndex); // Id comes before block state
+			typeName = id.substring(0, stateIndex); // ID comes before block state
 			String statesInput = id.substring(stateIndex + 1, id.length() - 1);
-			assert statesInput != null;
 			blockStates = parseBlockStates(statesInput);
 		} else { // No block state, just the id
 			typeName = id;
@@ -408,19 +405,13 @@ public class AliasesParser {
 	 * @return Map of variations.
 	 */
 	protected Map<String, Variation> parseKeyVariations(String name) {
-		/**
-		 * Variation name start.
-		 */
+		// Variation name start.
 		int varStart = -1;
-		
-		/**
-		 * Variation name end.
-		 */
+
+		// Variation name end.
 		int varEnd = 0;
-		
-		/**
-		 * Variation slots in this name.
-		 */
+
+		// Variation slots in this name.
 		List<PatternSlot> slots = new ArrayList<>();
 		
 		// Compute variation slots
@@ -429,7 +420,6 @@ public class AliasesParser {
 			if (c == '{') { // Found variation name start
 				varStart = i;
 				String part = name.substring(varEnd, i);
-				assert part != null;
 				slots.add(new PatternSlot(part));
 			} else if (c == '}') { // Found variation name end
 				if (varStart == -1) { // Or just invalid syntax
@@ -439,7 +429,6 @@ public class AliasesParser {
 
 				// Extract variation name from full name
 				String varName = name.substring(varStart, i + 1);
-				assert varName != null;
 				// Get variations for that id and hope they exist
 				VariationGroup vars = provider.getVariationGroup(varName);
 				if (vars == null) {
@@ -458,21 +447,18 @@ public class AliasesParser {
 		
 		// Handle last non-variation slot
 		String part = name.substring(varEnd);
-		assert part != null;
 		slots.add(new PatternSlot(part));
 		
 		if (varStart != -1) { // A variation was not properly finished
 			Skript.error(m_not_enough_brackets.toString());
 		}
-		
-		/**
-		 * All possible variations by patterns of them.
-		 */
+
+		// All possible variations by patterns of them.
 		Map<String, Variation> variations = new LinkedHashMap<>();
 		
 		if (slots.size() == 1) {
 			// Fast path: no variations
-			PatternSlot slot = slots.get(0);
+			PatternSlot slot = slots.getFirst();
 			if (!(slot instanceof VariationSlot)) {
 				variations.put(fixName(name), new Variation(null, -1, Collections.emptyMap(), Collections.emptyMap()));
 				return variations;
@@ -482,48 +468,33 @@ public class AliasesParser {
 		
 		// Create all permutations caused by variations
 		while (true) {
-			/**
-			 * Count of pattern slots in this key pattern.
-			 */
+			// Count of pattern slots in this key pattern.
 			int count = slots.size();
-			
-			/**
-			 * Slot index of currently manipulated variation.
-			 */
+
+			// Slot index of currently manipulated variation.
 			int incremented = 0;
-			
-			/**
-			 * This key pattern.
-			 */
+
+			// This key pattern.
 			StringBuilder pattern = new StringBuilder();
 			
 			// Variations replace or add to these after each other
-			
-			/**
-			 * Minecraft id. Can be replaced by subsequent variations.
-			 */
+
+			// Minecraft id. Can be replaced by subsequent variations.
 			String id = null;
-			
-			/**
-			 * Where to insert id of alias that uses this variation.
-			 */
+
+			// Where to insert id of alias that uses this variation.
 			int insertPoint = -1;
-			
-			/**
-			 * Tags by their names. All variations can add and overwrite them.
-			 */
+
+			// Tags by their names. All variations can add and overwrite them.
 			Map<String, Object> tags = new HashMap<>();
-			
-			/**
-			 * Block states. All variations can add and overwrite them.
-			 */
+
+			// Block states. All variations can add and overwrite them.
 			Map<String, String> states = new HashMap<>();
 			
 			// Construct alias name and variations
 			for (int i = 0; i < count; i++) {
 				PatternSlot slot = slots.get(i);
-				if (slot instanceof VariationSlot) { // A variation
-					VariationSlot varSlot = (VariationSlot) slot;
+				if (slot instanceof VariationSlot varSlot) { // A variation
 					pattern.append(varSlot.getName());
 					Variation var = varSlot.getVariation();
 					String varId = var.getId();
@@ -582,7 +553,6 @@ public class AliasesParser {
 			if (comma == -1) { // No more items than this
 				if (indexStart == 0) { // Nothing was loaded, so no commas at all
 					String item = data.trim();
-					assert item != null;
 					loadSingleAlias(variations, item);
 					break;
 				} else {
@@ -591,7 +561,6 @@ public class AliasesParser {
 			}
 			
 			String item = data.substring(start, comma).trim();
-			assert item != null;
 			loadSingleAlias(variations, item);
 			
 			// Set up for next item
@@ -611,7 +580,6 @@ public class AliasesParser {
 		int marker = name.indexOf('¦');
 		if (marker == -1) { // No singular/plural forms
 			String trimmed = name.trim();
-			assert trimmed != null;
 			return new NonNullPair<>(trimmed, trimmed);
 		}
 		int pluralEnd = -1;
@@ -632,8 +600,6 @@ public class AliasesParser {
 			
 			singular = singular.trim();
 			plural = plural.trim();
-			assert singular != null;
-			assert plural != null;
 			return new NonNullPair<>(singular, plural);
 		}
 		
@@ -644,8 +610,6 @@ public class AliasesParser {
 		
 		singular = singular.trim();
 		plural = plural.trim();
-		assert singular != null;
-		assert plural != null;
 		return new NonNullPair<>(singular, plural);
 	}
 	
