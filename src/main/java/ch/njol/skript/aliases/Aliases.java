@@ -466,6 +466,35 @@ public abstract class Aliases {
 			Skript.warning("Any issues you encounter related to modded items will be your responsibility to fix.");
 			Skript.warning("==============================================================");
 		}
+
+		for (Tag<Material> tag : Bukkit.getTags(Tag.REGISTRY_BLOCKS, Material.class)) {
+			registerSingleTag(tag);
+		}
+		for (Tag<Material> tag : Bukkit.getTags(Tag.REGISTRY_ITEMS, Material.class)) {
+			registerSingleTag(tag);
+		}
+	}
+
+	private static void registerSingleTag(Tag<Material> tag) {
+		String keyName = tag.getKey().getKey();
+
+		String singular = keyName.replace("_", " ");
+		String plural = Utils.toEnglishPlural(singular);
+
+		AliasName aliasName = new AliasName(singular, plural, 0);
+
+		for (Material material : tag.getValues()) {
+			if (material.isLegacy()) {
+				continue;
+			}
+
+			String idString = material.getKey().toString().toLowerCase(Locale.ENGLISH).intern();
+
+			try {
+				provider.addAlias(aliasName, idString, Collections.emptyMap(), Collections.emptyMap());
+			} catch (Exception e) {
+			}
+		}
 	}
 
 	private static void loadInternal() throws IOException {
