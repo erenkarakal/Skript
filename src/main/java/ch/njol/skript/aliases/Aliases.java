@@ -3,6 +3,7 @@ package ch.njol.skript.aliases;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.SkriptConfig;
+import ch.njol.skript.aliases.AliasesProvider.AliasName;
 import ch.njol.skript.bukkitutil.ItemUtils;
 import ch.njol.skript.config.Config;
 import ch.njol.skript.config.Node;
@@ -14,11 +15,7 @@ import ch.njol.skript.log.BlockingLogHandler;
 import ch.njol.skript.util.EnchantmentType;
 import ch.njol.skript.util.Utils;
 import ch.njol.skript.util.Version;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
@@ -28,6 +25,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.*;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -517,7 +515,6 @@ public abstract class Aliases {
 				try (FileSystem zipFs = FileSystems.newFileSystem(Paths.get(jarUri), Skript.class.getClassLoader())) {
 					assert zipFs != null;
 					Path aliasesPath = zipFs.getPath("/", "aliases-english");
-					assert aliasesPath != null;
 					loadDirectory(aliasesPath);
 				}
 			} catch (URISyntaxException e) {
@@ -529,16 +526,14 @@ public abstract class Aliases {
 		// Load everything from aliases folder (user aliases)
 		Path aliasesFolder = dataFolder.resolve("aliases");
 		if (Files.exists(aliasesFolder)) {
-			assert aliasesFolder != null;
 			loadDirectory(aliasesFolder);
 		}
 
-		// generate aliases from item names for any missing items
+		// generate aliases from item names for any missing items and tags
 		loadMissingAliases();
 
 		// Update tracked item types
 		for (Map.Entry<String, ItemType> entry : trackedTypes.entrySet()) {
-			@SuppressWarnings("null") // No null keys in this map
 			ItemType type = parseItemType(entry.getKey());
 			if (type == null)
 				Skript.warning("Alias '" + entry.getKey() + "' is required by Skript, but does not exist anymore. "
