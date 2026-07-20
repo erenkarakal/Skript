@@ -22,7 +22,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.bukkit.particles.GameEffect;
 import org.skriptlang.skript.bukkit.particles.particleeffects.ParticleEffect;
-import org.skriptlang.skript.docs.Origin;
 import org.skriptlang.skript.registration.SyntaxInfo;
 import org.skriptlang.skript.registration.SyntaxRegistry;
 
@@ -47,16 +46,15 @@ import org.skriptlang.skript.registration.SyntaxRegistry;
 @Since("2.14")
 public class EffPlayEffect extends Effect {
 
-	public static void register(@NotNull SyntaxRegistry registry, @NotNull Origin origin) {
+	public static void register(SyntaxRegistry registry) {
 		registry.register(SyntaxRegistry.EFFECT, SyntaxInfo.builder(EffPlayEffect.class)
 				.addPatterns(
 					"[:force] (play|show|draw) %gameeffects/particles% [%-directions% %locations%] [as %-player%]",
-					"[:force] (play|draw) %gameeffects/particles% [%-directions% %locations%] (for|to) %-players% [as %-player%]", // show is omitted to avoid conflicts with EffOpenInv
+					"[:force] (play|show|draw) %gameeffects/particles% [%-directions% %locations%] (for|to) %-players% [as %-player%]",
 					"(play|show|draw) %gameeffects% [%-directions% %locations%] (in|with) [a] [view] (radius|range) [of] %number%",
 					"(play|show|draw) %entityeffects% on %entities%"
 				)
 				.supplier(EffPlayEffect::new)
-				.origin(origin)
 				.build());
 	}
 
