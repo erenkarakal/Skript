@@ -17,7 +17,8 @@ import static ch.njol.yggdrasil.Tag.T_REFERENCE;
 // x(): read info & data (e.g. content type, contents) [i.e. no tag]
 // _x(): read data only (e.g. contents)
 public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
-	
+
+	private static final EOFException EOF = new EOFException();
 	private final InputStream in;
 	private final short version;
 	
@@ -37,7 +38,7 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 	private int read() throws IOException {
 		int b = in.read();
 		if (b < 0)
-			throw new EOFException();
+			throw EOF;
 		return b;
 	}
 	
