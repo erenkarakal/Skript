@@ -65,7 +65,7 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 			int i = version <= 1 ? readInt() : readUnsignedInt();
 			if (i < 0 || i > readShortStrings.size())
 				throw new StreamCorruptedException("Invalid short string reference " + i);
-			return "" + readShortStrings.get(i);
+			return readShortStrings.get(i);
 		}
 		byte[] d = new byte[length];
 		readFully(d);
@@ -143,26 +143,17 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 	
 	@Override
 	protected Object readPrimitive(Tag type) throws IOException {
-		switch (type) {
-			case T_BYTE:
-				return readByte();
-			case T_SHORT:
-				return readShort();
-			case T_INT:
-				return readInt();
-			case T_LONG:
-				return readLong();
-			case T_FLOAT:
-				return readFloat();
-			case T_DOUBLE:
-				return readDouble();
-			case T_CHAR:
-				return readChar();
-			case T_BOOLEAN:
-				return readBoolean();
-			default:
-				throw new YggdrasilException("Internal error; " + type);
-		}
+		return switch (type) {
+			case T_BYTE -> readByte();
+			case T_SHORT -> readShort();
+			case T_INT -> readInt();
+			case T_LONG -> readLong();
+			case T_FLOAT -> readFloat();
+			case T_DOUBLE -> readDouble();
+			case T_CHAR -> readChar();
+			case T_BOOLEAN -> readBoolean();
+			default -> throw new YggdrasilException("Internal error; " + type);
+		};
 	}
 	
 	@Override
@@ -205,40 +196,16 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 		int dimensions = 0;
 		while ((type = readTag()) == T_ARRAY)
 			dimensions++;
-		Class<?> clazz;
-		switch (type) {
-			case T_OBJECT:
-			case T_ENUM:
-				clazz = yggdrasil.getClass(readShortString());
-				break;
-			case T_BOOLEAN:
-			case T_BOOLEAN_OBJ:
-			case T_BYTE:
-			case T_BYTE_OBJ:
-			case T_CHAR:
-			case T_CHAR_OBJ:
-			case T_DOUBLE:
-			case T_DOUBLE_OBJ:
-			case T_FLOAT:
-			case T_FLOAT_OBJ:
-			case T_INT:
-			case T_INT_OBJ:
-			case T_LONG:
-			case T_LONG_OBJ:
-			case T_SHORT:
-			case T_SHORT_OBJ:
-			case T_CLASS:
-			case T_STRING:
+		Class<?> clazz = switch (type) {
+			case T_OBJECT, T_ENUM -> yggdrasil.getClass(readShortString());
+			case T_BOOLEAN, T_BOOLEAN_OBJ, T_BYTE, T_BYTE_OBJ, T_CHAR, T_CHAR_OBJ, T_DOUBLE, T_DOUBLE_OBJ, T_FLOAT,
+			     T_FLOAT_OBJ, T_INT, T_INT_OBJ, T_LONG, T_LONG_OBJ, T_SHORT, T_SHORT_OBJ, T_CLASS, T_STRING -> {
 				assert type.type != null;
-				clazz = type.type;
-				break;
-			case T_NULL:
-			case T_REFERENCE:
-				throw new StreamCorruptedException("unexpected tag " + type);
-			case T_ARRAY:
-			default:
-				throw new YggdrasilException("Internal error; " + type);
-		}
+				yield type.type;
+			}
+			case T_NULL, T_REFERENCE -> throw new StreamCorruptedException("unexpected tag " + type);
+			default -> throw new YggdrasilException("Internal error; " + type);
+		};
 		while (dimensions-- > 0)
 			clazz = CollectionUtils.arrayType(clazz);
 		return clazz;
