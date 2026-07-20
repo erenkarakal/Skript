@@ -7,6 +7,7 @@ public class FastEOFException extends EOFException {
 	public FastEOFException() {
 		super();
 	}
+
 	public FastEOFException(String message) {
 		super(message);
 	}
