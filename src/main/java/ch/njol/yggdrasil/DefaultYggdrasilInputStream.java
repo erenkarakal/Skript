@@ -18,7 +18,6 @@ import static ch.njol.yggdrasil.Tag.T_REFERENCE;
 // _x(): read data only (e.g. contents)
 public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 
-	private static final EOFException EOF = new EOFException();
 	private final InputStream in;
 	private final short version;
 	
@@ -33,12 +32,12 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 	}
 	
 	/**
-	 * @throws EOFException If the end of the stream is reached
+	 * @throws FastEOFException If the end of the stream is reached
 	 */
 	private int read() throws IOException {
 		int b = in.read();
 		if (b < 0)
-			throw EOF;
+			throw new FastEOFException();
 		return b;
 	}
 	
@@ -52,7 +51,7 @@ public final class DefaultYggdrasilInputStream extends YggdrasilInputStream {
 		while (length > 0) {
 			int n = in.read(buf, offset, length);
 			if (n < 0)
-				throw new EOFException("Expected " + startLength + " bytes, but could only read " + (startLength - length));
+				throw new FastEOFException("Expected " + startLength + " bytes, but could only read " + (startLength - length));
 			offset += n;
 			length -= n;
 		}
