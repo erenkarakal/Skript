@@ -95,6 +95,9 @@ public class ExprTime extends PropertyExpression<World, Time> {
 		}
 
 		for (World world : worlds) {
+			if (world.getTime() == 0)
+				continue; // the world doesn't have a world clock, can't modify time
+
 			switch (mode) {
 				case ADD:
 					world.setTime(world.getTime() + ticks);
