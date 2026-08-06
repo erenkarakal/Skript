@@ -56,7 +56,7 @@ public class StructOptions extends Structure {
 		SectionNode node = entryContainer.getSource();
 		node.convertToEntries(-1);
 		OptionRegistry optionRegistry = Skript.instance().registry(OptionRegistry.class);
-		optionRegistry.loadLocalOptions(script, node);
+		optionRegistry.loadOptions(script, node);
 		script.getData(OptionsData.class, () -> new OptionsData(script));
 		return true;
 	}

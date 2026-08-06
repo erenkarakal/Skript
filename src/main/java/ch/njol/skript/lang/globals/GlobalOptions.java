@@ -33,6 +33,7 @@ public class GlobalOptions extends GlobalFile {
 			config.getMainNode().convertToEntries(-1);
 			addon().registry(OptionRegistry.class).loadGlobalOptions(config.getMainNode());
 		} catch (IOException e) {
+			// noinspection ThrowableNotThrown
 			Skript.exception(e, "Error while loading global options");
 		}
 	}

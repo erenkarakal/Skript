@@ -1,17 +1,19 @@
 package ch.njol.skript.lang;
 
+import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAPIException;
 import ch.njol.skript.config.EntryNode;
 import ch.njol.skript.config.Node;
 import ch.njol.skript.config.SectionNode;
-import ch.njol.util.StringUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
+import org.skriptlang.skript.lang.script.ScriptData;
 import org.skriptlang.skript.util.Registry;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,18 +27,29 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * If 'script' is null, it's stored as a global option
 	 * Otherwise, it is local to the script
 	 */
-	private final Map<Script, ScriptOptions> scriptOptions = new HashMap<>();
+	private final Map<Script, ScriptOptions> scriptOptions = Collections.synchronizedMap(new HashMap<>());
 
-	public class ScriptOptions {
 
-		private final Map<String, String> options = new HashMap<>();
-		private final @Nullable Script script;
+	/**
+	 * The key used to store global options. Intended for internal use.
+	 * @see #getGlobalOptions()
+	 */
+	@ApiStatus.Internal
+	public final Script GLOBAL_OPTIONS_SCRIPT = ScriptLoader.createDummyScript("global options", null);
 
-		private ScriptOptions(@Nullable Script script) {
+	/**
+	 * Stores the options of a single script, or the global options.
+	 */
+	public class ScriptOptions implements ScriptData {
+
+		private final Map<String, String> options = new ConcurrentHashMap<>();
+		private final Script script;
+
+		private ScriptOptions(Script script) {
 			this.script = script;
 		}
 
-		public @Nullable Script script() {
+		public Script script() {
 			return script;
 		}
 
@@ -123,23 +136,21 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * @param option The option's name
 	 * @return The script specific option, or global option, or null
 	 */
-	public String getOption(Script script, String option) {
+	public @Nullable String getOption(@Nullable Script script, String option) {
 		ScriptOptions scriptOptions = this.scriptOptions.get(script);
 		if (scriptOptions != null && scriptOptions.exists(option)) {
 			return scriptOptions.get(option);
 		}
 
-		ScriptOptions globalOptions = this.scriptOptions.get(null);
-		return globalOptions.get(option);
+		return getGlobalOptions().get(option);
 	}
 
 	/**
 	 * Gets all global options
 	 */
 	public ScriptOptions getGlobalOptions() {
-		return scriptOptions.get(null);
+		return scriptOptions.get(GLOBAL_OPTIONS_SCRIPT);
 	}
-
 
 	/**
 	 * Returns all local options of a script
@@ -155,13 +166,16 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	}
 
 	/**
-	 * Loads global options
-	 * @param sectionNode The initial node to load options from
+	 * Gets local options for a script, creating them if they do not yet exist.
+	 * Use this ONLY when you are about to add/modify options.
+	 * @return The script's options.
 	 */
-	@ApiStatus.Internal
-	public void loadGlobalOptions(SectionNode sectionNode) {
-		scriptOptions.computeIfAbsent(null, ScriptOptions::new);
-		loadLocalOptions(null, sectionNode);
+	public ScriptOptions getOrCreateLocalOptions(Script script) {
+		if (script == null) {
+			throw new SkriptAPIException("script cannot be null");
+		}
+
+		return scriptOptions.computeIfAbsent(script, ScriptOptions::new);
 	}
 
 	/**
@@ -170,10 +184,19 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * @param sectionNode The initial node to load options from
 	 */
 	@ApiStatus.Internal
-	public void loadLocalOptions(Script script, SectionNode sectionNode) {
+	public void loadOptions(Script script, SectionNode sectionNode) {
 		scriptOptions.computeIfAbsent(script, ScriptOptions::new);
 		ScriptOptions scriptOptions = this.scriptOptions.get(script);
 		loadOptions(sectionNode, "", scriptOptions.optionsMap());
+	}
+
+	/**
+	 * Loads global options
+	 * @param sectionNode The initial node to load options from
+	 */
+	@ApiStatus.Internal
+	public void loadGlobalOptions(SectionNode sectionNode) {
+		loadOptions(GLOBAL_OPTIONS_SCRIPT, sectionNode);
 	}
 
 	@Override
