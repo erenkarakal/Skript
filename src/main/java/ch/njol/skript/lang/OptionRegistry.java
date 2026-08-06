@@ -27,7 +27,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * If 'script' is null, it's stored as a global option
 	 * Otherwise, it is local to the script
 	 */
-	private final Map<Script, ScriptOptions> scriptOptions = Collections.synchronizedMap(new HashMap<>());
+	private final Map<Script, ScriptOptions> scriptOptions = new ConcurrentHashMap<>();
 
 
 	/**
