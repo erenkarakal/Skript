@@ -9,7 +9,6 @@ import ch.njol.skript.config.SectionNode;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.script.Script;
-import org.skriptlang.skript.lang.script.ScriptData;
 import org.skriptlang.skript.util.Registry;
 
 import java.util.*;
@@ -31,7 +30,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 
 
 	/**
-	 * The key used to store global options. Intended for internal use.
+	 * The key used to store global options.
 	 * @see #getGlobalOptions()
 	 */
 	private final Script GLOBAL_OPTIONS_SCRIPT = ScriptLoader.createDummyScript("global options", null);
@@ -39,7 +38,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	/**
 	 * Stores the options of a single script, or the global options.
 	 */
-	public class ScriptOptions implements ScriptData {
+	public class ScriptOptions {
 
 		private final Map<String, String> options = new ConcurrentHashMap<>();
 		private final Script script;
