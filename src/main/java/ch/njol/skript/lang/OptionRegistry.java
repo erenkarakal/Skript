@@ -34,8 +34,7 @@ public class OptionRegistry implements Registry<OptionRegistry.ScriptOptions> {
 	 * The key used to store global options. Intended for internal use.
 	 * @see #getGlobalOptions()
 	 */
-	@ApiStatus.Internal
-	public final Script GLOBAL_OPTIONS_SCRIPT = ScriptLoader.createDummyScript("global options", null);
+	private final Script GLOBAL_OPTIONS_SCRIPT = ScriptLoader.createDummyScript("global options", null);
 
 	/**
 	 * Stores the options of a single script, or the global options.
