@@ -48,9 +48,7 @@ class DisableCommand extends SubCommand {
 			} else {
 				disableSpecificScript(sender, scriptFile);
 			}
-
 		}
-
 	}
 
 	@Override
