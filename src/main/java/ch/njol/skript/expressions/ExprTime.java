@@ -80,19 +80,18 @@ public class ExprTime extends PropertyExpression<World, Time> {
 
 		World[] worlds = getExpr().getArray(event);
 
-		long ticks = 0;
-		switch (t) {
+		long ticks = switch (t) {
 			case Time time -> {
 				if (mode != ChangeMode.SET) {
-					ticks = time.getTicks() - TIME_TO_TIMESPAN_OFFSET;
+					yield time.getTicks() - TIME_TO_TIMESPAN_OFFSET;
 				} else {
-					ticks = time.getTicks();
+					yield time.getTicks();
 				}
 			}
-			case Timespan timespan -> ticks = timespan.getAs(TimePeriod.TICK);
-			case Timeperiod timeperiod -> ticks = timeperiod.start;
-			default -> {}
-		}
+			case Timespan timespan -> timespan.getAs(TimePeriod.TICK);
+			case Timeperiod timeperiod -> timeperiod.start;
+			default -> 0;
+		};
 
 		for (World world : worlds) {
 			if (world.getFullTime() == 0)
