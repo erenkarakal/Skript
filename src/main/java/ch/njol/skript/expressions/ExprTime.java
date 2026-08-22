@@ -60,7 +60,7 @@ public class ExprTime extends PropertyExpression<World, Time> {
 
 	@Override
 	@Nullable
-	public Class<?>[] acceptChange(ChangeMode mode) {
+	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
 		return switch (mode) {
 			case ADD, REMOVE ->
 				// allow time to avoid conversion to timespan, which causes all sorts of headaches
