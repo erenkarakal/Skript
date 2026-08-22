@@ -59,7 +59,6 @@ public class ExprTime extends PropertyExpression<World, Time> {
 	}
 
 	@Override
-	@Nullable
 	public Class<?> @Nullable [] acceptChange(ChangeMode mode) {
 		return switch (mode) {
 			case ADD, REMOVE ->
