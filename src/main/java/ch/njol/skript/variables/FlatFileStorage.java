@@ -108,7 +108,7 @@ public class FlatFileStorage extends VariablesStorage {
 	/**
 	 * Create a new CSV storage of the given name.
 	 *
-	 * @param type the databse type i.e. CSV.
+	 * @param type the database type i.e. CSV.
 	 */
 	FlatFileStorage(String type) {
 		super(type);
@@ -120,7 +120,6 @@ public class FlatFileStorage extends VariablesStorage {
 	 * Doesn't lock the connection, as required by
 	 * {@link Variables#variableLoaded(String, Object, VariablesStorage)}.
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	protected boolean load_i(SectionNode sectionNode) {
 		SkriptLogger.setNode(null);
@@ -171,7 +170,7 @@ public class FlatFileStorage extends VariablesStorage {
 					// Invalid CSV line
 
 					Skript.error("invalid amount of commas in line " + lineNum + " ('" + line + "')");
-					if (invalid.length() != 0)
+					if (!invalid.isEmpty())
 						invalid.append(", ");
 
 					invalid.append(split == null ? "<unknown>" : split[0]);
@@ -185,6 +184,7 @@ public class FlatFileStorage extends VariablesStorage {
 					Object deserializedValue;
 					if (update2_1) {
 						// Use old deserialization if variables come from old Skript version
+						// noinspection removal
 						deserializedValue = Classes.deserialize(split[1], split[2]);
 					} else {
 						deserializedValue = Classes.deserialize(split[1], decode(split[2]));
@@ -192,7 +192,7 @@ public class FlatFileStorage extends VariablesStorage {
 
 					if (deserializedValue == null) {
 						// Couldn't deserialize variable
-						if (invalid.length() != 0)
+						if (!invalid.isEmpty())
 							invalid.append(", ");
 
 						invalid.append(split[0]);
@@ -213,7 +213,7 @@ public class FlatFileStorage extends VariablesStorage {
 			if (unsuccessfulVariableCount > 0) {
 				Skript.error(unsuccessfulVariableCount + " variable" + (unsuccessfulVariableCount == 1 ? "" : "s") +
 						" could not be loaded!");
-				Skript.error("Affected variables: " + invalid.toString());
+				Skript.error("Affected variables: " + invalid);
 			}
 
 			if (ioException != null) {
@@ -321,7 +321,7 @@ public class FlatFileStorage extends VariablesStorage {
 	}
 
 	@Override
-	protected boolean save(String name, @Nullable String type, @Nullable byte[] value) {
+	protected boolean save(String name, @Nullable String type, byte @Nullable [] value) {
 		synchronized (connectionLock) {
 			synchronized (changesWriter) {
 				if (!loaded && type == null) {
@@ -401,7 +401,7 @@ public class FlatFileStorage extends VariablesStorage {
 					//  the data in the actual file may be partially lost)
 					File tempFile = new File(file.getParentFile(), file.getName() + ".temp");
 
-					try (PrintWriter pw = new PrintWriter(tempFile, "UTF-8")) {
+					try (PrintWriter pw = new PrintWriter(tempFile, StandardCharsets.UTF_8)) {
 						pw.println("# === Skript's variable storage ===");
 						pw.println("# Please do not modify this file manually!");
 						pw.println("#");
@@ -639,7 +639,6 @@ public class FlatFileStorage extends VariablesStorage {
 	/**
 	 * Change the required amount of variable changes until variables are saved.
 	 * Cannot be zero or less.
-	 * @param value
 	 */
 	public static void setRequiredChangesForResave(int value) {
 		if (value <= 0) {
