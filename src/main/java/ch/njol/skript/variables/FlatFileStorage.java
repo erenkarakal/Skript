@@ -321,34 +321,42 @@ public class FlatFileStorage extends VariablesStorage {
 	}
 
 	@Override
-	protected boolean save(String name, @Nullable String type, @Nullable byte[] value) {
-		synchronized (connectionLock) {
+	protected boolean save(String name, @Nullable String type, byte @Nullable [] value) {
+		while (true) {
+			PrintWriter printWriter;
 			synchronized (changesWriter) {
-				if (!loaded && type == null) {
-					// deleting variables is not really required for this kind of storage,
-					//  as it will be completely rewritten every once in a while,
-					//  and at least once when the server stops.
-					return true;
-				}
-
-				// Get the PrintWriter, waiting for it to be available if needed
-				PrintWriter printWriter;
 				while ((printWriter = changesWriter.get()) == null) {
 					try {
 						changesWriter.wait();
 					} catch (InterruptedException e) {
-						// Re-interrupt thread
 						Thread.currentThread().interrupt();
+						return false;
 					}
 				}
+			}
 
-				writeCSV(printWriter, name, type, value == null ? "" : encode(value));
-				printWriter.flush();
+			synchronized (connectionLock) {
+				synchronized (changesWriter) {
+					PrintWriter current = changesWriter.get();
+					if (current == null || current != printWriter) {
+						// writer was closed/replaced between the gap this block and above block, wait for a new one
+						continue;
+					}
 
-				changes.incrementAndGet();
+					if (!loaded && type == null) {
+						// deleting variables is not really required for this kind of storage,
+						// as it will be completely rewritten every once in a while,
+						// and at least once when the server stops.
+						return true;
+					}
+
+					writeCSV(current, name, type, value == null ? "" : encode(value));
+					current.flush();
+					changes.incrementAndGet();
+					return true;
+				}
 			}
 		}
-		return true;
 	}
 
 	/**
@@ -415,7 +423,6 @@ public class FlatFileStorage extends VariablesStorage {
 					} catch (IOException e) {
 						Skript.error("Unable to make a final save of the database '" + getUserConfigurationName() +
 								"' (no variables are lost): " + ExceptionUtils.toString(e));
-						// FIXME happens at random - check locks/threads
 					}
 				} finally {
 					// Reconnect if needed
