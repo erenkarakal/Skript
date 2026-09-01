@@ -37,17 +37,17 @@ class EnableCommand extends SubCommand {
 		try (RedirectingLogHandler redirectingLogHandler = new RedirectingLogHandler(sender, "").start()) {
 			if (args[1].equalsIgnoreCase("all")) {
 				enableAll(sender, redirectingLogHandler);
-			} else {
-				String scriptName = StringUtils.join(args, " ", 1, args.length);
-				File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
-				if (scriptFile == null)
-					return;
+				return;
+			}
+			String scriptName = StringUtils.join(args, " ", 1, args.length);
+			File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
+			if (scriptFile == null)
+				return;
 
-				if (scriptFile.isDirectory()) {
-					enableFolder(sender, redirectingLogHandler, scriptFile);
-				} else {
-					enableSpecificScript(sender, redirectingLogHandler, scriptFile, args);
-				}
+			if (scriptFile.isDirectory()) {
+				enableFolder(sender, redirectingLogHandler, scriptFile);
+			} else {
+				enableSpecificScript(sender, redirectingLogHandler, scriptFile, args);
 			}
 		}
 	}

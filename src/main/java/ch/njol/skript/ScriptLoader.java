@@ -13,6 +13,7 @@ import ch.njol.skript.log.SkriptLogger;
 import ch.njol.skript.structures.StructOptions.OptionsData;
 import ch.njol.skript.test.runner.TestMode;
 import ch.njol.skript.util.ExceptionUtils;
+import ch.njol.skript.util.FileUtils;
 import ch.njol.skript.util.Task;
 import ch.njol.skript.util.Timespan;
 import ch.njol.skript.variables.HintManager;
@@ -1356,7 +1357,7 @@ public class ScriptLoader {
 			}
 		}
 
-		if (containsSymlink(scriptFile.toPath(), directory.toPath())) {
+		if (FileUtils.containsSymlink(scriptFile.toPath(), directory.toPath())) {
 			return scriptFile.getAbsoluteFile();
 		}
 
@@ -1369,25 +1370,6 @@ public class ScriptLoader {
 		} catch (IOException e) {
 			throw Skript.exception(e, "An exception occurred while trying to get the script file from the string '" + script + "'");
 		}
-	}
-
-	/**
-	 * Checks whether the given path or any of its parents is a symbolic link until the root is reached.
-	 *
-	 * @param path the path to check
-	 * @param root the root directory to stop at
-	 * @return true if a symbolic link is found, false otherwise
-	 */
-	private static boolean containsSymlink(Path path, Path root) {
-		path = path.toAbsolutePath();
-		root = root.toAbsolutePath();
-
-		while (path != null && !path.equals(root)) {
-			if (Files.isSymbolicLink(path))
-				return true;
-			path = path.getParent();
-		}
-		return false;
 	}
 
 }

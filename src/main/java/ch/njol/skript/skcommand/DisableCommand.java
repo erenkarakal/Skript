@@ -37,17 +37,16 @@ class DisableCommand extends SubCommand {
 	public void execute(@NotNull CommandSender sender, @NotNull String @NotNull [] args) {
 		if (args[1].equalsIgnoreCase("all")) {
 			disableAll(sender);
-		} else {
-			String scriptName = StringUtils.join(args, " ", 1, args.length);
-			File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
-			if (scriptFile == null) // TODO allow disabling deleted/renamed scripts
-				return;
+		}
+		String scriptName = StringUtils.join(args, " ", 1, args.length);
+		File scriptFile = ScriptCommandUtils.getScriptFromName(sender, scriptName);
+		if (scriptFile == null) // TODO allow disabling deleted/renamed scripts
+			return;
 
-			if (scriptFile.isDirectory()) {
-				disableFolder(sender, scriptFile);
-			} else {
-				disableSpecificScript(sender, scriptFile);
-			}
+		if (scriptFile.isDirectory()) {
+			disableFolder(sender, scriptFile);
+		} else {
+			disableSpecificScript(sender, scriptFile);
 		}
 	}
 
