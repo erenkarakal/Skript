@@ -30,12 +30,17 @@ import java.util.List;
 public class ExprRawName extends PropertyExpression<Object, String> {
 	
 	static {
-		register(ExprRawName.class, String.class, "(raw|minecraft|vanilla) name[s]", "itemtypes/entitydatas");
+		register(ExprRawName.class, String.class, "(:raw|minecraft|vanilla) name[s]", "itemtypes/entitydatas");
 	}
 
 	@Override
 	public boolean init(Expression<?>[] expressions, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
 		setExpr(expressions[0]);
+
+		if (parseResult.hasTag("raw")) {
+			Skript.warning("The 'raw name' expression was deprecated and will be removed in the future. Use 'mineraft name' instead");
+		}
+
 		return true;
 	}
 
