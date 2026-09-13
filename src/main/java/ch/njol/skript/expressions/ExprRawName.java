@@ -49,7 +49,7 @@ public class ExprRawName extends PropertyExpression<Object, String> {
 		List<String> result = new ArrayList<>();
 		for (Object object : source) {
 			if (object instanceof ItemType itemType) {
-				result.addAll(itemType.getRawNames());
+				result.add(itemType.getRawNames().getFirst());
 			} else if (object instanceof EntityData<?> entityData) {
 				result.add(EntityUtils.toBukkitEntityType(entityData).getKey().asString());
 			}
