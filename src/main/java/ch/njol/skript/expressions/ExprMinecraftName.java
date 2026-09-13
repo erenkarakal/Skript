@@ -1,5 +1,6 @@
 package ch.njol.skript.expressions;
 
+import ch.njol.skript.Skript;
 import ch.njol.skript.aliases.ItemType;
 import ch.njol.skript.bukkitutil.EntityUtils;
 import ch.njol.skript.entity.EntityData;
@@ -18,19 +19,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Name("Raw Name")
+@Name("Minecraft Name")
 @Description("""
 	The raw Minecraft material name of the given item or entity type.
-	This expression may return multiple names for item types, but always returns a single name per entity data.
 	Note that this is not guaranteed to give same results on all servers.
 	""")
-@Example("raw name of tool of player")
-@Example("raw name of (type of event-entity)")
+@Example("minecraft name of tool of player")
+@Example("vanilla name of type of event-entity")
 @Since("unknown (2.2), entity types (INSERT VERSION)")
-public class ExprRawName extends PropertyExpression<Object, String> {
+public class ExprMinecraftName extends PropertyExpression<Object, String> {
 	
 	static {
-		register(ExprRawName.class, String.class, "(:raw|minecraft|vanilla) name[s]", "itemtypes/entitydatas");
+		register(ExprMinecraftName.class, String.class, "(:raw|minecraft|vanilla) name[s]", "itemtypes/entitydatas");
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class ExprRawName extends PropertyExpression<Object, String> {
 
 	@Override
 	public String toString(@Nullable Event event, boolean debug) {
-		return "raw name of " + getExpr().toString(event, debug);
+		return "vanilla name of " + getExpr().toString(event, debug);
 	}
 
 }
